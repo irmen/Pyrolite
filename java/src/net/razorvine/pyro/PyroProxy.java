@@ -52,7 +52,7 @@ public class PyroProxy implements Serializable {
 	 * Create a proxy for the remote Pyro object denoted by the uri
 	 */
 	public PyroProxy(PyroURI uri) throws UnknownHostException, IOException {
-		this(uri.host, uri.port, uri.object);
+		this(uri.host, uri.port, uri.objectid);
 	}
 
 	/**
@@ -111,14 +111,17 @@ public class PyroProxy implements Serializable {
 		Object[] invokeparams = new Object[] { objectid, method, parameters, // vargs
 				Collections.EMPTY_MAP // kwargs
 		};
-		Pickler pickler=new Pickler();
+		Pickler pickler=new Pickler(false);
 		byte[] pickle = pickler.dumps(invokeparams);
 		pickler.close();
 		byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.MSG_INVOKE, pickle, flags, sequenceNr);
 		Message resultmsg;
-		synchronized (pickle) {
+		synchronized (this.sock) {
 			IOUtil.send(sock_out, headerdata);
 			IOUtil.send(sock_out, pickle);
+			if(Config.MSG_TRACE_DIR!=null) {
+				MessageFactory.TraceMessageSend(sequenceNr, headerdata, pickle);
+			}
 			pickle = null;
 			headerdata = null;
 
@@ -177,8 +180,12 @@ public class PyroProxy implements Serializable {
 	public void close() {
 		if (this.sock != null)
 			try {
+				this.sock_in.close();
+				this.sock_out.close();
 				this.sock.close();
 				this.sock=null;
+				this.sock_in=null;
+				this.sock_out=null;
 			} catch (IOException e) {
 			}
 	}

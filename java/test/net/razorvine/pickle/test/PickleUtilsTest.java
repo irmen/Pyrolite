@@ -1,9 +1,6 @@
 package net.razorvine.pickle.test;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -191,6 +188,15 @@ public class PickleUtilsTest {
 		assertEquals(-32768L, p.decode_long(new byte[]{0x00,(byte)0x80}));
 		assertEquals(-128L, p.decode_long(new byte[]{(byte)0x80}));
 		assertEquals(127L, p.decode_long(new byte[]{0x7f}));
+		assertEquals(128L, p.decode_long(new byte[]{(byte)0x80, 0x00}));
+
+		assertEquals(128L, p.decode_long(new byte[]{(byte)0x80, 0x00}));
+		assertEquals(0x78563412L, p.decode_long(new byte[]{0x12,0x34,0x56,0x78}));
+		assertEquals(0x785634f2L, p.decode_long(new byte[]{(byte)0xf2,0x34,0x56,0x78}));
+		assertEquals(0x12345678L, p.decode_long(new byte[]{0x78,0x56,0x34,0x12}));
+		
+		assertEquals(-231451016L, p.decode_long(new byte[]{0x78,0x56,0x34,(byte)0xf2}));
+		assertEquals(0xf2345678L, p.decode_long(new byte[]{0x78,0x56,0x34,(byte)0xf2,0x00}));
 	}
 	
 	@Test
@@ -202,5 +208,8 @@ public class PickleUtilsTest {
 		assertArrayEquals(new byte[]{0x00, (byte)0x80}, p.encode_long(BigInteger.valueOf(-32768)));
 		assertArrayEquals(new byte[]{0x56,0x34,0x12}, p.encode_long(BigInteger.valueOf(0x123456)));
 		assertArrayEquals(new byte[]{(byte)0x99,(byte)0x88,0x77,0x66,0x55,0x44,0x33,0x22,0x11}, p.encode_long(new BigInteger("112233445566778899",16)));
+		
+		assertArrayEquals(new byte[]{0x78,0x56,0x34,(byte)0xf2}, p.encode_long(BigInteger.valueOf(-231451016L)));	
+		assertArrayEquals(new byte[]{0x78,0x56,0x34,(byte)0xf2,0x00}, p.encode_long(BigInteger.valueOf(0xf2345678L)));
 	}
 }

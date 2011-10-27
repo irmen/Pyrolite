@@ -12,9 +12,9 @@ import java.util.regex.Pattern;
  */
 public class PyroURI implements Serializable {
 
-	private static final long serialVersionUID = 1341548046126997560L;
+	private static final long serialVersionUID = -7611447798373262153L;
 	String protocol = "PYRO";
-	String object;
+	String objectid;
 	String host;
 	int port;
 
@@ -23,7 +23,7 @@ public class PyroURI implements Serializable {
 
 	public PyroURI(PyroURI other) {
 		protocol = other.protocol;
-		object = other.object;
+		objectid = other.objectid;
 		host = other.host;
 		port = other.port;
 	}
@@ -33,7 +33,7 @@ public class PyroURI implements Serializable {
 		Matcher m = p.matcher(uri);
 		if (m.find()) {
 			protocol = m.group(1);
-			object = m.group(2);
+			objectid = m.group(2);
 			String[] loc = m.group(4).split(":");
 			host = loc[0];
 			port = Integer.parseInt(loc[1]);
@@ -42,14 +42,14 @@ public class PyroURI implements Serializable {
 		}
 	}
 
-	public PyroURI(String object, String host, int port) {
-		this.object = object;
+	public PyroURI(String objectid, String host, int port) {
+		this.objectid = objectid;
 		this.host = host;
 		this.port = port;
 	}
 
 	public String toString() {
-		return "<PyroURI " + protocol + ":" + object + "@" + host + ":" + port + ">";
+		return "<PyroURI " + protocol + ":" + objectid + "@" + host + ":" + port + ">";
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class PyroURI implements Serializable {
 	 */
 	public void setState(Object[] args) throws IOException {
 		this.protocol = (String) args[0];
-		this.object = (String) args[1];
+		this.objectid = (String) args[1];
 		this.host = (String) args[3];
 		this.port = (Integer) args[4];
 	}

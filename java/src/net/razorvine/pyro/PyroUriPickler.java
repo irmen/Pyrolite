@@ -23,7 +23,7 @@ public class PyroUriPickler implements IObjectPickler {
 		out.write(Opcodes.NEWOBJ);
 		out.write(Opcodes.MARK);
 		currentPickler.save(uri.protocol);
-		currentPickler.save(uri.object);
+		currentPickler.save(uri.objectid);
 		currentPickler.save(null);
 		currentPickler.save(uri.host);
 		currentPickler.save(uri.port);

@@ -1,0 +1,63 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+# SharpDevelop 4.0.0.7070
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite.Tests", "Pyrolite.Tests\Pyrolite.Tests.csproj", "{13104365-F133-41BD-AA6B-FF66501D6510}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite", "Pyrolite\Pyrolite.csproj", "{E6EAC69D-D42A-4A86-AFBE-18A1013BFDAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebugHelp", "DebugHelp\DebugHelp.csproj", "{494AB1F4-C9A9-4DC5-B8A9-FF5A0A125360}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite.TestPyroNaming", "Pyrolite.TestPyroNaming\Pyrolite.TestPyroNaming.csproj", "{437D60A2-6D3C-403C-89B8-3C91E342C915}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite.TestPyroEcho", "Pyrolite.TestPyroEcho\Pyrolite.TestPyroEcho.csproj", "{E20B1336-543E-4F3D-8F9F-19723B4346A7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{13104365-F133-41BD-AA6B-FF66501D6510}.Debug|x86.ActiveCfg = Debug|x86
+		{13104365-F133-41BD-AA6B-FF66501D6510}.Debug|x86.Build.0 = Debug|x86
+		{13104365-F133-41BD-AA6B-FF66501D6510}.Release|x86.ActiveCfg = Release|x86
+		{13104365-F133-41BD-AA6B-FF66501D6510}.Release|x86.Build.0 = Release|x86
+		{494AB1F4-C9A9-4DC5-B8A9-FF5A0A125360}.Debug|x86.ActiveCfg = Debug|x86
+		{494AB1F4-C9A9-4DC5-B8A9-FF5A0A125360}.Debug|x86.Build.0 = Debug|x86
+		{494AB1F4-C9A9-4DC5-B8A9-FF5A0A125360}.Release|x86.ActiveCfg = Release|x86
+		{494AB1F4-C9A9-4DC5-B8A9-FF5A0A125360}.Release|x86.Build.0 = Release|x86
+		{E6EAC69D-D42A-4A86-AFBE-18A1013BFDAB}.Debug|x86.ActiveCfg = Debug|x86
+		{E6EAC69D-D42A-4A86-AFBE-18A1013BFDAB}.Debug|x86.Build.0 = Debug|x86
+		{E6EAC69D-D42A-4A86-AFBE-18A1013BFDAB}.Release|x86.ActiveCfg = Release|x86
+		{E6EAC69D-D42A-4A86-AFBE-18A1013BFDAB}.Release|x86.Build.0 = Release|x86
+		{437D60A2-6D3C-403C-89B8-3C91E342C915}.Debug|x86.Build.0 = Debug|x86
+		{437D60A2-6D3C-403C-89B8-3C91E342C915}.Debug|x86.ActiveCfg = Debug|x86
+		{437D60A2-6D3C-403C-89B8-3C91E342C915}.Release|x86.Build.0 = Release|x86
+		{437D60A2-6D3C-403C-89B8-3C91E342C915}.Release|x86.ActiveCfg = Release|x86
+		{E20B1336-543E-4F3D-8F9F-19723B4346A7}.Debug|x86.Build.0 = Debug|x86
+		{E20B1336-543E-4F3D-8F9F-19723B4346A7}.Debug|x86.ActiveCfg = Debug|x86
+		{E20B1336-543E-4F3D-8F9F-19723B4346A7}.Release|x86.Build.0 = Release|x86
+		{E20B1336-543E-4F3D-8F9F-19723B4346A7}.Release|x86.ActiveCfg = Release|x86
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = DebugHelp\DebugHelp.csproj
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = None
+		$1.ResourceNamePolicy = FileFormatDefault
+		$0.TextStylePolicy = $2
+		$2.inheritsSet = Mono
+		$2.inheritsScope = text/plain
+		$2.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $3
+		$3.inheritsSet = Mono
+		$3.inheritsScope = text/x-csharp
+		$3.scope = text/x-csharp
+		$0.TextStylePolicy = $4
+		$4.FileWidth = 120
+		$4.TabWidth = 4
+		$4.inheritsSet = Mono
+		$4.inheritsScope = text/plain
+		$4.scope = text/plain
+	EndGlobalSection
+EndGlobal

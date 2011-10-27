@@ -1,4 +1,6 @@
 package net.razorvine.pyro;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
@@ -100,6 +102,9 @@ class MessageFactory
 			throw new PyroException("invalid msg type received: "+header.type);
 		}
 		byte[] data=IOUtil.recv(connection, header.datasize);
+		if(Config.MSG_TRACE_DIR!=null) {
+			TraceMessageRecv(header.sequence, headerdata, data);
+		}
 		if(((header.flags&FLAGS_HMAC) != 0) && (Config.HMAC_KEY!=null)) {
 			if(!Arrays.equals(header.hmac, makeHMAC(data))) {
 				throw new PyroException("message hmac mismatch");
@@ -114,6 +119,28 @@ class MessageFactory
 		msg.sequence=header.sequence;
 		msg.data=data;
 		return msg;
+	}
+
+	public static void TraceMessageSend(int sequenceNr, byte[] headerdata, byte[] data) throws IOException {
+		String filename=String.format("%s%s%05d-a-send-header.dat", Config.MSG_TRACE_DIR, File.separator, sequenceNr);
+		FileOutputStream fos=new FileOutputStream(filename);
+		fos.write(headerdata);	
+		fos.close();
+		filename=String.format("%s%s%05d-a-send-message.dat", Config.MSG_TRACE_DIR, File.separator, sequenceNr);
+		fos=new FileOutputStream(filename);
+		fos.write(data);
+		fos.close();
+	}
+	
+	public static void TraceMessageRecv(int sequenceNr, byte[] headerdata, byte[] data) throws IOException {
+		String filename=String.format("%s%s%05d-b-recv-header.dat", Config.MSG_TRACE_DIR, File.separator, sequenceNr);
+		FileOutputStream fos=new FileOutputStream(filename);	
+		fos.write(headerdata);
+		fos.close();
+		filename=String.format("%s%s%05d-b-recv-message.dat", Config.MSG_TRACE_DIR, File.separator, sequenceNr);
+		fos=new FileOutputStream(filename);
+		fos.write(data);
+		fos.close();
 	}
 
 	/**

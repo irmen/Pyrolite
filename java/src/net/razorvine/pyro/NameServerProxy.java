@@ -21,7 +21,7 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 	private static final long serialVersionUID = -3774989423700492289L;
 
 	public NameServerProxy(PyroURI uri) throws UnknownHostException, IOException {
-		this(uri.host, uri.port, uri.object);
+		this(uri.host, uri.port, uri.objectid);
 	}
 	
 	public NameServerProxy(String hostname, int port, String objectid) throws UnknownHostException, IOException {

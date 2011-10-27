@@ -30,4 +30,30 @@ public class TimeDelta implements Serializable {
 		String floatsecs=nf.format(total_seconds);
 		return String.format("Timedelta: %d days, %d seconds, %d microseconds (total: %s seconds)", days, seconds, microseconds, floatsecs);
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + days;
+		result = prime * result + microseconds;
+		result = prime * result + seconds;
+		long temp=Double.doubleToLongBits(total_seconds);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof TimeDelta))
+			return false;
+		TimeDelta other = (TimeDelta) obj;
+		return days==other.days && seconds==other.seconds && microseconds==other.microseconds && total_seconds==other.total_seconds;
+	}
+	
+	
 }

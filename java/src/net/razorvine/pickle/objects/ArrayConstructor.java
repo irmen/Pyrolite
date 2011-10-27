@@ -17,7 +17,7 @@ public class ArrayConstructor implements IObjectConstructor {
 		// args for array constructor: [ String typecode, ArrayList<Object> values ]
 		// or: [ constructor_class, typecode, machinecode_type, byte[] ]  (this form is not supported yet)
 		if (args.length==4)
-			throw new PickleException("array constructor based on machinetype bytearray is not yet supported");
+			throw new PickleException("array constructor based on machinetype bytearray is not yet supported"); //@todo implement this
 		if (args.length != 2)
 			throw new PickleException("invalid pickle data for array; expected 2 args, got "+args.length);
 

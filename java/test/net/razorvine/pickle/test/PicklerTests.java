@@ -1,8 +1,8 @@
 package net.razorvine.pickle.test;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -25,8 +25,11 @@ import java.util.Vector;
 import net.razorvine.pickle.IObjectPickler;
 import net.razorvine.pickle.Opcodes;
 import net.razorvine.pickle.PickleException;
+import net.razorvine.pickle.PickleUtils;
 import net.razorvine.pickle.Pickler;
 import net.razorvine.pickle.Unpickler;
+import net.razorvine.pickle.objects.Time;
+import net.razorvine.pickle.objects.TimeDelta;
 
 import org.junit.After;
 import org.junit.Before;
@@ -48,12 +51,12 @@ public class PicklerTests {
 	}
 
 
-	byte[] B(String s) {
+	byte[] B(String s) throws IOException {
 		try {
-			byte[] bytes=s.getBytes("ISO-8859-15");
+			byte[] bytes=PickleUtils.str2bytes(s);
 			byte[] result=new byte[bytes.length+3];
 			result[0]=(byte)Opcodes.PROTO;
-			result[1]=2;
+			result[1]=2;	
 			result[result.length-1]=(byte)Opcodes.STOP;
 			System.arraycopy(bytes,0,result,2,bytes.length);
 			return result;
@@ -83,7 +86,7 @@ public class PicklerTests {
 	@Test
 	public void testSinglePrimitives() throws PickleException, IOException {
 		// protocol level 2
-		Pickler p=new Pickler();
+		Pickler p=new Pickler(false);
 		byte[] o=p.dumps(null);	// none
 		assertArrayEquals(B("N"), o); 
 		o=p.dumps('@');  // char --> string
@@ -112,10 +115,58 @@ public class PicklerTests {
 		assertArrayEquals(B("X\u0009\u0000\u0000\u0000WEDNESDAY"),o);
 	}
 	
+	@Test 
+	public void testZeroToTwoFiveSix() throws PickleException, IOException {
+		byte[] bytes=new byte[256];
+		for(int b=0; b<256; ++b) {
+			bytes[b]=(byte)b;
+		}
+		StringBuilder sb=new StringBuilder();
+		for(int i=0; i<256; ++i) {
+			sb.append((char)i);
+		}
+		String str=sb.toString();
+		
+		Pickler p=new Pickler(false);
+		Unpickler u=new Unpickler();
+		
+		ByteArrayOutputStream bos=new ByteArrayOutputStream(434);
+		bos.write(Opcodes.PROTO); bos.write(2);
+		bos.write("c__builtin__\nbytearray\n".getBytes());
+		bos.write(Opcodes.BINUNICODE);
+		bos.write(new byte[] {(byte)0x80,0x01,0x00,0x00});
+		byte[] utf8=str.getBytes("UTF-8");
+		bos.write(utf8,0,utf8.length);
+		bos.write(Opcodes.BINUNICODE);
+		bos.write(new byte[] {7,0,0,0});
+		bos.write("latin-1".getBytes());
+		bos.write(Opcodes.TUPLE2);
+		bos.write(Opcodes.REDUCE);
+		bos.write(Opcodes.STOP);
+		
+		byte[] bytesresult=bos.toByteArray();
+		byte[] output=p.dumps(bytes);
+		assertArrayEquals(bytesresult, output);
+		assertArrayEquals(bytes, (byte[])u.loads(output)); 
+		
+		bos=new ByteArrayOutputStream(434);
+		bos.write(Opcodes.PROTO); bos.write(2);
+		bos.write(Opcodes.BINUNICODE);
+		bos.write(new byte[] {(byte)0x80,0x01,0x00,0x00});
+		utf8=str.getBytes("UTF-8");
+		bos.write(utf8,0,utf8.length);
+		bos.write(Opcodes.STOP);
+		bytesresult=bos.toByteArray();
+
+		output=p.dumps(str);
+		assertArrayEquals(bytesresult, output);
+		assertEquals(str, u.loads(output));
+	}
+	
 	@Test
 	public void testBigInts() throws PickleException, IOException
 	{
-		Pickler p =new Pickler();
+		Pickler p = new Pickler(false);
 		byte[] o;
 		o=p.dumps(new BigInteger("65"));
 		assertArrayEquals(B("\u008a\u0001A"), o);
@@ -128,7 +179,7 @@ public class PicklerTests {
 	@Test
 	public void testArrays() throws PickleException, IOException
 	{
-		Pickler p =new Pickler();
+		Pickler p = new Pickler(false);
 		byte[] o;
 		o=p.dumps(new String[] {});
 		assertArrayEquals(B(")"), o);
@@ -148,7 +199,7 @@ public class PicklerTests {
 		assertArrayEquals(B("\u0088\u0089\u0088\u0087"), o);
 
 		o=p.dumps(new byte[] {1,2,3});
-		assertArrayEquals(B("c__builtin__\nbytearray\nX\u0003\u0000\u0000\u0000\u0001\u0002\u0003X\u000b\u0000\u0000\u0000iso-8859-15\u0086R"), o);
+		assertArrayEquals(B("c__builtin__\nbytearray\nX\u0003\u0000\u0000\u0000\u0001\u0002\u0003X\u0007\u0000\u0000\u0000latin-1\u0086R"), o);
 
 		o=p.dumps(new int[] {1,2,3});
 		assertArrayEquals(B("carray\narray\nU\u0001i](K\u0001K\u0002K\u0003e\u0086R"), o);
@@ -160,15 +211,51 @@ public class PicklerTests {
 	@Test
 	public void testDates() throws PickleException, IOException
 	{
-		Pickler p=new Pickler();
+		Pickler p=new Pickler(false);
+		Unpickler u=new Unpickler();
+
 		Date date=new GregorianCalendar(2011,Calendar.DECEMBER,31,14,33,59).getTime();
 		byte[] o=p.dumps(date);
+		Object unpickled=u.loads(o);
 		assertArrayEquals(B("cdatetime\ndatetime\nU\n\u0007\u00db\u000c\u001f\u000e!;\u0000\u0000\u0000\u0085R"),o);
+		Date unpickledDate=((Calendar)unpickled).getTime();
+		assertEquals(date,unpickledDate);
 		
 		Calendar cal=new GregorianCalendar(2011,Calendar.DECEMBER,31,14,33,59);
 		cal.set(Calendar.MILLISECOND, 456);
 		o=p.dumps(cal);
+		unpickled=u.loads(o);
 		assertArrayEquals(B("cdatetime\ndatetime\nU\n\u0007\u00db\u000c\u001f\u000e!;\u0006\u00f5@\u0085R"),o);
+		assertEquals(cal,(Calendar)unpickled);
+	}
+	
+	@Test
+	public void testTimes() throws PickleException, IOException
+	{
+		Pickler p=new Pickler(false);
+		Unpickler u=new Unpickler();
+		
+		Time time=new Time(2,33,59,456789);
+		Time time2=new Time(2,33,59,456789);
+		Time time3=new Time(2,33,59,45678);
+		assertTrue(time.equals(time2));
+		assertFalse(time.equals(time3));
+
+		byte[] o=p.dumps(time);
+		Object unpickled=u.loads(o);
+		assertArrayEquals(B("cdatetime\ntime\nU\u0006\u0002!;\u0006\u00f8U\u0085R"), o);
+		assertEquals(time, unpickled);
+		
+		TimeDelta delta=new TimeDelta(2, 7000, 456789);
+		TimeDelta delta2=new TimeDelta(2, 7000, 456789);
+		TimeDelta delta3=new TimeDelta(2, 7000, 45678);
+		assertTrue(delta.equals(delta2));
+		assertFalse(delta.equals(delta3));
+
+		o=p.dumps(delta);
+		unpickled=u.loads(o);
+		assertArrayEquals(B("cdatetime\ntimedelta\nK\u0002MX\u001bJU\u00f8\u0006\u0000\u0087R"), o);
+		assertEquals(delta, unpickled);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -176,7 +263,7 @@ public class PicklerTests {
 	public void testSets() throws PickleException, IOException
 	{
 		byte[] o;
-		Pickler p=new Pickler();
+		Pickler p=new Pickler(false);
 		Unpickler up=new Unpickler();
 
 		Set<Integer> intset=new HashSet<Integer>();
@@ -201,7 +288,7 @@ public class PicklerTests {
 	public void testMappings() throws PickleException, IOException
 	{
 		byte[] o;
-		Pickler p=new Pickler();
+		Pickler p=new Pickler(false);
 		Unpickler pu=new Unpickler();
 		Map<Integer,Integer> intmap=new HashMap<Integer,Integer>();
 		intmap.put(1, 11);
@@ -234,7 +321,7 @@ public class PicklerTests {
 	public void testLists() throws PickleException, IOException 
 	{
 		byte[] o;
-		Pickler p=new Pickler();
+		Pickler p=new Pickler(false);
 		
 		List<Object> list=new LinkedList<Object>();
 		list.add(1);
@@ -289,7 +376,7 @@ public class PicklerTests {
 	@Test
 	public void testBeans() throws PickleException, IOException
 	{
-		Pickler p=new Pickler();
+		Pickler p=new Pickler(false);
 		Unpickler pu=new Unpickler();
 		byte[] o;
 		PersonBean person=new PersonBean("Tupac",true);
@@ -311,7 +398,7 @@ public class PicklerTests {
 	public void testFailure() throws PickleException, IOException, URISyntaxException
 	{
 		NotABean notabean=new NotABean();
-		Pickler p=new Pickler();
+		Pickler p=new Pickler(false);
 		p.dumps(notabean);
 	}
 	
@@ -330,7 +417,7 @@ public class PicklerTests {
 	{
 		Pickler.registerCustomPickler(CustomClass.class, new CustomClassPickler());
 		CustomClass c=new CustomClass();
-		Pickler p=new Pickler();
+		Pickler p=new Pickler(false);
 		p.dumps(c);
 	}
 	

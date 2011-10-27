@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectGuid>{E6EAC69D-D42A-4A86-AFBE-18A1013BFDAB}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Razorvine.Pyrolite</RootNamespace>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <AssemblyName>Razorvine.Pyrolite</AssemblyName>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <Optimize>False</Optimize>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+    <Optimize>True</Optimize>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <WarningLevel>4</WarningLevel>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System">
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Pickle\InvalidOpcodeException.cs" />
+    <Compile Include="Pickle\Objects\AnyClassConstructor.cs" />
+    <Compile Include="Pickle\Objects\ArrayConstructor.cs" />
+    <Compile Include="Pickle\Objects\ByteArrayConstructor.cs" />
+    <Compile Include="Pickle\Objects\ComplexNumber.cs" />
+    <Compile Include="Pickle\Objects\DateTimeConstructor.cs" />
+    <Compile Include="Pickle\Objects\DecimalConstructor.cs" />
+    <Compile Include="Pickle\Objects\SetConstructor.cs" />
+    <Compile Include="Pickle\Objects\StringConstructor.cs" />
+    <Compile Include="Pickle\Opcodes.cs" />
+    <Compile Include="Pickle\PickleException.cs" />
+    <Compile Include="Pickle\PickleUtils.cs" />
+    <Compile Include="Pickle\PrettyPrint.cs" />
+    <Compile Include="Pickle\Unpickler.cs" />
+    <Compile Include="Pickle\UnpickleStack.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Pickle\PythonException.cs" />
+    <Compile Include="Pickle\Pickler.cs" />
+    <Compile Include="Pickle\IObjectConstructor.cs" />
+    <Compile Include="Pickle\IObjectPickler.cs" />
+    <Compile Include="Pyro\Config.cs" />
+    <Compile Include="Pyro\IOUtil.cs" />
+    <Compile Include="Pyro\MessageFactory.cs" />
+    <Compile Include="Pyro\NameServerProxy.cs" />
+    <Compile Include="Pyro\PyroException.cs" />
+    <Compile Include="Pyro\PyroProxy.cs" />
+    <Compile Include="Pyro\PyroURI.cs" />
+    <Compile Include="Pyro\PyroUriPickler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Pyro" />
+    <Folder Include="Pickle\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
+</Project>

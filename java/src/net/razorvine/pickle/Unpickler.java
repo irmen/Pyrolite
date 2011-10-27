@@ -1,8 +1,6 @@
 package net.razorvine.pickle;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -75,33 +73,6 @@ public class Unpickler {
 	}
 
 	/**
-	 * Main method, used by the test scripts to drive the unpickler
-	 */
-	public static void main(String[] args) {
-		if(args.length!=2) {
-			throw new IllegalArgumentException("requires 2 arguments: the pickle file, and the result file");
-		}
-			
-		Unpickler up=new Unpickler();
-		try {
-			InputStream stream;
-			if(args[0].equals("-")) {
-				stream=System.in;
-			} else {
-				stream=new FileInputStream(args[0]);
-			}
-			Object o = up.load(stream);
-			
-			FileOutputStream fos=new FileOutputStream(args[1]);
-			PrettyPrint.print(o, fos);
-			fos.flush();
-			fos.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
 	 * Create an unpickler.
 	 */
 	public Unpickler() {
@@ -148,8 +119,8 @@ public class Unpickler {
 	 * Close the unpickler and frees the resources such as the unpickle stack and memo table.
 	 */
 	public void close() {
-		stack.clear();
-		memo.clear();
+		if(stack!=null)	stack.clear();
+		if(memo!=null) memo.clear();
 	}
 
 	private class StopException extends RuntimeException {
@@ -205,9 +176,9 @@ public class Unpickler {
 			load_none();
 			break;
 		case Opcodes.PERSID:
-			throw new PickleException("opcode not implemented: PERSID");
+			throw new InvalidOpcodeException("opcode not implemented: PERSID");
 		case Opcodes.BINPERSID:
-			throw new PickleException("opcode not implemented: BINPERSID");
+			throw new InvalidOpcodeException("opcode not implemented: BINPERSID");
 		case Opcodes.REDUCE:
 			load_reduce();
 			break;
@@ -251,7 +222,7 @@ public class Unpickler {
 			load_binget();
 			break;
 		case Opcodes.INST:
-			throw new PickleException("opcode not implemented: INST");
+			throw new InvalidOpcodeException("opcode not implemented: INST");
 		case Opcodes.LONG_BINGET:
 			load_long_binget();
 			break;
@@ -262,7 +233,7 @@ public class Unpickler {
 			load_empty_list();
 			break;
 		case Opcodes.OBJ:
-			throw new PickleException("opcode not implemented: OBJ");
+			throw new InvalidOpcodeException("opcode not implemented: OBJ");
 		case Opcodes.PUT:
 			load_put();
 			break;
@@ -296,11 +267,11 @@ public class Unpickler {
 			load_newobj();
 			break;
 		case Opcodes.EXT1:
-			throw new PickleException("opcode not implemented: EXT1");
+			throw new InvalidOpcodeException("opcode not implemented: EXT1");
 		case Opcodes.EXT2:
-			throw new PickleException("opcode not implemented: EXT2");
+			throw new InvalidOpcodeException("opcode not implemented: EXT2");
 		case Opcodes.EXT4:
-			throw new PickleException("opcode not implemented: EXT4");
+			throw new InvalidOpcodeException("opcode not implemented: EXT4");
 		case Opcodes.TUPLE1:
 			load_tuple1();
 			break;
@@ -332,7 +303,7 @@ public class Unpickler {
 			break;
 
 		default:
-			throw new PickleException("invalid pickle opcode: " + key);
+			throw new InvalidOpcodeException("invalid pickle opcode: " + key);
 		}
 	}
 
@@ -377,7 +348,7 @@ public class Unpickler {
 			try {
 				val = Integer.parseInt(number, 10);
 			} catch (NumberFormatException x) {
-				// hmm, integer didnt' work.. is it perhaps an int from a 64-bit python? so try long:
+				// hmm, integer didn't work.. is it perhaps an int from a 64-bit python? so try long:
 				val = Long.parseLong(number, 10);
 			}
 		}
@@ -453,7 +424,7 @@ public class Unpickler {
 	void load_binstring() throws IOException {
 		int len = pu.bytes_to_integer(pu.readbytes(4));
 		byte[] data = pu.readbytes(len);
-		stack.add(pu.rawStringFromBytes(data));
+		stack.add(PickleUtils.rawStringFromBytes(data));
 	}
 
 	void load_binbytes() throws IOException {
@@ -475,7 +446,7 @@ public class Unpickler {
 	void load_short_binstring() throws IOException {
 		short len = pu.readbyte();
 		byte[] data = pu.readbytes(len);
-		stack.add(pu.rawStringFromBytes(data));
+		stack.add(PickleUtils.rawStringFromBytes(data));
 	}
 
 	void load_short_binbytes() throws IOException {
@@ -566,16 +537,19 @@ public class Unpickler {
 
 	void load_get() throws IOException {
 		int i = Integer.parseInt(pu.readline(), 10);
+		if(!memo.containsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo.get(i));
 	}
 
 	void load_binget() throws IOException {
 		int i = pu.readbyte();
+		if(!memo.containsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo.get(i));
 	}
 
 	void load_long_binget() throws IOException {
 		int i = pu.bytes_to_integer(pu.readbytes(4));
+		if(!memo.containsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo.get(i));
 	}
 

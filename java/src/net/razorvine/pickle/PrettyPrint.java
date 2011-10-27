@@ -3,7 +3,7 @@ package net.razorvine.pickle;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.StringWriter;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,46 +22,71 @@ import java.util.Set;
  */
 public class PrettyPrint {
 
-	/**
-	 * Prettyprint the object to the outputstream.
+	/***
+	 * Prettyprint into a string, no type header.
 	 */
-	public static void print(Object o, OutputStream out) throws IOException {
-		OutputStreamWriter w=null;
-		try {	
-			w=new OutputStreamWriter(out,"UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+	public static String printToStr(Object o) {
+		StringWriter sw=new StringWriter();
+		try {
+			print(o,sw,false);
+		} catch (IOException e) {
+			sw.write("<<error>>");
 		}
+		return sw.toString().trim();
+	}
+	
+	/**
+	 * Prettyprint directly to the standard output.
+	 */
+	public static void print(Object o) throws IOException {
+		OutputStreamWriter w=new OutputStreamWriter(System.out,"UTF-8");
+		print(o, w, true);
+		w.flush();
+	}
+	
+	/**
+	 * Prettyprint the object to the outputstream. (UTF-8 output encoding is used)
+	 */
+	public static void print(Object o, OutputStream outs, boolean typeheader) throws IOException {
+		OutputStreamWriter w=new OutputStreamWriter(outs,"UTF-8");
+		print(o,w,typeheader);
+		w.flush();
+	}
+	
+	/**
+	 * Prettyprint the object to the writer.
+	 */
+	public static void print(Object o, java.io.Writer writer, boolean typeheader) throws IOException {
 		if (o == null) {
-			w.write("null object\n");
-			w.write("null\n");
-			w.flush();
+			if(typeheader) writer.write("null object\n");
+			writer.write("null\n");
+			writer.flush();
 			return;
 		}
 
 		Class<?> arraytype = o.getClass().getComponentType();
 		if (arraytype != null) {
-			w.write("array of " + arraytype+"\n");
+			if(typeheader) writer.write("array of " + arraytype+"\n");
 			if (!arraytype.isPrimitive()) {
-				w.write(Arrays.deepToString((Object[]) o));  w.write("\n");
+				writer.write(Arrays.deepToString((Object[]) o));  writer.write("\n");
 			} else if (arraytype.equals(Integer.TYPE)) {
-				w.write(Arrays.toString((int[]) o));  w.write("\n");
+				writer.write(Arrays.toString((int[]) o));  writer.write("\n");
 			} else if (arraytype.equals(Double.TYPE)) {
-				w.write(Arrays.toString((double[]) o));  w.write("\n");
+				writer.write(Arrays.toString((double[]) o));  writer.write("\n");
 			} else if (arraytype.equals(Boolean.TYPE)) {
-				w.write(Arrays.toString((boolean[]) o));  w.write("\n");
+				writer.write(Arrays.toString((boolean[]) o));  writer.write("\n");
 			} else if (arraytype.equals(Short.TYPE)) {
-				w.write(Arrays.toString((short[]) o));  w.write("\n");
+				writer.write(Arrays.toString((short[]) o));  writer.write("\n");
 			} else if (arraytype.equals(Long.TYPE)) {
-				w.write(Arrays.toString((long[]) o));  w.write("\n");
+				writer.write(Arrays.toString((long[]) o));  writer.write("\n");
 			} else if (arraytype.equals(Float.TYPE)) {
-				w.write(Arrays.toString((float[]) o));  w.write("\n");
+				writer.write(Arrays.toString((float[]) o));  writer.write("\n");
 			} else if (arraytype.equals(Character.TYPE)) {
-				w.write(Arrays.toString((char[]) o));  w.write("\n");
+				writer.write(Arrays.toString((char[]) o));  writer.write("\n");
 			} else if (arraytype.equals(Byte.TYPE)) {
-				w.write(Arrays.toString((byte[]) o));  w.write("\n");
+				writer.write(Arrays.toString((byte[]) o));  writer.write("\n");
 			} else {
-				w.write("?????????\n");
+				writer.write("?????????\n");
 			}
 		} else if (o instanceof Set) {
 			@SuppressWarnings("unchecked")
@@ -71,8 +96,11 @@ public class PrettyPrint {
 				list.add(obj.toString());
 			}
 			Collections.sort(list);
-			w.write(o.getClass().getName());   w.write("\n");
-			w.write(list.toString()); w.write("\n");
+			if(typeheader) {
+				writer.write(o.getClass().getName());
+				writer.write("\n");
+			}
+			writer.write(list.toString()); writer.write("\n");
 		} else if (o instanceof Map) {
 			@SuppressWarnings("unchecked")
 			Map<Object,Object> map=(Map<Object, Object>) o;
@@ -81,24 +109,33 @@ public class PrettyPrint {
 				list.add(key.toString()+"="+map.get(key));
 			}
 			Collections.sort(list);
-			w.write(o.getClass().getName());   w.write("\n");
-			w.write(list.toString()); w.write("\n");
+			if(typeheader) {
+				writer.write(o.getClass().getName());
+				writer.write("\n");
+			}
+			writer.write(list.toString()); writer.write("\n");
 		} else if (o instanceof Collection) {
-			w.write(o.getClass().getName());   w.write("\n");
-			w.write(o.toString());   w.write("\n");
+			if(typeheader) {
+				writer.write(o.getClass().getName());
+				writer.write("\n");
+			}
+			writer.write(o.toString());   writer.write("\n");
 		} else if (o instanceof String) {
-			w.write("String\n");
-			w.write(o.toString());   w.write("\n");
+			if(typeheader) writer.write("String\n");
+			writer.write(o.toString());   writer.write("\n");
 		} else if (o instanceof java.util.Calendar) {
-			w.write("java.util.Calendar\n");
+			if(typeheader) writer.write("java.util.Calendar\n");
 			DateFormat f = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.UK);
 			Calendar c = (Calendar) o;
-			w.write(f.format(c.getTime()) + " millisec=" + c.get(Calendar.MILLISECOND)+"\n");
+			writer.write(f.format(c.getTime()) + " millisec=" + c.get(Calendar.MILLISECOND)+"\n");
 		} else {
-			w.write(o.getClass().getName());   w.write("\n");
-			w.write(o.toString());   w.write("\n");
+			if(typeheader) {
+				writer.write(o.getClass().getName());
+				writer.write("\n");
+			}
+			writer.write(o.toString());   writer.write("\n");
 		}
 		
-		w.flush();
+		writer.flush();
 	}
 }

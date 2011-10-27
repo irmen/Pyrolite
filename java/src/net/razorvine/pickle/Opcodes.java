@@ -9,7 +9,7 @@ public interface Opcodes {
 	// Pickle opcodes. See pickletools.py for extensive docs. The listing
 	// here is in kind-of alphabetical order of 1-character pickle code.
 	// pickletools groups them by purpose.
-	// short datatype because they are SIGNED bytes 0..255.
+	// short datatype because they are UNSIGNED bytes 0..255.
 
 	// protocol 0 and 1
 	static short  MARK = '('; // push special markobject on stack

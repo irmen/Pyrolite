@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.razorvine.pickle.objects.Time;
+import net.razorvine.pickle.objects.TimeDelta;
+
 /**
  * Pickle an object graph into a Python-compatible pickle stream. For
  * simplicity, the only supported pickle protocol at this time is protocol 2.
@@ -43,7 +46,7 @@ import java.util.Set;
  * set set
  * map,hashtable dict
  * vector,collection list
- * javabean dict
+ * javabean   dictionary of the bean's properties + __class__
  * 
  * @author Irmen de Jong (irmen@razorvine.net)
  */
@@ -56,13 +59,19 @@ public class Pickler {
 	private int PROTOCOL = 2;
 	private PickleUtils utils;
 	private static Map<Class<?>, IObjectPickler> customPicklers=new HashMap<Class<?>, IObjectPickler>();
+	private boolean useMemo=true;
 	
 	/**
 	 * Create a Pickler.
-	 * 
-	 * @throws IOException
 	 */
 	public Pickler() {
+	}
+
+	/**
+	 * Create a Pickler. Specify if it is to use a memo table or not.
+	 */
+	public Pickler(boolean useMemo) {
+		this.useMemo=useMemo;
 	}
 
 	/**
@@ -121,7 +130,7 @@ public class Pickler {
 		Class<?> t=o.getClass();
 		Pair<Boolean, Boolean> result=dispatch(t,o);    // returns:  output_ok, must_memo
 		if(result.a) {
-			if(result.b) {
+			if(result.b && useMemo) {
 				// @todo: add to memo
 			}
 			return;
@@ -200,15 +209,25 @@ public class Pickler {
 			put_decimal((BigDecimal)o);
 			return new Pair<Boolean,Boolean>(true,true);
 		}
+		if(o instanceof Calendar) {
+			put_calendar((Calendar)o);
+			return new Pair<Boolean,Boolean>(true,true);
+		}
+		if(o instanceof Time) {
+			put_time((Time)o);
+			return new Pair<Boolean,Boolean>(true,true);
+		}
+		if(o instanceof TimeDelta) {
+			put_timedelta((TimeDelta)o);
+			return new Pair<Boolean,Boolean>(true,true);
+		}
 		if(o instanceof java.util.Date) {
+			// a java Date contains a date+time so map this on Calendar
+			// which will be pickled as a datetime.
 			java.util.Date date=(java.util.Date)o;
 			Calendar cal=GregorianCalendar.getInstance();
 			cal.setTime(date);
 			put_calendar(cal);
-			return new Pair<Boolean,Boolean>(true,true);
-		}
-		if(o instanceof Calendar) {
-			put_calendar((Calendar)o);
 			return new Pair<Boolean,Boolean>(true,true);
 		}
 		if(o instanceof Enum) {
@@ -288,9 +307,33 @@ public class Pickler {
 		out.write((microsecs>>16)&0xff);
 		out.write((microsecs>>8)&0xff);
 		out.write(microsecs&0xff);
-
 		out.write(Opcodes.TUPLE1);
 		out.write(Opcodes.REDUCE);		
+	}
+
+	void put_timedelta(TimeDelta delta) throws IOException {
+		out.write(Opcodes.GLOBAL);
+		out.write("datetime\ntimedelta\n".getBytes());
+		save(delta.days);
+		save(delta.seconds);
+		save(delta.microseconds);
+		out.write(Opcodes.TUPLE3);
+		out.write(Opcodes.REDUCE);	
+	}
+
+	void put_time(Time time) throws IOException {
+		out.write(Opcodes.GLOBAL);
+		out.write("datetime\ntime\n".getBytes());
+		out.write(Opcodes.SHORT_BINSTRING);
+		out.write(6);
+		out.write(time.hours);
+		out.write(time.minutes);
+		out.write(time.seconds);
+		out.write((time.microseconds>>16)&0xff);
+		out.write((time.microseconds>>8)&0xff);
+		out.write(time.microseconds&0xff);
+		out.write(Opcodes.TUPLE1);
+		out.write(Opcodes.REDUCE);	
 	}
 
 	void put_arrayOfObjects(Object[] array) throws IOException {
@@ -344,8 +387,9 @@ public class Pickler {
 			// a byte[] isn't written as an array but rather as a bytearray object
 			out.write(Opcodes.GLOBAL);
 			out.write("__builtin__\nbytearray\n".getBytes());
-			put_string(new String((byte[])array,"iso-8859-15"));
-			put_string("iso-8859-15");
+			String str=PickleUtils.rawStringFromBytes((byte[])array);
+			put_string(str);
+			put_string("latin-1");   // this is what Python writes in the pickle
 			out.write(Opcodes.TUPLE2);
 			out.write(Opcodes.REDUCE);
 			return;

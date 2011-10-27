@@ -24,4 +24,29 @@ public class Time implements Serializable {
 	public String toString() {
 		return String.format("Time: %d hours, %d minutes, %d seconds, %d microseconds", hours, minutes, seconds, microseconds);
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + hours;
+		result = prime * result + microseconds;
+		result = prime * result + minutes;
+		result = prime * result + seconds;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Time))
+			return false;
+		Time other = (Time) obj;
+		return hours==other.hours && minutes==other.minutes && seconds==other.seconds && microseconds==other.microseconds;
+	}
+
+	
 }

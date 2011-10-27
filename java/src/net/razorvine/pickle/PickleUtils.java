@@ -2,6 +2,7 @@ package net.razorvine.pickle;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 
 /**
@@ -71,7 +72,7 @@ public class PickleUtils {
 		while (length > 0) {
 			int read = this.input.read(buffer, offset, length);
 			if (read == -1)
-				throw new IOException("read error; expected more bytes");
+				throw new IOException("expected more bytes in input stream");
 			offset += read;
 			length -= read;
 		}
@@ -119,7 +120,7 @@ public class PickleUtils {
 	}
 
 	/**
-	 * Convert a double to its 8-byte representation (little endian).
+	 * Convert a double to its 8-byte representation (big endian).
 	 */
 	public byte[] double_to_bytes(double d) {
 		long bits = Double.doubleToRawLongBits(d);
@@ -143,7 +144,7 @@ public class PickleUtils {
 	}
 
 	/**
-	 * Convert a little endian 8-byte to a double. 
+	 * Convert a big endian 8-byte to a double. 
 	 */
 	public double bytes_to_double(byte[] bytes) {
 		if (bytes.length == 8) {
@@ -224,12 +225,25 @@ public class PickleUtils {
 	 * converted to the corresponding chars, without using a given character
 	 * encoding
 	 */
-	public String rawStringFromBytes(byte[] data) {
+	public static String rawStringFromBytes(byte[] data) {
 		StringBuilder str = new StringBuilder(data.length);
 		for (byte b : data) {
 			str.append((char) (b & 0xff));
 		}
 		return str.toString();
+	}
+
+	/**
+	 * Convert a string to a byte array, no encoding is used. String must only contain characters <256.
+	 */
+	public static byte[] str2bytes(String str) throws IOException {
+		byte[] b=new byte[str.length()];
+		for(int i=0; i<str.length(); ++i) {
+			char c=str.charAt(i);	
+			if(c>255) throw new UnsupportedEncodingException("string contained a char > 255, cannot convert to bytes");
+			b[i]=(byte)c;
+		}
+		return b;
 	}
 
 	/**
