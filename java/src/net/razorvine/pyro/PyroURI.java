@@ -5,6 +5,10 @@ import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.razorvine.pickle.Pickler;
+import net.razorvine.pickle.Unpickler;
+import net.razorvine.pickle.objects.AnyClassConstructor;
+
 /**
  * The Pyro URI object.
  * 
@@ -18,6 +22,11 @@ public class PyroURI implements Serializable {
 	String host;
 	int port;
 
+	static {
+		Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(PyroURI.class));
+		Pickler.registerCustomPickler(PyroURI.class, new PyroUriPickler());
+	}
+	
 	public PyroURI() {
 	}
 
@@ -52,10 +61,28 @@ public class PyroURI implements Serializable {
 		return "<PyroURI " + protocol + ":" + objectid + "@" + host + ":" + port + ">";
 	}
 
+
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof PyroURI))
+			return false;
+		PyroURI other = (PyroURI) obj;
+		return toString().equals(other.toString());
+	}
+
 	/**
-	 * setState, called by the Unpickler to set the state back.
+	 * called by the Unpickler to restore state
 	 */
-	public void setState(Object[] args) throws IOException {
+	public void __setstate__(Object[] args) throws IOException {
 		this.protocol = (String) args[0];
 		this.objectid = (String) args[1];
 		this.host = (String) args[3];

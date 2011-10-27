@@ -22,9 +22,9 @@ public class PyroException extends RuntimeException {
 	}
 
 	/**
-	 * '__setstate__' support for the unpickler to restore state
+	 * called by the Unpickler to restore state
 	 */
-	public void setState(HashMap<?, ?> args) {
+	public void __setstate__(HashMap<?, ?> args) {
 		Object tb=args.get("_pyroTraceback");
 		// if the traceback is a list of strings, create one string from it
 		if(tb instanceof List) {

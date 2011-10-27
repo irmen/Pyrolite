@@ -1,0 +1,66 @@
+<!-- ANT project build file for Pyrolite -->
+<project name="Pyrolite-java" default="all">
+  <property name="ant.build.javac.target" value="1.5" />
+  <property name="ant.build.javac.source" value="1.5" />
+  <property name="libsrc" location="java/src" />
+  <property name="testsrc" location="java/test" />
+  <property name="build" location="java/bin" />
+  <property name="javadocs" location="java/docs" />
+  <property name="jarfile" location="build/pyrolite.jar" />
+  <property name="junitjar" location="java/lib/junit.jar" />
+  <property name="junithamcrestjar" location="java/lib/hamcrest.jar" />
+
+  <path id="classpath.test">
+    <pathelement location="${build}" />
+    <pathelement location="${junitjar}" />
+    <pathelement location="${junithamcrestjar}" />
+  </path>
+  
+  <target name="all" depends="build-jar,test">
+    <echo message="jarfile=${jarfile}" />
+  </target>
+  
+  <target name="clean">
+    <delete file="${jarfile}" verbose="false" />
+    <delete dir="${build}" verbose="false" />
+    <delete dir="${javadocs}" verbose="false" />
+    <delete verbose="false">
+      <fileset dir="." includes="TEST-*.xml" />
+    </delete>
+  </target>
+  
+  <target name="build-jar">
+    <mkdir dir="${build}" />
+    <javac srcdir="${libsrc}" destdir="${build}" listfiles="false"
+        debug="true" debuglevel="lines" includeantruntime="false" />
+    <jar jarfile="${jarfile}" basedir="${build}" index="true"
+        excludes="**/test/*.class" />
+  </target>
+  
+  <target name="build-test" depends="build-jar">
+    <javac srcdir="${testsrc}" destdir="${build}" includeantruntime="false">
+      <classpath refid="classpath.test" />
+    </javac>
+  </target>
+  
+  <target name="test" depends="build-test">
+    <junit>
+      <classpath refid="classpath.test" />
+      <batchtest>
+        <fileset dir="${testsrc}">
+            <include name="**/*Test*.java" />
+        </fileset>
+        <formatter type="brief" usefile="false" />
+        <formatter type="xml" usefile="true" />
+      </batchtest>
+    </junit>
+  </target>
+  
+  <target name="javadoc">
+    <javadoc destdir="${javadocs}" sourcepath="${libsrc}">
+      <package name="net.razorvine.pickle" />
+      <package name="net.razorvine.pickle.objects" />
+      <package name="net.razorvine.pyro" />
+    </javadoc>
+  </target>
+</project>

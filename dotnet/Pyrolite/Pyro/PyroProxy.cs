@@ -16,7 +16,7 @@ namespace Razorvine.Pyrolite.Pyro
 /// <summary>
 /// Proxy for Pyro objects.
 /// </summary>
-public class PyroProxy {
+public class PyroProxy : IDisposable {
 
 	public string hostname {get;set;}
 	public int port {get;set;}
@@ -36,8 +36,20 @@ public class PyroProxy {
 		Unpickler.registerConstructor("Pyro4.errors", "DaemonError", new AnyClassConstructor(typeof(PyroException)));
 		Unpickler.registerConstructor("Pyro4.errors", "SecurityError", new AnyClassConstructor(typeof(PyroException)));
 		Unpickler.registerConstructor("Pyro4.errors", "AsyncResultTimeout",	new AnyClassConstructor(typeof(PyroException)));
+		Unpickler.registerConstructor("Pyro4.core", "Proxy", new ProxyClassConstructor());
+		Unpickler.registerConstructor("Pyro4.util", "Serializer", new AnyClassConstructor(typeof(DummyPyroSerializer)));
+		Unpickler.registerConstructor("Pyro4.utils.flame", "FlameBuiltin", new AnyClassConstructor(typeof(FlameBuiltin)));
+		Unpickler.registerConstructor("Pyro4.utils.flame", "FlameModule", new AnyClassConstructor(typeof(FlameModule)));
+		Unpickler.registerConstructor("Pyro4.utils.flame", "RemoteInteractiveConsole", new AnyClassConstructor(typeof(FlameRemoteConsole)));
+		// make sure a PyroURI can also be pickled even when not directly imported:
 		Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(typeof(PyroURI)));
 		Pickler.registerCustomPickler(typeof(PyroURI), new PyroUriPickler());
+	}
+
+	/**
+	 * No-args constructor for (un)pickling support
+	 */
+	public PyroProxy() {
 	}
 
 	/**
@@ -55,6 +67,17 @@ public class PyroProxy {
 		this.objectid = objectid;
 	}
 
+	/**
+	 * Release resources when descructed
+	 */
+	~PyroProxy() {
+		this.close();
+	}
+
+	public void Dispose() {
+		close();
+	}
+	
 	/**
 	 * (re)connect the proxy to the remote Pyro daemon.
 	 */
@@ -168,16 +191,12 @@ public class PyroProxy {
 	 */
 	public void close() {
 		if (this.sock != null) {
-			this.sock_stream.Close();
+			if(this.sock_stream!=null) this.sock_stream.Close();
 			this.sock.Client.Close();
 			this.sock.Close();
 			this.sock=null;
 			this.sock_stream=null;
 		}
-	}
-
-	public void finalize() {
-		close();
 	}
 
 	/**
@@ -189,6 +208,20 @@ public class PyroProxy {
 		// message data is ignored for now, should be 'ok' :)
 	}
 
+	/**
+	 * called by the Unpickler to restore state.
+	 * args: pyroUri, pyroOneway(hashset), pyroSerializer, pyroTimeout
+	 */
+	public void __setstate__(object[] args) {
+		PyroURI uri=(PyroURI)args[0];
+		// ignore the oneway hashset, the serializer object and the timeout 
+		// the only thing we need here is the uri.
+		this.hostname=uri.host;
+		this.port=uri.port;
+		this.objectid=uri.objectid;
+		this.sock=null;
+		this.sock_stream=null;
+	}	
 }
 
 }

@@ -67,6 +67,7 @@ public class NameServerProxy : PyroProxy {
 		
 		IPEndPoint ipendpoint = new IPEndPoint(IPAddress.Broadcast, port);
 		using(UdpClient udpclient=new UdpClient()) {
+            udpclient.Client.ReceiveTimeout = 2000;
 			udpclient.EnableBroadcast=true;
 			byte[] buf=Encoding.ASCII.GetBytes("GET_NSURI");
 			udpclient.Send(buf, buf.Length, ipendpoint);

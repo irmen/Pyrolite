@@ -290,7 +290,7 @@ public class UnpickleOpcodesTests {
 		public ThingyWithSetstate(string param) {
 			a=param;
 		}
-		public void setState(Hashtable values) {
+		public void __setstate__(Hashtable values) {
 			a=(string)values["a"];
 		}
 	}
@@ -306,7 +306,7 @@ public class UnpickleOpcodesTests {
 		//BUILD          = b'b'   # call __setstate__ or __dict__.update()
 		Unpickler.registerConstructor("unittest", "Thingy", new ThingyConstructor());
 		// create a thing with initial value for the field 'a',
-		// the use BUILD to setState() it with something else ('foo').
+		// the use BUILD to __setstate__() it with something else ('foo').
 		ThingyWithSetstate thingy = (ThingyWithSetstate) U("cunittest\nThingy\n(V123\ntR}S'a'\nS'foo'\nsb.");
 		Assert.AreEqual("foo",thingy.a);
 	}

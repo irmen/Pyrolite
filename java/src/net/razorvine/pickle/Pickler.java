@@ -523,6 +523,9 @@ public class Pickler {
 			for(PropertyDescriptor p: info.getPropertyDescriptors()) {
 				String name=p.getName();
 				Method readmethod=p.getReadMethod();
+				if(readmethod==null) {
+					throw new PickleException("can't find public read method for bean property '"+name+"' in class "+o.getClass());
+				}
 				Object value=readmethod.invoke(o);
 				map.put(name, value);
 			}

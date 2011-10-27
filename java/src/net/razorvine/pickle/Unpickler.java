@@ -311,10 +311,10 @@ public class Unpickler {
 		Object args=stack.pop();
 		Object target=stack.peek();
 		try {
-			Method setStateMethod=target.getClass().getMethod("setState", args.getClass());
+			Method setStateMethod=target.getClass().getMethod("__setstate__", args.getClass());
 			setStateMethod.invoke(target, args);
 		} catch (Exception e) {
-			throw new PickleException("failed to setState()",e);
+			throw new PickleException("failed to __setstate__()",e);
 		}
 	}
 

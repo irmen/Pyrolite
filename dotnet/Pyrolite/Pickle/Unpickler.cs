@@ -307,12 +307,15 @@ public class Unpickler : IDisposable {
 		object[] arguments=new object[] {args};
 		Type[] argumentTypes=new Type[] {args.GetType()};
 		
-		// call the setState method with the given arguments
+		// call the __setstate__ method with the given arguments
 		try {
-			MethodInfo setStateMethod=target.GetType().GetMethod("setState", argumentTypes);
+			MethodInfo setStateMethod=target.GetType().GetMethod("__setstate__", argumentTypes);
+			if(setStateMethod==null) {
+				throw new PickleException(string.Format("no __setstate__() found in type {0} with argument type {1}", target.GetType(), args.GetType()));
+			}
 			setStateMethod.Invoke(target, arguments);
 		} catch(Exception e) {
-			throw new PickleException("failed to setState()",e);
+			throw new PickleException("failed to __setstate__()",e);
 		}
 	}
 

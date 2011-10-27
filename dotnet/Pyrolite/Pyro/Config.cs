@@ -10,7 +10,7 @@ public static class Config  {
 	public static byte[] HMAC_KEY=null;
 	public static string MSG_TRACE_DIR=null;
 
-	public const string PYROLITE_VERSION="1.1";
+	public const string PYROLITE_VERSION="1.2";
 }
 
 }

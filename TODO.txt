@@ -1,0 +1,8 @@
+
+Stuff left TO DO in Pyrolite:
+
+Java+.NET:
+* more config items especially port numbers and hostnames
+* implement array constructor based on machine type bytearray (_array_reconstructor, this is what Python3 uses to pickle array.array)
+* implement memo-ing in the Pickler to be able to pickle recursive objects.
+

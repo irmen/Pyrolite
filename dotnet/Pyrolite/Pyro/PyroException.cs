@@ -32,9 +32,9 @@ namespace Razorvine.Pyrolite.Pyro
 		}
 		
 		/// <summary>
-		/// 'setstate' support for the unpickler to restore state
+		/// for the unpickler to restore state
 		/// </summary>
-		public void setState(Hashtable values) {
+		public void __setstate__(Hashtable values) {
 			if(!values.ContainsKey("_pyroTraceback"))
 				return;
 			object tb=values["_pyroTraceback"];

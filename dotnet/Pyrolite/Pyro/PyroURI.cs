@@ -1,6 +1,8 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System.Text.RegularExpressions;
+using Razorvine.Pyrolite.Pickle;
+using Razorvine.Pyrolite.Pickle.Objects;
 
 namespace Razorvine.Pyrolite.Pyro
 {
@@ -15,6 +17,11 @@ public class PyroURI {
 	public string host {get;set;}
 	public int port {get;set;}
 
+	static PyroURI() {
+		Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(typeof(PyroURI)));
+		Pickler.registerCustomPickler(typeof(PyroURI), new PyroUriPickler());
+	}
+	
 	public PyroURI() {
 		protocol="PYRO";
 	}
@@ -50,10 +57,40 @@ public class PyroURI {
 		return "<PyroURI " + protocol + ":" + objectid + "@" + host + ":" + port + ">";
 	}
 
+	#region Equals and GetHashCode implementation
+	public override bool Equals(object obj)
+	{
+		PyroURI other = obj as PyroURI;
+		if (other == null)
+			return false;
+		return other.ToString()==this.ToString();
+	}
+	
+	public override int GetHashCode()
+	{
+		return ToString().GetHashCode();
+	}
+	
+	public static bool operator ==(PyroURI lhs, PyroURI rhs)
+	{
+		if (ReferenceEquals(lhs, rhs))
+			return true;
+		if (ReferenceEquals(lhs, null) || ReferenceEquals(rhs, null))
+			return false;
+		return lhs.Equals(rhs);
+	}
+	
+	public static bool operator !=(PyroURI lhs, PyroURI rhs)
+	{
+		return !(lhs == rhs);
+	}
+	#endregion
+
+	
 	/**
-	 * setState, called by the Unpickler to set the state back.
+	 * called by the Unpickler to restore state
 	 */
-	public void setState(object[] args) {
+	public void __setstate__(object[] args) {
 		this.protocol = (string) args[0];
 		this.objectid = (string) args[1];
 		this.host = (string) args[3];
