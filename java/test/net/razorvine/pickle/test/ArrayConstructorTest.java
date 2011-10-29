@@ -53,17 +53,18 @@ public class ArrayConstructorTest {
 	public void testChars()
 	{
 		ArrayConstructor ac=new ArrayConstructor();
+		char EURO=(char)0x20ac;
 		
 		// c/u
-		assertArrayEquals(new char[]{'A','€'}, (char[])ac.construct('c', 18, new byte[]{65,0,(byte)0xac,0x20}));
-		assertArrayEquals(new char[]{'A','€'}, (char[])ac.construct('u', 18, new byte[]{65,0,(byte)0xac,0x20}));
-		assertArrayEquals(new char[]{'A','€'}, (char[])ac.construct('c', 19, new byte[]{0,65,0x20,(byte)0xac}));
-		assertArrayEquals(new char[]{'A','€'}, (char[])ac.construct('u', 19, new byte[]{0,65,0x20,(byte)0xac}));
-		assertArrayEquals(new char[]{'A','€'}, (char[])ac.construct('c', 20, new byte[]{65,0,0,0,(byte)0xac,0x20,0,0}));
-		assertArrayEquals(new char[]{'A','€'}, (char[])ac.construct('u', 20, new byte[]{65,0,0,0,(byte)0xac,0x20,0,0}));
-		assertArrayEquals(new char[]{'A','€'}, (char[])ac.construct('c', 21, new byte[]{0,0,0,65,0,0,0x20,(byte)0xac}));
-		assertArrayEquals(new char[]{'A','€'}, (char[])ac.construct('u', 21, new byte[]{0,0,0,65,0,0,0x20,(byte)0xac}));
-		assertArrayEquals(new char[]{'A','€'}, (char[])ac.construct('u', 21, new byte[]{1,0,0,65,1,0,0x20,(byte)0xac}));
+		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('c', 18, new byte[]{65,0,(byte)0xac,0x20}));
+		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('u', 18, new byte[]{65,0,(byte)0xac,0x20}));
+		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('c', 19, new byte[]{0,65,0x20,(byte)0xac}));
+		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('u', 19, new byte[]{0,65,0x20,(byte)0xac}));
+		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('c', 20, new byte[]{65,0,0,0,(byte)0xac,0x20,0,0}));
+		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('u', 20, new byte[]{65,0,0,0,(byte)0xac,0x20,0,0}));
+		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('c', 21, new byte[]{0,0,0,65,0,0,0x20,(byte)0xac}));
+		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('u', 21, new byte[]{0,0,0,65,0,0,0x20,(byte)0xac}));
+		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('u', 21, new byte[]{1,0,0,65,1,0,0x20,(byte)0xac}));
 		
 		// b/B
 		assertArrayEquals(new byte[]{1,2,3,4,-1,-2,-3,-4}, (byte[])ac.construct('b', 1, new byte[]{1,2,3,4,(byte)0xff,(byte)0xfe,(byte)0xfd,(byte)0xfc}));
