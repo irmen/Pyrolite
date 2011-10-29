@@ -95,31 +95,67 @@ public class PickleUtilsTest {
 
 	@Test
 	public void testBytes_to_integer() {
-		PickleUtils p=new PickleUtils(null);
 		try {
-			p.bytes_to_integer(new byte[] {});
+			PickleUtils.bytes_to_integer(new byte[] {});
 			fail("expected PickleException");
 		} catch (PickleException x) {}
 		try {
-			p.bytes_to_integer(new byte[] {0});
+			PickleUtils.bytes_to_integer(new byte[] {0});
 			fail("expected PickleException");
 		} catch (PickleException x) {}
-		assertEquals(0x00000000, p.bytes_to_integer(new byte[] {0x00, 0x00}));
-		assertEquals(0x00003412, p.bytes_to_integer(new byte[] {0x12, 0x34}));
-		assertEquals(0x0000ffff, p.bytes_to_integer(new byte[] {(byte)0xff, (byte)0xff}));
-		assertEquals(0x00000000, p.bytes_to_integer(new byte[] {0,0,0,0}));
-		assertEquals(0x12345678, p.bytes_to_integer(new byte[] {0x78, 0x56, 0x34, 0x12}));
-		assertEquals(0xff802040, p.bytes_to_integer(new byte[] {0x40, 0x20, (byte)0x80, (byte)0xff}));
-		assertEquals(0x01cc02ee, p.bytes_to_integer(new byte[] {(byte)0xee, 0x02, (byte)0xcc, 0x01}));
-		assertEquals(0xcc01ee02, p.bytes_to_integer(new byte[] {0x02, (byte)0xee, 0x01, (byte)0xcc}));
-		assertEquals(0xeefffffe, p.bytes_to_integer(new byte[] {(byte)0xfe, -1,-1,(byte)0xee}));
+		assertEquals(0x00000000, PickleUtils.bytes_to_integer(new byte[] {0x00, 0x00}));
+		assertEquals(0x00003412, PickleUtils.bytes_to_integer(new byte[] {0x12, 0x34}));
+		assertEquals(0x0000ffff, PickleUtils.bytes_to_integer(new byte[] {(byte)0xff, (byte)0xff}));
+		assertEquals(0x00000000, PickleUtils.bytes_to_integer(new byte[] {0,0,0,0}));
+		assertEquals(0x12345678, PickleUtils.bytes_to_integer(new byte[] {0x78, 0x56, 0x34, 0x12}));
+		assertEquals(0xff802040, PickleUtils.bytes_to_integer(new byte[] {0x40, 0x20, (byte)0x80, (byte)0xff}));
+		assertEquals(0x01cc02ee, PickleUtils.bytes_to_integer(new byte[] {(byte)0xee, 0x02, (byte)0xcc, 0x01}));
+		assertEquals(0xcc01ee02, PickleUtils.bytes_to_integer(new byte[] {0x02, (byte)0xee, 0x01, (byte)0xcc}));
+		assertEquals(0xeefffffe, PickleUtils.bytes_to_integer(new byte[] {(byte)0xfe, -1,-1,(byte)0xee}));
 		try
 		{
-			p.bytes_to_integer(new byte[] {(byte) 200,50,25,100,1,2,3,4});
+			PickleUtils.bytes_to_integer(new byte[] {(byte) 200,50,25,100,1,2,3,4});
 			fail("expected PickleException");
 		} catch (PickleException x) {}
 	}
 
+	@Test
+	public void testBytes_to_uint() {
+		try {
+			PickleUtils.bytes_to_uint(new byte[] {},0);
+			fail("expected PickleException");
+		} catch (PickleException x) {}
+		try {
+			PickleUtils.bytes_to_uint(new byte[] {0},0);
+			fail("expected PickleException");
+		} catch (PickleException x) {}
+		assertEquals(0x000000000L, PickleUtils.bytes_to_uint(new byte[] {0,0,0,0} ,0));
+		assertEquals(0x012345678L, PickleUtils.bytes_to_uint(new byte[] {0x78, 0x56, 0x34, 0x12} ,0));
+		assertEquals(0x0ff802040L, PickleUtils.bytes_to_uint(new byte[] {0x40, 0x20, (byte)0x80, (byte)0xff} ,0));
+		assertEquals(0x0eefffffeL, PickleUtils.bytes_to_uint(new byte[] {(byte)0xfe, -1,-1,(byte)0xee} ,0));
+	}
+
+	@Test
+	public void testBytes_to_long() {
+		try {
+			PickleUtils.bytes_to_long(new byte[] {}, 0);
+			fail("expected PickleException");
+		} catch (PickleException x) {}
+		try {
+			PickleUtils.bytes_to_long(new byte[] {0}, 0);
+			fail("expected PickleException");
+		} catch (PickleException x) {}
+		assertEquals(0x00000000L, PickleUtils.bytes_to_long(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} ,0));
+		assertEquals(0x00003412L, PickleUtils.bytes_to_long(new byte[] {0x12, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} ,0));
+		assertEquals(0xff000000000000ffL, PickleUtils.bytes_to_long(new byte[] {(byte)0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte)0xff} ,0));
+		assertEquals(0L, PickleUtils.bytes_to_long(new byte[] {0,0,0,0,0,0,0,0} ,0));
+		assertEquals(0x8877665544332211L, PickleUtils.bytes_to_long(new byte[] {0x11,0x22,0x33,0x44,0x55,0x66,0x77,(byte)0x88} ,0));
+		assertEquals(0x1122334455667788L, PickleUtils.bytes_to_long(new byte[] {(byte)0x88,0x77,0x66,0x55,0x44,0x33,0x22,0x11} ,0));
+		assertEquals(-1L, PickleUtils.bytes_to_long(new byte[] {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff} ,0));
+		assertEquals(-2L, PickleUtils.bytes_to_long(new byte[] {(byte)0xfe, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff} ,0));
+	}
+	
+	
 	@Test
 	public void testInteger_to_bytes()
 	{
@@ -135,34 +171,55 @@ public class PickleUtilsTest {
 	
 	@Test
 	public void testBytes_to_double() {
-		PickleUtils p=new PickleUtils(null);
 		try {
-			p.bytes_to_double(new byte[] {}, 0);
+			PickleUtils.bytes_to_double(new byte[] {}, 0);
 			fail("expected PickleException");
 		} catch (PickleException x) {}
 		try {
-			p.bytes_to_double(new byte[] {0}, 0);
+			PickleUtils.bytes_to_double(new byte[] {0}, 0);
 			fail("expected PickleException");
 		} catch (PickleException x) {}
-		assertTrue(0.0d == p.bytes_to_double(new byte[] {0,0,0,0,0,0,0,0}, 0));
-		assertTrue(1.0d == p.bytes_to_double(new byte[] {0x3f,(byte)0xf0,0,0,0,0,0,0} ,0));
-		assertTrue(1.1d == p.bytes_to_double(new byte[] {0x3f,(byte)0xf1,(byte)0x99,(byte)0x99,(byte)0x99,(byte)0x99,(byte)0x99,(byte)0x9a} ,0));
-		assertTrue(1234.5678d == p.bytes_to_double(new byte[] {0x40,(byte)0x93,0x4a,0x45,0x6d,0x5c,(byte)0xfa,(byte)0xad} ,0));
-		assertTrue(2.17e123d == p.bytes_to_double(new byte[] {0x59,(byte)0x8a,0x42,(byte)0xd1,(byte)0xce,(byte)0xf5,0x3f,0x46} ,0));
-		assertTrue(1.23456789e300d == p.bytes_to_double(new byte[] {0x7e,0x3d,0x7e,(byte)0xe8,(byte)0xbc,(byte)0xaf,0x28,0x3a} ,0));
-		assertTrue(Double.POSITIVE_INFINITY == p.bytes_to_double(new byte[] {0x7f,(byte)0xf0,0,0,0,0,0,0} ,0));
-		assertTrue(Double.NEGATIVE_INFINITY == p.bytes_to_double(new byte[] {(byte)0xff,(byte)0xf0,0,0,0,0,0,0} ,0));
+		assertTrue(0.0d == PickleUtils.bytes_to_double(new byte[] {0,0,0,0,0,0,0,0}, 0));
+		assertTrue(1.0d == PickleUtils.bytes_to_double(new byte[] {0x3f,(byte)0xf0,0,0,0,0,0,0} ,0));
+		assertTrue(1.1d == PickleUtils.bytes_to_double(new byte[] {0x3f,(byte)0xf1,(byte)0x99,(byte)0x99,(byte)0x99,(byte)0x99,(byte)0x99,(byte)0x9a} ,0));
+		assertTrue(1234.5678d == PickleUtils.bytes_to_double(new byte[] {0x40,(byte)0x93,0x4a,0x45,0x6d,0x5c,(byte)0xfa,(byte)0xad} ,0));
+		assertTrue(2.17e123d == PickleUtils.bytes_to_double(new byte[] {0x59,(byte)0x8a,0x42,(byte)0xd1,(byte)0xce,(byte)0xf5,0x3f,0x46} ,0));
+		assertTrue(1.23456789e300d == PickleUtils.bytes_to_double(new byte[] {0x7e,0x3d,0x7e,(byte)0xe8,(byte)0xbc,(byte)0xaf,0x28,0x3a} ,0));
+		assertTrue(Double.POSITIVE_INFINITY == PickleUtils.bytes_to_double(new byte[] {0x7f,(byte)0xf0,0,0,0,0,0,0} ,0));
+		assertTrue(Double.NEGATIVE_INFINITY == PickleUtils.bytes_to_double(new byte[] {(byte)0xff,(byte)0xf0,0,0,0,0,0,0} ,0));
 		try
 		{
-			p.bytes_to_double(new byte[] {(byte) 200,50,25,100}, 0);
+			PickleUtils.bytes_to_double(new byte[] {(byte) 200,50,25,100}, 0);
 			fail("expected PickleException");
 		} catch (PickleException x) {}
 
 		// test offset
-		assertTrue(1.23456789e300d == p.bytes_to_double(new byte[] {0,0,0,0x7e,0x3d,0x7e,(byte)0xe8,(byte)0xbc,(byte)0xaf,0x28,0x3a} ,3));
-		assertTrue(1.23456789e300d == p.bytes_to_double(new byte[] {0x7e,0x3d,0x7e,(byte)0xe8,(byte)0xbc,(byte)0xaf,0x28,0x3a,0,0,0} ,0));
+		assertTrue(1.23456789e300d == PickleUtils.bytes_to_double(new byte[] {0,0,0,0x7e,0x3d,0x7e,(byte)0xe8,(byte)0xbc,(byte)0xaf,0x28,0x3a} ,3));
+		assertTrue(1.23456789e300d == PickleUtils.bytes_to_double(new byte[] {0x7e,0x3d,0x7e,(byte)0xe8,(byte)0xbc,(byte)0xaf,0x28,0x3a,0,0,0} ,0));
 	}
-	
+
+	@Test
+	public void testBytes_to_float() {
+		try {
+			PickleUtils.bytes_to_float(new byte[] {}, 0);
+			fail("expected PickleException");
+		} catch (PickleException x) {}
+		try {
+			PickleUtils.bytes_to_float(new byte[] {0}, 0);
+			fail("expected PickleException");
+		} catch (PickleException x) {}
+		assertTrue(0.0f == PickleUtils.bytes_to_float(new byte[] {0,0,0,0}, 0));
+		assertTrue(1.0f == PickleUtils.bytes_to_float(new byte[] {0x3f,(byte)0x80,0,0} ,0));
+		assertTrue(1.1f == PickleUtils.bytes_to_float(new byte[] {0x3f,(byte)0x8c,(byte)0xcc,(byte)0xcd} ,0));
+		assertTrue(1234.5678f == PickleUtils.bytes_to_float(new byte[] {0x44,(byte)0x9a,0x52,0x2b} ,0));
+		assertTrue(Float.POSITIVE_INFINITY == PickleUtils.bytes_to_float(new byte[] {0x7f,(byte)0x80,0,0} ,0));
+		assertTrue(Float.NEGATIVE_INFINITY == PickleUtils.bytes_to_float(new byte[] {(byte)0xff,(byte)0x80,0,0} ,0));
+
+		// test offset
+		assertTrue(1234.5678f == PickleUtils.bytes_to_float(new byte[] {0,0,0, 0x44,(byte)0x9a,0x52,0x2b} ,3));
+		assertTrue(1234.5678f == PickleUtils.bytes_to_float(new byte[] {0x44,(byte)0x9a,0x52,0x2b,0,0,0} ,0));
+	}
+
 	@Test
 	public void testDouble_to_bytes()
 	{

@@ -108,6 +108,46 @@ public class PickleUtils {
 	}
 
 	/**
+	 * Convert 8 little endian bytes into a long
+	 */
+	public static long bytes_to_long(byte[] bytes, int offset) {
+		if(bytes.length-offset<8)
+			throw new PickleException("too few bytes to convert to long");
+		long i = bytes[7+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[6+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[5+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[4+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[3+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[2+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[1+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[offset] & 0xff;
+		return i;
+	}	
+
+	/**
+	 * Convert 4 little endian bytes into an unsigned int (as a long)
+	 */
+	public static long bytes_to_uint(byte[] bytes, int offset) {
+		if(bytes.length-offset<4)
+			throw new PickleException("too few bytes to convert to long");
+		long i = bytes[3+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[2+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[1+offset] & 0xff;
+		i <<= 8;
+		i |= bytes[0+offset] & 0xff;
+		return i;
+	}	
+	
+	/**
 	 * Convert a signed integer to its 4-byte representation. (little endian)
 	 */
 	public byte[] integer_to_bytes(int i) {
