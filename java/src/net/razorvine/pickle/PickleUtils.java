@@ -82,26 +82,29 @@ public class PickleUtils {
 	 * Convert a couple of bytes into the corresponding integer number.
 	 * Can deal with 2-bytes unsigned int and 4-bytes signed int.
 	 */
-	public int bytes_to_integer(byte[] bytes) {
+	public static int bytes_to_integer(byte[] bytes) {
+		return bytes_to_integer(bytes, 0, bytes.length);
+	}
+	public static int bytes_to_integer(byte[] bytes, int offset, int size) {
 		// this operates on little-endian bytes
-		if (bytes.length == 2) {
+		if (size==2) {
 			// 2-bytes unsigned int
-			int i = bytes[1] & 0xff;
+			int i = bytes[1+offset] & 0xff;
 			i <<= 8;
-			i |= bytes[0] & 0xff;
+			i |= bytes[0+offset] & 0xff;
 			return i;
-		} else if (bytes.length == 4) {
+		} else if (size==4) {
 			// 4-bytes signed int
-			int i = bytes[3];
+			int i = bytes[3+offset];
 			i <<= 8;
-			i |= bytes[2] & 0xff;
+			i |= bytes[2+offset] & 0xff;
 			i <<= 8;
-			i |= bytes[1] & 0xff;
+			i |= bytes[1+offset] & 0xff;
 			i <<= 8;
-			i |= bytes[0] & 0xff;
+			i |= bytes[0+offset] & 0xff;
 			return i;
 		} else
-			throw new PickleException("invalid amount of bytes to convert to int: " + bytes.length);
+			throw new PickleException("invalid amount of bytes to convert to int: " + size);
 	}
 
 	/**
@@ -146,28 +149,46 @@ public class PickleUtils {
 	/**
 	 * Convert a big endian 8-byte to a double. 
 	 */
-	public double bytes_to_double(byte[] bytes) {
-		if (bytes.length == 8) {
-			long result = bytes[0] & 0xff;
+	public static double bytes_to_double(byte[] bytes, int offset) {
+		try {
+			long result = bytes[0+offset] & 0xff;
 			result <<= 8;
-			result |= bytes[1] & 0xff;
+			result |= bytes[1+offset] & 0xff;
 			result <<= 8;
-			result |= bytes[2] & 0xff;
+			result |= bytes[2+offset] & 0xff;
 			result <<= 8;
-			result |= bytes[3] & 0xff;
+			result |= bytes[3+offset] & 0xff;
 			result <<= 8;
-			result |= bytes[4] & 0xff;
+			result |= bytes[4+offset] & 0xff;
 			result <<= 8;
-			result |= bytes[5] & 0xff;
+			result |= bytes[5+offset] & 0xff;
 			result <<= 8;
-			result |= bytes[6] & 0xff;
+			result |= bytes[6+offset] & 0xff;
 			result <<= 8;
-			result |= bytes[7] & 0xff;
+			result |= bytes[7+offset] & 0xff;
 			return Double.longBitsToDouble(result);
-		} else
-			throw new PickleException("invalid amount of bytes to convert to double: " + bytes.length);
+		} catch (ArrayIndexOutOfBoundsException x) {
+			throw new PickleException("decoding double: too few bytes");
+		}
 	}
 
+	/**
+	 * Convert a big endian 4-byte to a float. 
+	 */
+	public static float bytes_to_float(byte[] bytes, int offset) {
+		try {
+			int result = bytes[0+offset] & 0xff;
+			result <<= 8;
+			result |= bytes[1+offset] & 0xff;
+			result <<= 8;
+			result |= bytes[2+offset] & 0xff;
+			result <<= 8;
+			result |= bytes[3+offset] & 0xff;
+			return Float.intBitsToFloat(result);
+		} catch (ArrayIndexOutOfBoundsException x) {
+			throw new PickleException("decoding float: too few bytes");
+		}
+	}	
 	/**
 	 * read an arbitrary 'long' number. Returns an int/long/BigInteger as appropriate to hold the number.
 	 */

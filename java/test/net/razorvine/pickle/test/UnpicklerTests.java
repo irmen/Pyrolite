@@ -412,7 +412,7 @@ public class UnpicklerTests {
 		assertArrayEquals(testd,arrayd,0.000001);
 	}
 	
-	@Test(expected=net.razorvine.pickle.PickleException.class)
+	@Test
 	public void testArrayPython3() throws IOException, PickleException {
 		// python 3 array reconstructor, not yet supported
 		int[] testi=new int[]{1,2,3};

@@ -396,7 +396,7 @@ public class Unpickler {
 	}
 
 	void load_binfloat() throws IOException {
-		double val = pu.bytes_to_double(pu.readbytes(8));
+		double val = pu.bytes_to_double(pu.readbytes(8),0);
 		stack.add(val);
 	}
 

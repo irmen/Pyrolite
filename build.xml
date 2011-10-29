@@ -44,7 +44,7 @@
   </target>
   
   <target name="test" depends="build-test">
-    <junit>
+    <junit failureproperty="junit.failure">
       <classpath refid="classpath.test" />
       <batchtest>
         <fileset dir="${testsrc}">
@@ -54,6 +54,7 @@
         <formatter type="xml" usefile="true" />
       </batchtest>
     </junit>
+  	<fail if="junit.failure" message="Unit test(s) failed.  See reports!"/>
   </target>
   
   <target name="javadoc">
