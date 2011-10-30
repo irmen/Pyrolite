@@ -88,6 +88,9 @@ decimal             BigDecimal
 Pyro4.core.URI      net.razorvine.pyro.PyroURI
 Pyro4.core.Proxy    net.razorvine.pyro.PyroProxy
 Pyro4.errors.*      net.razorvine.pyro.PyroException
+Pyro4.utils.flame.FlameBuiltin     net.razorvine.pyro.FlameBuiltin 
+Pyro4.utils.flame.FlameModule      net.razorvine.pyro.FlameModule 
+Pyro4.utils.flame.RemoteInteractiveConsole    net.razorvine.pyro.FlameRemoteConsole 
 
 The unpickler simply returns an Object. Because Java is a statically
 typed language you will have to cast that to the appropriate type.
@@ -99,8 +102,8 @@ JAVA     ---->      PYTHON
 null                None
 boolean             bool
 byte                int
-char                str (length 1)
-String              str
+char                str/unicode (length 1)
+String              str/unicode
 double              float
 float               float
 int                 int
@@ -119,13 +122,37 @@ Vector, Collection  list
 Serializable        treated as a JavaBean, see below.
 JavaBean            dict of the bean's public properties + __class__ for the bean's type.
 net.razorvine.pyro.PyroURI      Pyro4.core.URI
-net.razorvine.pyro.PyroProxy    Pyro4.core.Proxy
+net.razorvine.pyro.PyroProxy    cannot be pickled.
 
 
-
-PYTHON --> C#
-
-@TODO 
+PYTHON      ---->    C#
+------              ----
+None                null
+bool                bool
+int                 int
+long                long (c# doesn't have BigInteger so there's a limit on the size)
+string              string
+unicode             string
+complex             Razorvine.Pickle.Objects.ComplexNumber
+datetime.date       DateTime
+datetime.datetime   DateTime
+datetime.time       TimeSpan
+datetime.timedelta  TimeSpan
+float               double
+array.array         array (all kinds of element types supported)
+list                ArrayList (of objects)
+tuple               object[]
+set                 HashSet<object>
+dict                Hashtable (key=object, value=object)
+bytes               ubyte[]
+bytearray           ubyte[]
+decimal             decimal
+Pyro4.core.URI      Razorvine.Pyro.PyroURI
+Pyro4.core.Proxy    Razorvine.Pyro.PyroProxy
+Pyro4.errors.*      Razorvine.Pyro.PyroException
+Pyro4.utils.flame.FlameBuiltin     Razorvine.Pyro.FlameBuiltin 
+Pyro4.utils.flame.FlameModule      Razorvine.Pyro.FlameModule 
+Pyro4.utils.flame.RemoteInteractiveConsole    Razorvine.Pyro.FlameRemoteConsole 
 
 The unpickler simply returns an object. Because C# is a statically
 typed language you will have to cast that to the appropriate type.
@@ -134,7 +161,28 @@ TIP: if you are using C# 4.0 you can use the 'dynamic' type in some
 places to avoid excessive type casting.
 
 
-C# --> PYTHON
-
-@TODO
-
+  C#      ---->     PYTHON
+------              -------
+null                None
+boolean             bool
+byte                byte
+sbyte               int
+char                str/unicode (length 1)
+string              str/unicode
+double              float
+float               float
+int/short/byte      int
+decimal             decimal
+byte[]              bytearray
+primitivetype[]     array
+object[]            tuple
+DateTime            datetime.datetime
+TimeSpan            datetime.timedelta
+Enum                just the enum value as string
+HashSet             set
+Map, Hashtable      dict
+Collection          list
+Enumerable          list
+object with public properties      dictionary of those properties + __class__
+Razorvine.Pyro.PyroURI      Pyro4.core.URI
+Razorvine.Pyro.PyroProxy    cannot be pickled.

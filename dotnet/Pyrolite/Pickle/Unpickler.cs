@@ -14,36 +14,11 @@ namespace Razorvine.Pyrolite.Pickle
 
 /// <summary>
 /// Unpickles an object graph from a pickle data inputstream.
-/// Maps the python objects on the corresponding java equivalents or similar types..
+/// Maps the python objects on the corresponding java equivalents or similar types.
+/// See the README.txt for a table with the type mappings.
 /// </summary>
 public class Unpickler : IDisposable {
 
-/*
- * TYPE MAPPING
- * PYTHON TYPE --> c# TYPE
- * None            null
- * bool            bool
- * int             int
- * long            long (c# doesn't have BigInteger so there's a limit on the size)
- * string          string
- * unicode         string
- * complex         objects.ComplexNumber
- * datetime.date   DateTime
- * datetime.datetime DateTime
- * datetime.time   TimeSpan
- * datetime.timedelta TimeSpan
- * float           double
- * array           array (all kinds of element types supported)
- * list            ArrayList (of objects)
- * tuple           object[]
- * set             HashSet<object>
- * dict            Hashtable (object->object)
- * bytes           ubyte[]
- * bytearray       ubyte[]
- * decimal         decimal
- *  
- */
-	
 	private const int HIGHEST_PROTOCOL = 3;
 
 	private PickleUtils pu;

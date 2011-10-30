@@ -14,36 +14,10 @@ namespace Razorvine.Pyrolite.Pickle
 /// <summary>
 /// Pickle an object graph into a Python-compatible pickle stream. For
 /// simplicity, the only supported pickle protocol at this time is protocol 2. 
+/// See README.txt for a table with the type mapping.
 /// </summary>
 public class Pickler : IDisposable {
 
-/*
- * Type mapping
- *
- * C# TYPE --> PYTHON TYPE
- * null      None
- * boolean   bool
- * byte      byte
- * sbyte     int
- * char      unicodestring (len 1)
- * string    unicodestring
- * double    float
- * float     float
- * int/short/byte int
- * decimal   decimal
- * array     array if elements are primitive type, else tuple
- * byte[]    bytearray
- * primitivetype[]  array
- * object[]  tuple
- * DateTime  datetime
- * TimeSpan  timedelta
- * Enum      just the enum value as string
- * HashSet   set
- * map,hashtable   dict
- * collection,enumerable  list
- * object with public properties      dictionary of those properties + __class__
- */
-	
 	public static int HIGHEST_PROTOCOL = 2;
 
 	private Stream outs;
