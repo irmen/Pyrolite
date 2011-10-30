@@ -9,7 +9,7 @@ Contents:
     1. INTRODUCTION
     2. THE LIBRARY
     3. TYPE MAPPINGS
- 
+    4. EXCEPTIONS
 
 
 1. INTRODUCTION
@@ -212,3 +212,17 @@ Enumerable          list
 object with public properties      dictionary of those properties + __class__
 Razorvine.Pyro.PyroURI      Pyro4.core.URI
 Razorvine.Pyro.PyroProxy    cannot be pickled.
+
+
+4. EXCEPTIONS
+---------------------
+
+Pyrolite also maps Python exceptions that may occur in the remote object.
+It has a rather simplistic approach:
+
+*all* exceptions, including the Pyro ones (Pyro4.errors.*), are converted
+to PyroException objects. PyroException is a normal Java or C# exception type,
+and it will be thrown as a normal exception in your program. 
+The message string is taken from the original exception. The remote traceback
+string is available on the PyroException object in the _pyroTraceback field. 
+
