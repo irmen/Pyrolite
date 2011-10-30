@@ -1,8 +1,5 @@
 
 Stuff left TO DO in Pyrolite:
 
-Java+.NET:
-* more config items especially port numbers and hostnames
-* implement memo-ing in the Pickler to be able to pickle recursive objects (note: unpickling works fine already).
-* document type mappings from C#<->python
-* port the array_reconstructor code from java to c#
+Implement memo-ing in the Pickler to be able to pickle recursive objects
+(note: unpickling works fine already).

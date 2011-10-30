@@ -60,13 +60,13 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 	public static NameServerProxy locateNS(String host, int port) throws IOException {
 		if(host!=null) {
 			if(port==0)
-				port=9090;
+				port=Config.NS_PORT;
 			NameServerProxy proxy=new NameServerProxy(host, port);
 			proxy.ping();
 			return proxy;
 		}
 		if(port==0)
-			port=9091;
+			port=Config.NS_BCPORT;
 		DatagramSocket udpsock=new DatagramSocket();
 		udpsock.setSoTimeout(3000);
 		udpsock.setBroadcast(true);
