@@ -57,13 +57,13 @@ public class NameServerProxy : PyroProxy {
 	public static NameServerProxy locateNS(string host, int port) {
 		if(host!=null) {
 			if(port==0)
-				port=9090;
+				port=Config.NS_PORT;
 			NameServerProxy proxy=new NameServerProxy(host, port);
 			proxy.ping();
 			return proxy;
 		}
 		if(port==0)
-			port=9091;
+			port=Config.NS_BCPORT;
 		
 		IPEndPoint ipendpoint = new IPEndPoint(IPAddress.Broadcast, port);
 		using(UdpClient udpclient=new UdpClient()) {

@@ -13,6 +13,8 @@ public final class Config implements Serializable {
 
 	public static byte[] HMAC_KEY=null;
 	public static String MSG_TRACE_DIR=null;
+    public static int NS_PORT = 9090;
+    public static int NS_BCPORT = 9091;
 
 	public static String PYROLITE_VERSION="1.3";
 }
