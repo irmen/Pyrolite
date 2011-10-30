@@ -26,27 +26,7 @@ import net.razorvine.pickle.objects.TimeDelta;
  * Pickle an object graph into a Python-compatible pickle stream. For
  * simplicity, the only supported pickle protocol at this time is protocol 2.
  *
- * JAVA TYPE --> PYTHON TYPE
- * null None
- * boolean bool
- * byte byte/int
- * char unicodestring (len 1)
- * String unicodestring
- * double float
- * float float
- * int/short/byte int
- * bigdecimal decimal
- * biginteger long
- * array array if elements are primitive type, else tuple
- * Object[] tuple
- * byte[] bytearray
- * date datetime
- * Calendar datetime
- * Enum just the enum value as string
- * set set
- * map,hashtable dict
- * vector,collection list
- * javabean   dictionary of the bean's properties + __class__
+ * See the README.txt for a table with the type mappings.
  * 
  * @author Irmen de Jong (irmen@razorvine.net)
  */

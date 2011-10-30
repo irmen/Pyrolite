@@ -19,29 +19,9 @@ import net.razorvine.pickle.objects.SetConstructor;
 
 /**
  * Unpickles an object graph from a pickle data inputstream.
- * Maps the python objects on the corresponding java equivalents or similar types..
+ * Maps the python objects on the corresponding java equivalents or similar types.
  * 
- * PYTHON TYPE --> JAVA TYPE
- * None            null
- * bool            boolean
- * int             int
- * long            Number: long or BigInteger
- * string          String
- * unicode         String
- * complex         objects.ComplexNumber
- * datetime.date   Calendar
- * datetime.datetime Calendar
- * datetime.time   Calendar
- * datetime.timedelta objects.TimeDelta
- * float           double
- * array           array
- * list            ArrayList<Object>
- * tuple           Object[]
- * set             Set
- * dict            Map
- * bytes           byte[]
- * bytearray       byte[]
- * decimal         ????
+ * See the README.txt for a table of the type mappings.
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */
