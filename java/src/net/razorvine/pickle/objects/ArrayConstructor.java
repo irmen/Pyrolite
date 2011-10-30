@@ -15,10 +15,8 @@ import net.razorvine.pickle.PickleUtils;
 public class ArrayConstructor implements IObjectConstructor {
 
 	public Object construct(Object[] args) throws PickleException {
-		// args for array constructor: [ String typecode, ArrayList<Object>
-		// values ]
-		// or: [ constructor_class, typecode, machinecode_type, byte[] ] (this
-		// form is not supported yet)
+		// args for array constructor: [ String typecode, ArrayList<Object> values ]
+		// or: [ constructor_class, typecode, machinecode_type, byte[] ] 
 		if (args.length == 4) {
 			ArrayConstructor constructor = (ArrayConstructor) args[0];
 			char typecode = ((String) args[1]).charAt(0);

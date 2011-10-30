@@ -414,7 +414,7 @@ public class UnpicklerTests {
 	
 	@Test
 	public void testArrayPython3() throws IOException, PickleException {
-		// python 3 array reconstructor, not yet supported
+		// python 3 array reconstructor
 		short[] testi=new short[]{1,2,3};
 		short[] arrayi=(short[])U("\u0080\u0003carray\n_array_reconstructor\nq\u0000(carray\narray\nq\u0001X\u0001\u0000\u0000\u0000hq\u0002K\u0004C\u0006\u0001\u0000\u0002\u0000\u0003\u0000q\u0003tq\u0004Rq\u0005.");
 							  
