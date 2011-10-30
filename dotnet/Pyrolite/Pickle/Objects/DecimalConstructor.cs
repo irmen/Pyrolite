@@ -4,7 +4,7 @@ using System;
 using System.Globalization;
 using System.Reflection;
 
-namespace Razorvine.Pyrolite.Pickle.Objects
+namespace Razorvine.Pickle.Objects
 {
 
 /// <summary>

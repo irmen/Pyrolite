@@ -5,7 +5,7 @@ using System.Collections;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Razorvine.Pyrolite.Pyro
+namespace Razorvine.Pyro
 {
 	/// <summary>
 	/// Exception thrown when something is wrong in Pyro.

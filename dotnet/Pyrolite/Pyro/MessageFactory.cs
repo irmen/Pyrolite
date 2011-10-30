@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace Razorvine.Pyrolite.Pyro
+namespace Razorvine.Pyro
 {
 
 /// <summary>

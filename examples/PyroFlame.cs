@@ -1,5 +1,5 @@
 using System;
-using Razorvine.Pyrolite.Pyro;
+using Razorvine.Pyro;
 
 public class PyroFlameExample {
 

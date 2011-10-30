@@ -11,7 +11,9 @@ Contents:
     3. TYPE MAPPINGS
  
 
+
 1. INTRODUCTION
+---------------------
 
 This library allows your Java or .NET program to interface very easily with
 the Python world. It uses the Pyro protocol to call methods on remote
@@ -27,6 +29,9 @@ So if you don't need Pyro's full feature set, and don't require your
 Java/.NET code to host Pyro objects itself, Pyrolite may be
 a good choice to connect java or .NET and python.
 
+Java packages:   net.razorvine.pickle,  net.razorvine.pyro
+.NET namespaces: Razorvine.Pickle, Razorvine.Pyro
+
 Small piece of example code: (java)
 
     import net.razorvine.pyro.*;
@@ -38,8 +43,11 @@ Small piece of example code: (java)
     // the result object to the appropriate type, such as HashMap for dicts, etc.
     // See the table in 3. TYPE MAPPINGS for what types you can expect.
 
+More examples can be found in the examples directory.
+
 
 2. THE LIBRARY
+---------------------
 
 The library consists of 2 parts:
 - a thin version of the client side part of Pyro.
@@ -59,7 +67,9 @@ The Java source was developed using Pycharm.
 The C#/.NET source was developed using mono, monodevelop and sharpdevelop.
 
 
+
 3. TYPE MAPPINGS
+---------------------
 
 Pyrolite does the following type mappings:
 

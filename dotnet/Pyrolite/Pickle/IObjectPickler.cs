@@ -2,7 +2,7 @@
 
 using System.IO;
 
-namespace Razorvine.Pyrolite.Pickle
+namespace Razorvine.Pickle
 {
 	
 /// <summary>

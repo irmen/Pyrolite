@@ -2,8 +2,8 @@
 
 using System;
 using System.Text;
-using Razorvine.Pyrolite.Pickle;
-using Razorvine.Pyrolite.Pyro;
+using Razorvine.Pickle;
+using Razorvine.Pyro;
 
 namespace Pyrolite.TestPyroEcho
 {

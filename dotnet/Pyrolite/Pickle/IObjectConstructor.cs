@@ -1,6 +1,6 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
-namespace Razorvine.Pyrolite.Pickle
+namespace Razorvine.Pickle
 {
 
 /// <summary>

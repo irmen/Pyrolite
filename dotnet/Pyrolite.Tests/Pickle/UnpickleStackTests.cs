@@ -2,7 +2,7 @@
 
 using System.Collections;
 using NUnit.Framework;
-using Razorvine.Pyrolite.Pickle;
+using Razorvine.Pickle;
 
 namespace Pyrolite.Tests.Pickle
 {

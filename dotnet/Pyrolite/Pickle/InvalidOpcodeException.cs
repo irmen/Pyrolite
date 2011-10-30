@@ -3,7 +3,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Razorvine.Pyrolite.Pickle
+namespace Razorvine.Pickle
 {
 	/// <summary>
 	/// Exception thrown when the unpickler encountered an unknown or unimplemented opcode.

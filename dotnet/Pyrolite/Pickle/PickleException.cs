@@ -3,7 +3,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Razorvine.Pyrolite.Pickle
+namespace Razorvine.Pickle
 {
 	/// <summary>
 	/// Exception thrown when something went wrong with pickling or unpickling.

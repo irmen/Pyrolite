@@ -3,7 +3,7 @@
 using System.IO;
 using System.Net.Sockets;
 
-namespace Razorvine.Pyrolite.Pyro
+namespace Razorvine.Pyro
 {
 
 /// <summary>

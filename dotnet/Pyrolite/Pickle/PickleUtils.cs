@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Razorvine.Pyrolite.Pickle
+namespace Razorvine.Pickle
 {
 	
 /// <summary>

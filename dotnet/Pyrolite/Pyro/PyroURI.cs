@@ -1,10 +1,10 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System.Text.RegularExpressions;
-using Razorvine.Pyrolite.Pickle;
-using Razorvine.Pyrolite.Pickle.Objects;
+using Razorvine.Pickle;
+using Razorvine.Pickle.Objects;
 
-namespace Razorvine.Pyrolite.Pyro
+namespace Razorvine.Pyro
 {
 
 /// <summary>

@@ -3,7 +3,7 @@
 using System;
 using System.Collections;
 
-namespace Razorvine.Pyrolite.Pickle.Objects
+namespace Razorvine.Pickle.Objects
 {
 
 /// <summary>

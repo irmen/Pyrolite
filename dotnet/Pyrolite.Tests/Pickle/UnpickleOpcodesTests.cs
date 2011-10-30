@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using NUnit.Framework;
-using Razorvine.Pyrolite.Pickle;
+using Razorvine.Pickle;
 
 namespace Pyrolite.Tests.Pickle
 {

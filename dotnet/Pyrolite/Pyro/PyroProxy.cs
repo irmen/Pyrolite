@@ -7,10 +7,10 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using Razorvine.Pyrolite.Pickle;
-using Razorvine.Pyrolite.Pickle.Objects;
+using Razorvine.Pickle;
+using Razorvine.Pickle.Objects;
 
-namespace Razorvine.Pyrolite.Pyro
+namespace Razorvine.Pyro
 {
 
 /// <summary>

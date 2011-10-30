@@ -2,9 +2,9 @@
 
 using System.IO;
 using System.Text;
-using Razorvine.Pyrolite.Pickle;
+using Razorvine.Pickle;
 
-namespace Razorvine.Pyrolite.Pyro
+namespace Razorvine.Pyro
 {
 
 /// <summary>

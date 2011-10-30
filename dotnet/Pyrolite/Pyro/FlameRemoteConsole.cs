@@ -3,7 +3,7 @@
 using System;
 using System.Collections;
 
-namespace Razorvine.Pyrolite.Pyro
+namespace Razorvine.Pyro
 {
 
 	/// <summary>

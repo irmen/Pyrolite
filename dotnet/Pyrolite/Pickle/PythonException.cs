@@ -5,7 +5,7 @@ using System.Collections;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Razorvine.Pyrolite.Pickle
+namespace Razorvine.Pickle
 {
 	/// <summary>
 	/// Exception thrown that represents a certain Python exception.
