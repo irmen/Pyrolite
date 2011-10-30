@@ -98,6 +98,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Pickle\ArrayConstructorTests.cs" />
     <Compile Include="Pickle\AssertUtils.cs" />
     <Compile Include="Pickle\PicklerTests.cs" />
     <Compile Include="Pickle\PickleUtilsTests.cs" />

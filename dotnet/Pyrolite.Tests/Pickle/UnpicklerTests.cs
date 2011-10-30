@@ -413,11 +413,12 @@ public class UnpicklerTests {
 		Assert.AreEqual(testd,arrayd);
 	}
 	
-	[Test, ExpectedException(typeof(PickleException))]
+	[Test]
 	public void testArrayPython3() {
-		// python 3 array reconstructor, not yet supported
-		int[] testi=new int[]{1,2,3};
-		int[] arrayi=(int[])U("\u0080\u0003carray\n_array_reconstructor\nq\u0000(carray\narray\nq\u0001X\u0001\u0000\u0000\u0000iq\u0002K\u0008C\u000c\u000f'\u0000\u0000\u00b8\"\u0000\u0000a\u001e\u0000\u0000q\u0003tq\u0004Rq\u0005.");
+		// python 3 array reconstructor
+		short[] testi=new short[]{1,2,3};
+		short[] arrayi=(short[])U("\u0080\u0003carray\n_array_reconstructor\nq\u0000(carray\narray\nq\u0001X\u0001\u0000\u0000\u0000hq\u0002K\u0004C\u0006\u0001\u0000\u0002\u0000\u0003\u0000q\u0003tq\u0004Rq\u0005.");
+							  
 		Assert.AreEqual(testi, arrayi);
 	}
 	

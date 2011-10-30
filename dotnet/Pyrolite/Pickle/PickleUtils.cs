@@ -85,29 +85,60 @@ public class PickleUtils {
 	 * Convert a couple of bytes into the corresponding integer number.
 	 * Can deal with 2-bytes unsigned int and 4-bytes signed int.
 	 */
-	public int bytes_to_integer(byte[] bytes) {
+	public static int bytes_to_integer(byte[] bytes) {
+		return bytes_to_integer(bytes, 0, bytes.Length);
+	}
+	public static int bytes_to_integer(byte[] bytes, int offset, int size) {
 		// this operates on little-endian bytes
 		
-		if (bytes.Length == 2) {
+		if (size == 2) {
 			// 2-bytes unsigned int
 			if(!BitConverter.IsLittleEndian) {
 				// need to byteswap because the converter needs big-endian...
-				byte[] bigendian=new byte[2] {bytes[1], bytes[0]};
-				return BitConverter.ToUInt16(bigendian,0);
+				byte[] bigendian=new byte[2] {bytes[1+offset], bytes[0+offset]};
+				return BitConverter.ToUInt16(bigendian, 0);
 			}
-			return BitConverter.ToUInt16(bytes,0);
+			return BitConverter.ToUInt16(bytes,offset);
 		} else if (bytes.Length == 4) {
 			// 4-bytes signed int
 			if(!BitConverter.IsLittleEndian) {
 				// need to byteswap because the converter needs big-endian...
 				byte[] bigendian=new byte[4] {bytes[3], bytes[2], bytes[1], bytes[0]};
-				return BitConverter.ToInt32(bigendian,0);
+				return BitConverter.ToInt32(bigendian, 0);
 			}
-			return BitConverter.ToInt32(bytes,0);
+			return BitConverter.ToInt32(bytes,offset);
 		} else
-			throw new PickleException("invalid amount of bytes to convert to int: " + bytes.Length);
+			throw new PickleException("invalid amount of bytes to convert to int: " + size);
 	}
 
+	/**
+	 * Convert 8 little endian bytes into a long
+	 */
+	public static long bytes_to_long(byte[] bytes, int offset) {
+		if(bytes.Length-offset<8)
+			throw new PickleException("too few bytes to convert to long");
+		if(BitConverter.IsLittleEndian) {
+    		return BitConverter.ToInt64(bytes, offset);
+		}
+		// need to byteswap because the converter needs big-endian...
+		byte[] bigendian=new byte[8] {bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]};
+		return BitConverter.ToInt64(bigendian, 0);
+	}	
+
+	/**
+	 * Convert 4 little endian bytes into an unsigned int
+	 */
+	public static uint bytes_to_uint(byte[] bytes, int offset) {
+		if(bytes.Length-offset<4)
+			throw new PickleException("too few bytes to convert to long");
+		if(BitConverter.IsLittleEndian) {
+    		return BitConverter.ToUInt32(bytes, offset);
+		}
+		// need to byteswap because the converter needs big-endian...
+		byte[] bigendian=new byte[4] {bytes[3], bytes[2], bytes[1], bytes[0]};
+		return BitConverter.ToUInt32(bigendian, 0);
+	}	
+		
 	/**
 	 * Convert a signed integer to its 4-byte representation. (little endian)
 	 */
@@ -135,20 +166,33 @@ public class PickleUtils {
 	/**
 	 * Convert a big endian 8-byte to a double. 
 	 */
-	public double bytes_to_double(byte[] bytes) {
-		if (bytes.Length == 8) {
-			if(BitConverter.IsLittleEndian) {
-				// reverse the bytes to make them littleendian for the bitconverter
-				byte[] littleendian=new byte[8];
-				Array.Copy(bytes, littleendian, 8);
-				Array.Reverse(littleendian);
-				return BitConverter.ToDouble(littleendian,0);
-			}
-			return BitConverter.ToDouble(bytes,0);
-		} else
-			throw new PickleException("invalid amount of bytes to convert to double: " + bytes.Length);
+	public static double bytes_to_double(byte[] bytes, int offset) {
+		if (bytes.Length-offset<8) {
+			throw new PickleException("decoding double: too few bytes");
+	    }
+    	if(BitConverter.IsLittleEndian) {
+			// reverse the bytes to make them littleendian for the bitconverter
+			byte[] littleendian=new byte[8] { bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0] };
+			return BitConverter.ToDouble(littleendian,0);
+		}
+		return BitConverter.ToDouble(bytes,offset);
 	}
 
+	/**
+	 * Convert a big endian 4-byte to a float. 
+	 */
+	public static float bytes_to_float(byte[] bytes, int offset) {
+		if (bytes.Length-offset<4) {
+			throw new PickleException("decoding float: too few bytes");
+	    }
+    	if(BitConverter.IsLittleEndian) {
+			// reverse the bytes to make them littleendian for the bitconverter
+			byte[] littleendian=new byte[4] { bytes[3], bytes[2], bytes[1], bytes[0] };
+			return BitConverter.ToSingle(littleendian,0);
+		}
+		return BitConverter.ToSingle(bytes,offset);
+	}
+	
 	/**
 	 * read an arbitrary 'long' number. 
 	 * because c# doesn't have a bigint, we look if stuff fits into a regular long,

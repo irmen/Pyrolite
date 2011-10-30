@@ -332,7 +332,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_binint()  {
-		int integer = pu.bytes_to_integer(pu.readbytes(4));
+		int integer = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		stack.add(integer);
 	}
 
@@ -341,7 +341,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_binint2() {
-		int integer = pu.bytes_to_integer(pu.readbytes(2));
+		int integer = PickleUtils.bytes_to_integer(pu.readbytes(2));
 		stack.add(integer);
 	}
 
@@ -365,7 +365,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_long4() {
-		int n = pu.bytes_to_integer(pu.readbytes(4));
+		int n = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		byte[] data = pu.readbytes(n);
 		stack.add(pu.decode_long(data));
 	}
@@ -377,7 +377,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_binfloat() {
-		double val = pu.bytes_to_double(pu.readbytes(8));
+		double val = PickleUtils.bytes_to_double(pu.readbytes(8),0);
 		stack.add(val);
 	}
 
@@ -403,13 +403,13 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_binstring() {
-		int len = pu.bytes_to_integer(pu.readbytes(4));
+		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		byte[] data = pu.readbytes(len);
 		stack.add(PickleUtils.rawStringFromBytes(data));
 	}
 
 	void load_binbytes() {
-		int len = pu.bytes_to_integer(pu.readbytes(4));
+		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		stack.add(pu.readbytes(len));
 	}
 
@@ -419,7 +419,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_binunicode() {
-		int len = pu.bytes_to_integer(pu.readbytes(4));
+		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		byte[] data = pu.readbytes(len);
 		stack.add(Encoding.UTF8.GetString(data));
 	}
@@ -532,7 +532,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_long_binget() {
-		int i = pu.bytes_to_integer(pu.readbytes(4));
+		int i = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		if(!memo.ContainsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo[i]);
 	}
@@ -548,7 +548,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_long_binput() {
-		int i = pu.bytes_to_integer(pu.readbytes(4));
+		int i = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		memo[i]=stack.peek();
 	}
 
