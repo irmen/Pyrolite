@@ -71,11 +71,16 @@ public class ArrayConstructorTest {
 		Assert.AreEqual(new char[]{'A',EURO}, (char[])ac.construct('u', 20, new byte[]{65,0,0,0,0xac,0x20,0,0}));
 		Assert.AreEqual(new char[]{'A',EURO}, (char[])ac.construct('c', 21, new byte[]{0,0,0,65,0,0,0x20,0xac}));
 		Assert.AreEqual(new char[]{'A',EURO}, (char[])ac.construct('u', 21, new byte[]{0,0,0,65,0,0,0x20,0xac}));
-		Assert.AreEqual(new char[]{'A',EURO}, (char[])ac.construct('u', 21, new byte[]{1,0,0,65,1,0,0x20,0xac}));
+		try {
+		    ac.construct('u', 21, new byte[]{0,1,0,65}); // out of range codepoint
+		    Assert.Fail("expected error");
+		} catch (PickleException) {
+		    // ok
+		}
 		
 		// b/B
-		Assert.AreEqual(new byte[]{1,2,3,4,0xff,0xfe,0xfd,0xfc}, (byte[])ac.construct('b', 1, new byte[]{1,2,3,4,0xff,0xfe,0xfd,0xfc}));
-		Assert.AreEqual(new short[]{1,2,3,4,0xff,0xfe,0xfd,0xfc}, (short[])ac.construct('B', 0, new byte[]{1,2,3,4,0xff,0xfe,0xfd,0xfc}));
+		Assert.AreEqual(new sbyte[]{1,2,3,4,-1,-2,-3,-4}, (sbyte[])ac.construct('b', 1, new byte[]{1,2,3,4,0xff,0xfe,0xfd,0xfc}));
+		Assert.AreEqual(new byte[]{1,2,3,4,0xff,0xfe,0xfd,0xfc}, (byte[])ac.construct('B', 0, new byte[]{1,2,3,4,0xff,0xfe,0xfd,0xfc}));
 	}
 	
 	[Test]
@@ -92,12 +97,12 @@ public class ArrayConstructorTest {
 		Assert.AreEqual(new short[]{0x3412,0x7856}, (short[])ac.construct('h', 4, new byte[]{0x12,0x34,0x56,0x78}));
 
 		//H
-		Assert.AreEqual((int)0x80ff, ((int[])ac.construct('H', 3, new byte[]{0x80,0xff}))[0]);
-		Assert.AreEqual((int)0x7fff, ((int[])ac.construct('H', 3, new byte[]{0x7f,0xff}))[0]);
-		Assert.AreEqual((int)0xffff, ((int[])ac.construct('H', 3, new byte[]{0xff,0xff}))[0]);
-		Assert.AreEqual((int)0xffff, ((int[])ac.construct('H', 2, new byte[]{0xff,0xff}))[0]);
-		Assert.AreEqual(new int[]{0x1234,0x5678}, (int[])ac.construct('H', 3, new byte[]{0x12,0x34,0x56,0x78}));
-		Assert.AreEqual(new int[]{0x3412,0x7856}, (int[])ac.construct('H', 2, new byte[]{0x12,0x34,0x56,0x78}));
+		Assert.AreEqual((ushort)0x80ff, ((ushort[])ac.construct('H', 3, new byte[]{0x80,0xff}))[0]);
+		Assert.AreEqual((ushort)0x7fff, ((ushort[])ac.construct('H', 3, new byte[]{0x7f,0xff}))[0]);
+		Assert.AreEqual((ushort)0xffff, ((ushort[])ac.construct('H', 3, new byte[]{0xff,0xff}))[0]);
+		Assert.AreEqual((ushort)0xffff, ((ushort[])ac.construct('H', 2, new byte[]{0xff,0xff}))[0]);
+		Assert.AreEqual(new ushort[]{0x1234,0x5678}, (ushort[])ac.construct('H', 3, new byte[]{0x12,0x34,0x56,0x78}));
+		Assert.AreEqual(new ushort[]{0x3412,0x7856}, (ushort[])ac.construct('H', 2, new byte[]{0x12,0x34,0x56,0x78}));
 
 		//i
 		Assert.AreEqual((int)-0x7fffff01, ((int[])ac.construct('i', 9, new byte[]{0x80,0x00,0x00,0xff}))[0]);
@@ -108,9 +113,9 @@ public class ArrayConstructorTest {
 		Assert.AreEqual(new int[]{0x44332211,-0x778899ab}, (int[])ac.construct('i', 8, new byte[]{0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88}));
 
 		//l-4bytes
-		Assert.AreEqual(0x800000ff, ((int[])ac.construct('l', 9, new byte[]{0x80,0x00,0x00,0xff}))[0]);
+		Assert.AreEqual(-0x7fffff01, ((int[])ac.construct('l', 9, new byte[]{0x80,0x00,0x00,0xff}))[0]);
 		Assert.AreEqual(0x7f0000ff, ((int[])ac.construct('l', 9, new byte[]{0x7f,0x00,0x00,0xff}))[0]);
-		Assert.AreEqual(0xf00000f1, ((int[])ac.construct('l', 9, new byte[]{0xf0,0x00,0x00,0xf1}))[0]);
+		Assert.AreEqual(-0x0fffff0f, ((int[])ac.construct('l', 9, new byte[]{0xf0,0x00,0x00,0xf1}))[0]);
 		Assert.AreEqual(-2, ((int[])ac.construct('l', 8, new byte[]{0xfe,0xff,0xff,0xff}))[0]);
 		Assert.AreEqual(new int[]{0x11223344,0x55667788}, (int[])ac.construct('l', 9, new byte[]{0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88}));
 		Assert.AreEqual(new int[]{0x44332211,-0x778899ab}, (int[])ac.construct('l', 8, new byte[]{0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88}));
@@ -129,15 +134,23 @@ public class ArrayConstructorTest {
 		Assert.AreEqual(new long[]{1,2}, (long[])ac.construct('l', 12, new byte[]{1,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0}));
 
 		//I 
-		Assert.AreEqual(0x001000000u, ((long[])ac.construct('I', 6, new byte[]{0,0,0,0x01}))[0]);
-		Assert.AreEqual(0x088000000u, ((long[])ac.construct('I', 6, new byte[]{0,0,0,0x88}))[0]);
-		Assert.AreEqual(0x000000001u, ((long[])ac.construct('I', 7, new byte[]{0,0,0,0x01}))[0]);
-		Assert.AreEqual(0x000000088u, ((long[])ac.construct('I', 7, new byte[]{0,0,0,0x88}))[0]);
-		Assert.AreEqual(0x099000088u, ((long[])ac.construct('I', 7, new byte[]{0x99,0,0,0x88}))[0]);
+		Assert.AreEqual(0x001000000u, ((uint[])ac.construct('I', 6, new byte[]{0,0,0,0x01}))[0]);
+		Assert.AreEqual(0x088000000u, ((uint[])ac.construct('I', 6, new byte[]{0,0,0,0x88}))[0]);
+		Assert.AreEqual(0x000000001u, ((uint[])ac.construct('I', 7, new byte[]{0,0,0,0x01}))[0]);
+		Assert.AreEqual(0x000000088u, ((uint[])ac.construct('I', 7, new byte[]{0,0,0,0x88}))[0]);
+		Assert.AreEqual(0x099000088u, ((uint[])ac.construct('I', 7, new byte[]{0x99,0,0,0x88}))[0]);
 
-		//L
-    	ac.construct('L', 6, new byte[]{0,0,0,0x01});
-    	Assert.Fail("L not implemented");
+		//L-4 bytes
+		Assert.AreEqual(0x22000011U, ((uint[])ac.construct('L', 6, new byte[]{0x11,0,0,0x22}))[0]);
+		Assert.AreEqual(0x11000022U, ((uint[])ac.construct('L', 7, new byte[]{0x11,0,0,0x22}))[0]);
+		Assert.AreEqual(0xfffffffeU, ((uint[])ac.construct('L', 6, new byte[]{0xfe,0xff,0xff,0xff}))[0]);
+		Assert.AreEqual(0xfffffffeU, ((uint[])ac.construct('L', 7, new byte[]{0xff,0xff,0xff,0xfe}))[0]);
+    	
+    	//L-8 bytes
+		Assert.AreEqual(0x4400003322000011UL, ((ulong[])ac.construct('L', 10, new byte[]{0x11,0,0,0x22,0x33,0,0,0x44}))[0]);
+		Assert.AreEqual(0x1100002233000044UL, ((ulong[])ac.construct('L', 11, new byte[]{0x11,0,0,0x22,0x33,0,0,0x44}))[0]);
+		Assert.AreEqual(0xfffffffffffffffeUL, ((ulong[])ac.construct('L', 10, new byte[]{0xfe,0xff,0xff,0xff,0xff,0xff,0xff,0xff}))[0]);
+		Assert.AreEqual(0xfffffffffffffffeUL, ((ulong[])ac.construct('L', 11, new byte[]{0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xfe}))[0]);
 	}
 	
 	[Test]

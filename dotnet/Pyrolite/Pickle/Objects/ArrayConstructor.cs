@@ -189,17 +189,19 @@ public class ArrayConstructor : IObjectConstructor {
 				return constructCharArrayUTF32(machinecode, data);
 			}
 		}
-		case 'b':// signed integer 1 -> byte[]
+		case 'b':// signed integer 1 -> sbyte[]
 		{
 			if (machinecode != 1)
 				throw new PickleException("for b type must be 1");
-			return data;
+			sbyte[] result=new sbyte[data.Length];
+			Buffer.BlockCopy(data,0,result,0,data.Length);
+			return result;
 		}
-		case 'B':// unsigned integer 1 -> short[]
+		case 'B':// unsigned integer 1 -> byte[]
 		{
 			if (machinecode != 0)
 				throw new PickleException("for B type must be 0");
-			return constructShortArrayFromUByte(data);
+			return data;
 		}
 		case 'h':// signed integer 2 -> short[]
 		{
@@ -209,13 +211,13 @@ public class ArrayConstructor : IObjectConstructor {
 				throw new PickleException("data size alignment error");
 			return constructShortArraySigned(machinecode, data);
 		}
-		case 'H':// unsigned integer 2 -> int[]
+		case 'H':// unsigned integer 2 -> ushort[]
 		{
 			if (machinecode != 2 && machinecode != 3)
 				throw new PickleException("for H type must be 2/3");
 			if (data.Length % 2 != 0)
 				throw new PickleException("data size alignment error");
-			return constructIntArrayFromUShort(machinecode, data);
+			return constructUShortArrayFromUShort(machinecode, data);
 		}
 		case 'i':// signed integer 4 -> int[]
 		{
@@ -225,7 +227,7 @@ public class ArrayConstructor : IObjectConstructor {
 				throw new PickleException("data size alignment error");
 			return constructIntArrayFromInt32(machinecode, data);
 		}
-		case 'l':// signed integer 4/8 -> int[]
+		case 'l':// signed integer 4/8 -> int[]/long[]
 		{
 			if (machinecode != 8 && machinecode != 9 && machinecode != 12 && machinecode != 13)
 				throw new PickleException("for l type must be 8/9/12/13");
@@ -241,21 +243,29 @@ public class ArrayConstructor : IObjectConstructor {
 				return constructLongArrayFromInt64(machinecode, data);
 			}
 		}
-		case 'I':// unsigned integer 4 -> long[]
+		case 'I':// unsigned integer 4 -> uint[]
 		{
 			if (machinecode != 6 && machinecode != 7)
 				throw new PickleException("for I type must be 6/7");
 			if (data.Length % 4 != 0)
 				throw new PickleException("data size alignment error");
-			return constructLongArrayFromUInt32(machinecode, data);
+			return constructUIntArrayFromUInt32(machinecode, data);
 		}
-		case 'L':// unsigned integer 4/8 -> long[]
+		case 'L':// unsigned integer 4/8 -> uint[]/ulong[]
 		{
 			if (machinecode != 6 && machinecode != 7 && machinecode != 10 && machinecode != 11)
 				throw new PickleException("for L type must be 6/7/10/11");
-			if (data.Length % 4 != 0)
+			if ((machinecode==6 || machinecode==7) && (data.Length % 4 != 0))
 				throw new PickleException("data size alignment error");
-			return constructLongArrayFromUInt64(machinecode, data);
+			if ((machinecode==10 || machinecode==11) && (data.Length % 8 != 0))
+				throw new PickleException("data size alignment error");
+			if(machinecode==6 || machinecode==7) {
+			    // 32 bits
+			    return constructUIntArrayFromUInt32(machinecode, data);
+			} else {
+			    // 64 bits
+			    return constructULongArrayFromUInt64(machinecode, data);
+			}
 		}
 		case 'f':// floating point 4 -> float[]
 		{
@@ -296,8 +306,8 @@ public class ArrayConstructor : IObjectConstructor {
 		return result;
 	}
 
-	protected long[] constructLongArrayFromUInt32(int machinecode, byte[] data) {
-		long[] result=new long[data.Length/4];
+	protected uint[] constructUIntArrayFromUInt32(int machinecode, byte[] data) {
+		uint[] result=new uint[data.Length/4];
 		byte[] bigendian=new byte[4];
 		for(int i=0; i<data.Length/4; i++) {
 			if(machinecode==6) {
@@ -314,9 +324,44 @@ public class ArrayConstructor : IObjectConstructor {
 		return result;
 	}
 
-	protected long[] constructLongArrayFromUInt64(int machinecode, byte[] data) {
-		// java doesn't have a ulong (unsigned int 64-bits) datatype
-		throw new PickleException("unsupported datatype: 64-bits unsigned long");
+	protected ulong[] constructULongArrayFromUInt64(int machinecode, byte[] data) {
+		ulong[] result=new ulong[data.Length/8];
+		byte[] swapped=new byte[8];
+		if(BitConverter.IsLittleEndian) {
+    		for(int i=0; i<data.Length/8; i++) {
+		        if(machinecode==10) {
+		            result[i]=BitConverter.ToUInt64(data, i*8);
+		        } else {
+    				swapped[0]=data[7+i*8];
+    				swapped[1]=data[6+i*8];
+    				swapped[2]=data[5+i*8];
+    				swapped[3]=data[4+i*8];
+    				swapped[4]=data[3+i*8];
+    				swapped[5]=data[2+i*8];
+    				swapped[6]=data[1+i*8];
+    				swapped[7]=data[0+i*8];
+		            result[i]=BitConverter.ToUInt64(swapped, 0);
+		        }
+		    }
+		} else {
+    		for(int i=0; i<data.Length/8; i++) {
+		        if(machinecode==11) {
+		            result[i]=BitConverter.ToUInt64(data, i*8);
+		        } else {
+    				swapped[0]=data[7+i*8];
+    				swapped[1]=data[6+i*8];
+    				swapped[2]=data[5+i*8];
+    				swapped[3]=data[4+i*8];
+    				swapped[4]=data[3+i*8];
+    				swapped[5]=data[2+i*8];
+    				swapped[6]=data[1+i*8];
+    				swapped[7]=data[0+i*8];
+		            result[i]=BitConverter.ToUInt64(swapped, 0);
+		        }
+		    }
+		    
+		}
+		return result;
 	}
 
 	protected long[] constructLongArrayFromInt64(int machinecode, byte[] data) {
@@ -382,16 +427,16 @@ public class ArrayConstructor : IObjectConstructor {
 		return result;
 	}
 
-	protected int[] constructIntArrayFromUShort(int machinecode, byte[] data) {
-		int[] result = new int[data.Length / 2];
+	protected ushort[] constructUShortArrayFromUShort(int machinecode, byte[] data) {
+		ushort[] result = new ushort[data.Length / 2];
 		for(int i=0; i<data.Length/2; ++i) {
-			int b1=data[0+i*2] & 0xff;
-			int b2=data[1+i*2] & 0xff;
+			ushort b1=data[0+i*2];
+			ushort b2=data[1+i*2];
 			if(machinecode==2) {
-				result[i] = (b2<<8) | b1;
+			    result[i] = (ushort)((b2<<8) | b1);
 			} else {
 				// big endian
-				result[i] = (b1<<8) | b2;
+				result[i] = (ushort)((b1<<8) | b2);
 			}
 		}
 		return result;
@@ -399,33 +444,42 @@ public class ArrayConstructor : IObjectConstructor {
 
 	protected short[] constructShortArraySigned(int machinecode, byte[] data) {
 		short[] result = new short[data.Length / 2];
-		for(int i=0; i<data.Length/2; ++i) {
-			byte b1=data[0+i*2];
-			byte b2=data[1+i*2];
-			if(machinecode==4) {
-				result[i] = (short) ((b2<<8) | (b1&0xff));
-			} else {
-				// big endian
-				result[i] = (short) ((b1<<8) | (b2&0xff));
-			}
+		byte[] swapped=new byte[2];
+		if(BitConverter.IsLittleEndian) {
+    		for(int i=0; i<data.Length/2; ++i) {
+    			if(machinecode==4) {
+		            result[i]=BitConverter.ToInt16(data, i*2);
+    			} else {
+		            swapped[0]=data[1+i*2];
+		            swapped[1]=data[0+i*2];
+    			    result[i]=BitConverter.ToInt16(swapped,0);
+    			}
+    		}
+		} else {
+		    // big endian
+    		for(int i=0; i<data.Length/2; ++i) {
+    			if(machinecode==5) {
+    			    result[i]=BitConverter.ToInt16(data, i*2);
+    			} else {
+		            swapped[0]=data[1+i*2];
+		            swapped[1]=data[0+i*2];
+    			    result[i]=BitConverter.ToInt16(swapped,0);
+    			}
+    		}
 		}
 		return result;
 	}
 
-	protected short[] constructShortArrayFromUByte(byte[] data) {
-		short[] result = new short[data.Length];
-		for(int i=0; i<data.Length; ++i) {
-			result[i] = (short) (data[i]&0xff);
-		}
-		return result;
-	}
-	
 	protected char[] constructCharArrayUTF32(int machinecode, byte[] data) {
 		char[] result = new char[data.Length / 4];
 		byte[] bigendian=new byte[4];
 		for (int index = 0; index < data.Length / 4; ++index) {
 			if (machinecode == 20) { 
-				result[index] = (char) PickleUtils.bytes_to_integer(data, index*4, 4);
+		        int codepoint=PickleUtils.bytes_to_integer(data, index*4, 4);
+		        string cc=char.ConvertFromUtf32(codepoint);
+				if(cc.Length>1)
+					throw new PickleException("cannot process UTF-32 character codepoint "+codepoint);
+		        result[index] = cc[0];
 			}
 			else {
 				// big endian, swap
@@ -433,7 +487,11 @@ public class ArrayConstructor : IObjectConstructor {
 				bigendian[1]=data[2+index*4];
 				bigendian[2]=data[1+index*4];
 				bigendian[3]=data[index*4];
-				result[index] = (char) PickleUtils.bytes_to_integer(bigendian);
+				int codepoint=PickleUtils.bytes_to_integer(bigendian);
+				string cc=char.ConvertFromUtf32(codepoint);
+				if(cc.Length>1)
+					throw new PickleException("cannot process UTF-32 character codepoint "+codepoint);
+				result[index] = cc[0];
 			}
 		}
 		return result;

@@ -181,7 +181,8 @@ char                str/unicode (length 1)
 string              str/unicode
 double              float
 float               float
-int/short/byte      int
+int/short/sbyte     int
+uint/ushort/byte    int
 decimal             decimal
 byte[]              bytearray
 primitivetype[]     array

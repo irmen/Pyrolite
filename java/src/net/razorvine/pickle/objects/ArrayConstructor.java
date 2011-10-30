@@ -222,9 +222,17 @@ public class ArrayConstructor implements IObjectConstructor {
 		{
 			if (machinecode != 6 && machinecode != 7 && machinecode != 10 && machinecode != 11)
 				throw new PickleException("for L type must be 6/7/10/11");
-			if (data.length % 4 != 0)
+			if ((machinecode==6 || machinecode==7) && (data.length % 4 != 0))
 				throw new PickleException("data size alignment error");
-			return constructLongArrayFromUInt64(machinecode, data);
+			if ((machinecode==10 || machinecode==11) && (data.length % 8 != 0))
+				throw new PickleException("data size alignment error");
+			if(machinecode==6 || machinecode==7) {
+				// 32 bits
+				return constructLongArrayFromUInt32(machinecode, data);
+			} else {
+				// 64 bits
+				return constructLongArrayFromUInt64(machinecode, data);
+			}
 		}
 		case 'f':// floating point 4 -> float[]
 		{
@@ -394,7 +402,11 @@ public class ArrayConstructor implements IObjectConstructor {
 		byte[] bigendian=new byte[4];
 		for (int index = 0; index < data.length / 4; ++index) {
 			if (machinecode == 20) { 
-				result[index] = (char) PickleUtils.bytes_to_integer(data, index*4, 4);
+				int codepoint=PickleUtils.bytes_to_integer(data, index*4, 4);
+				char[] cc=Character.toChars(codepoint);
+				if(cc.length>1)
+					throw new PickleException("cannot process UTF-32 character codepoint "+codepoint);
+				result[index] = cc[0];
 			}
 			else {
 				// big endian, swap
@@ -402,7 +414,11 @@ public class ArrayConstructor implements IObjectConstructor {
 				bigendian[1]=data[2+index*4];
 				bigendian[2]=data[1+index*4];
 				bigendian[3]=data[index*4];
-				result[index] = (char) PickleUtils.bytes_to_integer(bigendian);
+				int codepoint=PickleUtils.bytes_to_integer(bigendian);
+				char[] cc=Character.toChars(codepoint);
+				if(cc.length>1)
+					throw new PickleException("cannot process UTF-32 character codepoint "+codepoint);
+				result[index] = cc[0];
 			}
 		}
 		return result;

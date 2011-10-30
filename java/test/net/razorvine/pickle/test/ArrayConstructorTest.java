@@ -64,7 +64,12 @@ public class ArrayConstructorTest {
 		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('u', 20, new byte[]{65,0,0,0,(byte)0xac,0x20,0,0}));
 		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('c', 21, new byte[]{0,0,0,65,0,0,0x20,(byte)0xac}));
 		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('u', 21, new byte[]{0,0,0,65,0,0,0x20,(byte)0xac}));
-		assertArrayEquals(new char[]{'A',EURO}, (char[])ac.construct('u', 21, new byte[]{1,0,0,65,1,0,0x20,(byte)0xac}));
+		try {
+			ac.construct('u', 20, new byte[]{65,0,1,0});	// out of bounds codepoints
+			fail("expected error");
+		} catch (PickleException x) {
+			// ok
+		}
 		
 		// b/B
 		assertArrayEquals(new byte[]{1,2,3,4,-1,-2,-3,-4}, (byte[])ac.construct('b', 1, new byte[]{1,2,3,4,(byte)0xff,(byte)0xfe,(byte)0xfd,(byte)0xfc}));
@@ -128,9 +133,22 @@ public class ArrayConstructorTest {
 		assertEquals(0x000000088L, ((long[])ac.construct('I', 7, new byte[]{0,0,0,(byte)0x88}))[0]);
 		assertEquals(0x099000088L, ((long[])ac.construct('I', 7, new byte[]{(byte)0x99,0,0,(byte)0x88}))[0]);
 
-		//L
+		//L-4 bytes
+		assertEquals(0x022000011L, ((long[])ac.construct('L', 6, new byte[]{0x11,0,0,0x22}))[0]);
+		assertEquals(0x011000022L, ((long[])ac.construct('L', 7, new byte[]{0x11,0,0,0x22}))[0]);
+		assertEquals(0x0fffffffeL, ((long[])ac.construct('L', 6, new byte[]{(byte)0xfe,(byte)0xff,(byte)0xff,(byte)0xff}))[0]);
+		assertEquals(0x0fffffffeL, ((long[])ac.construct('L', 7, new byte[]{(byte)0xff,(byte)0xff,(byte)0xff,(byte)0xfe}))[0]);
+
+		
+		//L-8 bytes is not supported
 		try {
-			ac.construct('L', 6, new byte[]{0,0,0,0x01});
+			ac.construct('L', 10, new byte[]{0,0,0,0,0,0,0,0});
+			fail("expected exception");
+		} catch (PickleException x) {
+			//ok
+		}
+		try {
+			ac.construct('L', 11, new byte[]{0,0,0,0,0,0,0,0});
 			fail("expected exception");
 		} catch (PickleException x) {
 			//ok
