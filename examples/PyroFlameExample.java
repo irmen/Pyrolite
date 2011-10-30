@@ -1,7 +1,7 @@
 import java.io.IOException;
 import net.razorvine.pyro.*;
 
-public class PyroFlame {
+public class PyroFlameExample {
 
     public static void main(String[] args) throws IOException
     {

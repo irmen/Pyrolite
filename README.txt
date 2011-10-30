@@ -32,17 +32,32 @@ a good choice to connect java or .NET and python.
 Java packages:   net.razorvine.pickle,  net.razorvine.pyro
 .NET namespaces: Razorvine.Pickle, Razorvine.Pyro
 
-Small piece of example code: (java)
+Small piece of example code in Java:
 
     import net.razorvine.pyro.*;
     
     NameServerProxy ns = NameServerProxy.locateNS(null);
-    PyroProxy something = new PyroProxy(ns.lookup("Your.Pyro.Object"));
-    Object result = something.call("pythonmethod",42,"arguments",[1,2,3]);
-    // depending on what 'pythonmethod' returns you'll have to cast
-    // the result object to the appropriate type, such as HashMap for dicts, etc.
-    // See the table in 3. TYPE MAPPINGS for what types you can expect.
+    PyroProxy remoteobject = new PyroProxy(ns.lookup("Your.Pyro.Object"));
+    Object result = remoteobject.call("pythonmethod", 42, "hello", new int[]{1,2,3});
+    String message = (String)result;  // cast to the type that 'pythonmethod' returns
+    System.out.println("result message="+message);
+    remoteobject.close();
+    ns.close();
+    
+Same piece of example code in C#:
 
+    using Razorvine.Pyro;
+    
+    using( NameServerProxy ns = NameServerProxy.locateNS(null) )
+    {
+        using( PyroProxy something = new PyroProxy(ns.lookup("Your.Pyro.Object")) )
+        {
+            object result = something.call("pythonmethod", 42, "hello", new int[]{1,2,3});
+            string message = (string)result;  // cast to the type that 'pythonmethod' returns
+            Console.WriteLine("result message="+message);
+        }
+    }
+        
 More examples can be found in the examples directory.
 
 
