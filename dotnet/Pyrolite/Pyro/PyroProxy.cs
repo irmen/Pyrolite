@@ -22,7 +22,7 @@ public class PyroProxy : IDisposable {
 	public int port {get;set;}
 	public string objectid {get;set;}
 
-	private short sequenceNr = 0;
+	private ushort sequenceNr = 0;
 	private TcpClient sock;
 	private NetworkStream sock_stream;
 
@@ -117,7 +117,10 @@ public class PyroProxy : IDisposable {
 	private object call(string method, int flags, params object[] parameters) {
 		lock(this) {
 			connect();
-			sequenceNr++;
+			unchecked {
+			    sequenceNr++;        // unchecked so this ushort wraps around 0-65535 instead of raising an OverflowException
+			}
+			Console.WriteLine("seq="+sequenceNr);
 		}
 		if (parameters == null)
 			parameters = new object[] {};

@@ -31,7 +31,7 @@ class MessageFactory
     /**
      * Create the header for a message.
      */
-    public static byte[] createMsgHeader(int msgtype, byte[] data, int flags, short sequenceNr) {
+    public static byte[] createMsgHeader(int msgtype, byte[] data, int flags, ushort sequenceNr) {
     	byte[] bodyhmac;
     	if(data==null)
     		data=EMPTY_BYTES;
@@ -62,7 +62,7 @@ class MessageFactory
     	header[13]=(byte)((data.Length>>16)&0xff);
     	header[14]=(byte)((data.Length>>8)&0xff);
     	header[15]=(byte)(data.Length&0xff);
-    	header[16]=(byte)(headerchecksum>>8);
+    	header[16]=(byte)((headerchecksum>>8)&0xff);
     	header[17]=(byte)(headerchecksum&0xff);
     	Array.Copy(bodyhmac, 0, header, 18, bodyhmac.Length); //18..37=hmac (20 bytes)
     	return header;
