@@ -29,7 +29,7 @@ public class PyroProxy implements Serializable {
 	public int port;
 	public String objectid;
 
-	private transient short sequenceNr = 0;
+	private transient int sequenceNr = 0;
 	private transient Socket sock;
 	private transient OutputStream sock_out;
 	private transient InputStream sock_in;
@@ -116,7 +116,7 @@ public class PyroProxy implements Serializable {
 	private Object call(String method, int flags, Object... parameters) throws PickleException, PyroException, IOException {
 		synchronized (this) {
 			connect();
-			sequenceNr++;
+			sequenceNr=(sequenceNr+1)&0xffff;		// stay within an unsigned short 0-65535
 		}
 		if (parameters == null)
 			parameters = new Object[] {};

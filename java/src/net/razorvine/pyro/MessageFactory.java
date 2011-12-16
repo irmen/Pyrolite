@@ -37,7 +37,7 @@ class MessageFactory
     /**
      * Create the header for a message.
      */
-    static byte[] createMsgHeader(int msgtype, byte[] data, int flags, short sequenceNr) {
+    static byte[] createMsgHeader(int msgtype, byte[] data, int flags, int sequenceNr) {
     	byte[] bodyhmac;
     	if(data==null)
     		data=EMPTY_BYTES;
@@ -46,6 +46,10 @@ class MessageFactory
 			bodyhmac = makeHMAC(data);
     	} else {
     		bodyhmac=EMPTY_HMAC;
+    	}
+ 
+    	if(sequenceNr>0xffff) {
+    		throw new IllegalArgumentException("sequenceNr must be 0-65535 (unsigned short)");
     	}
  
     	int headerchecksum=msgtype+PROTOCOL_VERSION+data.length+flags+sequenceNr+MAGIC;
