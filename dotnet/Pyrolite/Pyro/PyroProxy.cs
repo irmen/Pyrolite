@@ -120,7 +120,6 @@ public class PyroProxy : IDisposable {
 			unchecked {
 			    sequenceNr++;        // unchecked so this ushort wraps around 0-65535 instead of raising an OverflowException
 			}
-			Console.WriteLine("seq="+sequenceNr);
 		}
 		if (parameters == null)
 			parameters = new object[] {};
