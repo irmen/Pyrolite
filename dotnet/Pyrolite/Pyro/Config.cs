@@ -12,7 +12,7 @@ public static class Config  {
     public static int NS_PORT = 9090;
     public static int NS_BCPORT = 9091;
 
-	public const string PYROLITE_VERSION="1.4";
+	public const string PYROLITE_VERSION="1.5";
 }
 
 }

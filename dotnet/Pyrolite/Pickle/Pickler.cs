@@ -1,9 +1,10 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -448,7 +449,7 @@ public class Pickler : IDisposable {
 		outs.WriteByte(Opcodes.GLOBAL);
 		byte[] output=Encoding.ASCII.GetBytes("decimal\nDecimal\n");
 		outs.Write(output,0,output.Length);
-		put_string(Convert.ToString(d));
+		put_string(Convert.ToString(d, CultureInfo.InvariantCulture));
 		outs.WriteByte(Opcodes.TUPLE1);
 		outs.WriteByte(Opcodes.REDUCE);
 	}

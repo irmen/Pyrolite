@@ -80,6 +80,8 @@ public class PicklerTests {
 		Assert.AreEqual(B(new byte[] {(byte)'G',0x40,0x93,0x4a,0x45,0x6d,0x5c,0xfa,0xad}), o);
 		o=p.dumps(1234.5f);
 		Assert.AreEqual(B(new byte[] {(byte)'G',0x40,0x93,0x4a,0,0,0,0,0}), o);
+		o=p.dumps(1234.9876543210987654321m);
+		Assert.AreEqual(B("cdecimal\nDecimal\nX\u0018\u0000\u0000\u00001234.9876543210987654321\u0085R"), o);
 		
 		DayEnum day=DayEnum.WEDNESDAY;
 		o=p.dumps(day);	// enum is returned as just a string representing the value
