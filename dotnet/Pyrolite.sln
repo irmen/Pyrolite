@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-# SharpDevelop 4.1.0.8000
+# SharpDevelop 4.2.2.8818
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite.Tests", "Pyrolite.Tests\Pyrolite.Tests.csproj", "{13104365-F133-41BD-AA6B-FF66501D6510}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite", "Pyrolite\Pyrolite.csproj", "{E6EAC69D-D42A-4A86-AFBE-18A1013BFDAB}"

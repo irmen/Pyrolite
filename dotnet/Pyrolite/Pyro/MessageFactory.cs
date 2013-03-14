@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 
 namespace Razorvine.Pyro
@@ -10,7 +11,7 @@ namespace Razorvine.Pyro
 /// <summary>
 /// Create and parse Pyro wire protocol messages.
 /// </summary>
-class MessageFactory
+public class MessageFactory
 {
     public const short MSG_CONNECT = 1;
     public const short MSG_CONNECTOK = 2;
@@ -93,7 +94,7 @@ class MessageFactory
 			TraceMessageRecv(header.sequence, headerdata, data);
 		}
 		if(((header.flags&FLAGS_HMAC) != 0) && (Config.HMAC_KEY!=null)) {
-			if(header.hmac!=makeHMAC(data)) {
+			if(!header.hmac.SequenceEqual<byte>(makeHMAC(data))) {
 				throw new PyroException("message hmac mismatch");
 			}
 		} else if(((header.flags&FLAGS_HMAC) != 0) != (Config.HMAC_KEY!=null)) {
@@ -111,7 +112,7 @@ class MessageFactory
 	/**
 	 * extract the header fields from the message header bytes.
 	 */
-    static MessageHeader parseMessageHeader(byte[] headerdata) {
+    public static MessageHeader parseMessageHeader(byte[] headerdata) {
     	if(headerdata==null||headerdata.Length!=HEADER_SIZE) {
     		throw new PyroException("msg header data size mismatch");
     	}
@@ -174,14 +175,14 @@ class MessageFactory
 	}
 }
 
-class Message {
+public class Message {
 	public int type;
 	public int flags;
 	public int sequence;
 	public byte[] data;
 }
 
-struct MessageHeader {
+public struct MessageHeader {
 	public int type;
 	public int flags;
 	public int sequence;
