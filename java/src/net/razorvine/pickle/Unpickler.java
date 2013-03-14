@@ -336,7 +336,7 @@ public class Unpickler {
 	}
 
 	void load_binint() throws IOException {
-		int integer = pu.bytes_to_integer(pu.readbytes(4));
+		int integer = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		stack.add(integer);
 	}
 
@@ -345,7 +345,7 @@ public class Unpickler {
 	}
 
 	void load_binint2() throws IOException {
-		int integer = pu.bytes_to_integer(pu.readbytes(2));
+		int integer = PickleUtils.bytes_to_integer(pu.readbytes(2));
 		stack.add(integer);
 	}
 
@@ -365,7 +365,7 @@ public class Unpickler {
 	}
 
 	void load_long4() throws IOException {
-		int n = pu.bytes_to_integer(pu.readbytes(4));
+		int n = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		byte[] data = pu.readbytes(n);
 		stack.add(pu.decode_long(data));
 	}
@@ -376,7 +376,7 @@ public class Unpickler {
 	}
 
 	void load_binfloat() throws IOException {
-		double val = pu.bytes_to_double(pu.readbytes(8),0);
+		double val = PickleUtils.bytes_to_double(pu.readbytes(8),0);
 		stack.add(val);
 	}
 
@@ -402,13 +402,13 @@ public class Unpickler {
 	}
 
 	void load_binstring() throws IOException {
-		int len = pu.bytes_to_integer(pu.readbytes(4));
+		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		byte[] data = pu.readbytes(len);
 		stack.add(PickleUtils.rawStringFromBytes(data));
 	}
 
 	void load_binbytes() throws IOException {
-		int len = pu.bytes_to_integer(pu.readbytes(4));
+		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		stack.add(pu.readbytes(len));
 	}
 
@@ -418,7 +418,7 @@ public class Unpickler {
 	}
 
 	void load_binunicode() throws IOException {
-		int len = pu.bytes_to_integer(pu.readbytes(4));
+		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		byte[] data = pu.readbytes(len);
 		stack.add(new String(data,"UTF-8"));
 	}
@@ -528,7 +528,7 @@ public class Unpickler {
 	}
 
 	void load_long_binget() throws IOException {
-		int i = pu.bytes_to_integer(pu.readbytes(4));
+		int i = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		if(!memo.containsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo.get(i));
 	}
@@ -544,7 +544,7 @@ public class Unpickler {
 	}
 
 	void load_long_binput() throws IOException {
-		int i = pu.bytes_to_integer(pu.readbytes(4));
+		int i = PickleUtils.bytes_to_integer(pu.readbytes(4));
 		memo.put(i, stack.peek());
 	}
 

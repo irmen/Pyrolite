@@ -16,18 +16,18 @@ import javax.crypto.spec.SecretKeySpec;
  * 
  * @author Irmen de Jong (irmen@razorvine.net)
  */
-class MessageFactory
+public class MessageFactory
 {
-    static short MSG_CONNECT = 1;
-    static short MSG_CONNECTOK = 2;
-    static short MSG_CONNECTFAIL  = 3;
-    static short MSG_INVOKE = 4;
-    static short MSG_RESULT = 5;
-    static short FLAGS_EXCEPTION = 1<<0;
-    static short FLAGS_COMPRESSED = 1<<1;
-    static short FLAGS_ONEWAY = 1<<2;
-    static short FLAGS_HMAC = 1<<3;
-    static short FLAGS_BATCH = 1<<4;
+    public static short MSG_CONNECT = 1;
+    public static short MSG_CONNECTOK = 2;
+    public static short MSG_CONNECTFAIL  = 3;
+    public static short MSG_INVOKE = 4;
+    public static short MSG_RESULT = 5;
+    public static short FLAGS_EXCEPTION = 1<<0;
+    public static short FLAGS_COMPRESSED = 1<<1;
+    public static short FLAGS_ONEWAY = 1<<2;
+    public static short FLAGS_HMAC = 1<<3;
+    public static short FLAGS_BATCH = 1<<4;
     static int MAGIC = 0x34E9;
     static byte[] EMPTY_BYTES = new byte[0];
     static final int PROTOCOL_VERSION=44;
@@ -37,7 +37,7 @@ class MessageFactory
     /**
      * Create the header for a message.
      */
-    static byte[] createMsgHeader(int msgtype, byte[] data, int flags, int sequenceNr) {
+    public static byte[] createMsgHeader(int msgtype, byte[] data, int flags, int sequenceNr) {
     	byte[] bodyhmac;
     	if(data==null)
     		data=EMPTY_BYTES;
@@ -150,7 +150,7 @@ class MessageFactory
 	/**
 	 * extract the header fields from the message header bytes.
 	 */
-    static MessageHeader parseMessageHeader(byte[] headerdata) {
+    public static MessageHeader parseMessageHeader(byte[] headerdata) {
     	if(headerdata==null||headerdata.length!=HEADER_SIZE) {
     		throw new PyroException("msg header data size mismatch");
     	}
@@ -189,19 +189,4 @@ class MessageFactory
     	System.arraycopy(headerdata, 18, header.hmac, 0, 20);
     	return header;
     }
-}
-
-class Message {
-	int type;
-	int flags;
-	int sequence;
-	byte[] data;
-}
-
-class MessageHeader {
-	int type;
-	int flags;
-	int sequence;
-	int datasize;
-	byte[] hmac;
 }
