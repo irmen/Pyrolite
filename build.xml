@@ -31,6 +31,10 @@
   
   <target name="build-jar">
     <mkdir dir="${build}" />
+  	<delete includeEmptyDirs="true">
+      <!-- delete contents of build directory to make sure no cruft ends up in the jar -->
+  	  <fileset dir="${build}" includes="**/*" defaultexcludes="no"/>
+  	</delete>
     <javac srcdir="${libsrc}" destdir="${build}" listfiles="false"
         debug="true" debuglevel="lines" includeantruntime="false" />
     <jar jarfile="${jarfile}" basedir="${build}" index="true"
