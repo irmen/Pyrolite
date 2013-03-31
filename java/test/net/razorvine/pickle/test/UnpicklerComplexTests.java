@@ -78,6 +78,9 @@ public class UnpicklerComplexTests {
 				 101, 116, 10, 113, 8, 93, 113, 9, -123, 113, 10, 82, 113, 11, 99, 80, 121, 114, 111, 52, 46,
 				 117, 116, 105, 108, 10, 83, 101, 114, 105, 97, 108, 105, 122, 101, 114, 10, 113, 12, 41, -127,
 				 113, 13, 125, 113, 14, 98, 71, 0, 0, 0, 0, 0, 0, 0, 0, 116, 113, 15, 98, 46};
+		
+		PyroProxy.RegisterPickleConstructors();
+		
 		PyroProxy proxy=(PyroProxy)U(pickled_proxy);
 		assertEquals("someobject",proxy.objectid);
 		assertEquals("localhost",proxy.hostname);

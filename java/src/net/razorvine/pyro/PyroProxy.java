@@ -35,6 +35,14 @@ public class PyroProxy implements Serializable {
 	private transient InputStream sock_in;
 
 	static {
+		RegisterPickleConstructors();
+	}
+
+	/**
+	 * register Pyro specific constructors with the Pickle library.
+	 */
+	public static void RegisterPickleConstructors()
+	{
 		Unpickler.registerConstructor("Pyro4.errors", "PyroError", new AnyClassConstructor(PyroException.class));
 		Unpickler.registerConstructor("Pyro4.errors", "CommunicationError", new AnyClassConstructor(PyroException.class));
 		Unpickler.registerConstructor("Pyro4.errors", "ConnectionClosedError", new AnyClassConstructor(PyroException.class));
@@ -53,7 +61,7 @@ public class PyroProxy implements Serializable {
 		Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(PyroURI.class));
 		Pickler.registerCustomPickler(PyroURI.class, new PyroUriPickler());
 	}
-
+	
 	/**
 	 * No-args constructor for (un)pickling support
 	 */
