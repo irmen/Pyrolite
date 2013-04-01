@@ -36,13 +36,13 @@
   	  <fileset dir="${build}" includes="**/*" defaultexcludes="no"/>
   	</delete>
     <javac srcdir="${libsrc}" destdir="${build}" listfiles="false"
-        debug="true" debuglevel="lines" includeantruntime="false" />
+        debug="true" includeantruntime="false" />
     <jar jarfile="${jarfile}" basedir="${build}" index="true"
         excludes="**/test/*.class" />
   </target>
   
   <target name="build-test" depends="build-jar">
-    <javac srcdir="${testsrc}" destdir="${build}" includeantruntime="false">
+    <javac srcdir="${testsrc}" destdir="${build}" includeantruntime="false" debug="true">
       <classpath refid="classpath.test" />
     </javac>
   </target>
