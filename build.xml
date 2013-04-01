@@ -36,7 +36,7 @@
   	  <fileset dir="${build}" includes="**/*" defaultexcludes="no"/>
   	</delete>
     <javac srcdir="${libsrc}" destdir="${build}" listfiles="false"
-        debug="true" includeantruntime="false" />
+        debug="true" includeantruntime="false" optimize="true" />
     <jar jarfile="${jarfile}" basedir="${build}" index="true"
         excludes="**/test/*.class" />
   </target>
