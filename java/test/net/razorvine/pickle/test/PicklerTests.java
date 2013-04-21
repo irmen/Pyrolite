@@ -357,10 +357,12 @@ public class PicklerTests {
 		private static final long serialVersionUID = 3236709849734459121L;
 		private String name;
 	    private boolean deceased;
+	    private int[] values;
 	    
-	    public PersonBean(String name, boolean deceased) {
+	    public PersonBean(String name, boolean deceased, int[] values) {
 	    	this.name=name;
 	    	this.deceased=deceased;
+	    	this.values = values;
 	    }
 	 
 	    public String getName() {
@@ -369,6 +371,10 @@ public class PicklerTests {
 	 
 	    public boolean isDeceased() {
 	        return this.deceased;
+	    }
+	    
+	    public int[] getValues() {
+	    	return this.values;
 	    }
 	}
 
@@ -379,15 +385,16 @@ public class PicklerTests {
 		Pickler p=new Pickler(false);
 		Unpickler pu=new Unpickler();
 		byte[] o;
-		PersonBean person=new PersonBean("Tupac",true);
+		PersonBean person=new PersonBean("Tupac",true, new int[] {3,4,5});
 		o=p.dumps(person);
 		@SuppressWarnings("unchecked")
 		Map<String,Object> map=(Map<String,Object>)pu.loads(o);
-		Map<String,Object> testmap=new HashMap<String,Object>();
-		testmap.put("name","Tupac");
-		testmap.put("deceased",true);
-		testmap.put("__class__","net.razorvine.pickle.test.PicklerTests$PersonBean");
-		assertEquals(testmap, map);
+		
+		assertEquals(4, map.size());
+		assertEquals("Tupac", map.get("name"));
+		assertEquals(true, map.get("deceased"));
+		assertArrayEquals(new int[] {3,4,5}, (int[]) map.get("values"));
+		assertEquals("net.razorvine.pickle.test.PicklerTests$PersonBean", map.get("__class__"));
 	}
 	
 	class NotABean {

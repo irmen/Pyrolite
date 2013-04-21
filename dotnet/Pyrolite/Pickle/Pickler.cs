@@ -536,7 +536,11 @@ public class Pickler : IDisposable {
 				}
 			}
 		}
-		map["__class__"]=o.GetType().FullName;
+		
+		// if we're dealing with an anonymous type, don't output the type name.
+		if(!o.GetType().Name.StartsWith("<>"))
+			map["__class__"]=o.GetType().FullName;
+
 		save(map);
 	}
 	

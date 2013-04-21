@@ -40,7 +40,7 @@ public class PicklerTests {
 		Array.Copy(bytes,0,result,2,bytes.Length);
 		return result;
 	}
-
+	
 	public enum DayEnum {
 	    SUNDAY, MONDAY, TUESDAY, WEDNESDAY, 
 	    THURSDAY, FRIDAY, SATURDAY 
@@ -246,37 +246,40 @@ public class PicklerTests {
 		
 		public string Name {get;set;}
 		public bool Deceased {get;set;}
+		public int[] Values {get;set;}
 				
-	    public Person(string name, bool deceased) {
+		public Person(string name, bool deceased, int[] values) {
 	    	this.Name=name;
 	    	this.Deceased=deceased;
+	    	this.Values = values;
 	    }
 	}
 	
 	public class Relative : Person {
 		public string Relation{get;set;}
 
-		public Relative(string name, bool deceased) : base(name, deceased) {
+		public Relative(string name, bool deceased, int[] values) : base(name, deceased, values) {
 			Relation="unspecified";
 		}
 	}
 
 
 	[Test]
-	public void testBeans() 
+	public void testClass() 
 	{
 		Pickler p=new Pickler(false);
 		Unpickler pu=new Unpickler();
 		byte[] o;
-		Relative person=new Relative("Tupac",true);
+		Relative person=new Relative("Tupac",true, new int[] {3,4,5});
 		o=p.dumps(person);
 		Hashtable map=(Hashtable) pu.loads(o);
-		Hashtable testmap=new Hashtable();
-		testmap.Add("Name","Tupac");
-		testmap.Add("Deceased",true);
-		testmap.Add("Relation","unspecified");
-		testmap.Add("__class__","Pyrolite.Tests.Pickle.PicklerTests+Relative");
-		AssertUtils.AssertEqual(testmap, map);
+		
+		Assert.AreEqual(5, map.Count);
+		Assert.AreEqual("Pyrolite.Tests.Pickle.PicklerTests+Relative", map["__class__"]);
+		Assert.AreEqual("Tupac", map["Name"]);
+		Assert.AreEqual("unspecified", map["Relation"]);
+		Assert.AreEqual(true, map["Deceased"]);
+		Assert.AreEqual(new int[] {3,4,5}, map["Values"]);
 	}
 	
 	class NotABean {
@@ -298,7 +301,7 @@ public class PicklerTests {
 	class CustomClassPickler : IObjectPickler {
 		public void pickle(object o, Stream outs, Pickler currentpickler)  {
 			CustomClass c=(CustomClass)o;
-			currentpickler.save("customclassint="+c.x);
+			currentpickler.save("customclassint="+c.x);		// write a string representation
 		}
 	}
 	
@@ -308,7 +311,26 @@ public class PicklerTests {
 		Pickler.registerCustomPickler(typeof(CustomClass), new CustomClassPickler());
 		CustomClass c=new CustomClass();
 		Pickler p=new Pickler(false);
-		p.dumps(c);
+		byte[] ser = p.dumps(c);
+		
+		Unpickler u = new Unpickler();
+		string x = (string) u.loads(ser);
+		Assert.AreEqual("customclassint=42", x);
+	}
+	
+	[Test]
+	public void testAnonType()
+	{
+		var x = new { Name="Harry", Country="UK", Age=34 };
+		Pickler p = new Pickler();
+		byte[] ser = p.dumps(x);
+		
+		Unpickler u = new Unpickler();
+		object y = u.loads(ser);
+		IDictionary dict = (IDictionary) y;
+		Assert.AreEqual(3, dict.Count);
+		Assert.AreEqual(34, dict["Age"]);
+		Assert.IsFalse(dict.Contains("__class__"));
 	}
 }
 
