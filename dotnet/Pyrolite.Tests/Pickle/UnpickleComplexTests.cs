@@ -1,5 +1,6 @@
 ﻿/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
+using System;
 using System.Collections;
 using NUnit.Framework;
 using Razorvine.Pickle;
@@ -73,6 +74,65 @@ public class UnpickleComplexTests
 		Assert.AreEqual("localhost",proxy.hostname);
 		Assert.AreEqual(9999,proxy.port);
 	}
+	
+	[Test,ExpectedException(typeof(PickleException), ExpectedMessage="unsupported class: __main__.CustomClass")]
+	public void testUnpickleUnsupportedClass() {
+		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108, 97, 115, 115, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
+		object o = U(pickled);
+	}
 
+	
+	class CustomClazz {
+		public string name;
+		public int age;
+		public ArrayList values;
+		public CustomClazz() 
+		{
+			
+		}
+		public CustomClazz(string name, int age, ArrayList values)
+		{
+			this.name=name;
+			this.age=age;
+			this.values=values;
+		}
+		
+		/**
+		 * called by the Unpickler to restore state.
+		 */
+		public void __setstate__(Hashtable args) {
+			this.name = (string) args["name"];
+			this.age = (int) args["age"];
+			this.values = (ArrayList) args["values"];
+		}			
+	}
+	class CustomClazzConstructor: IObjectConstructor {
+		public object construct(object[] args)
+		{
+			if(args.Length==0)
+			{
+				return new CustomClazz();    // default constructor
+			}
+			else if(args.Length==3)
+			{
+				string name = (string)args[0];
+				int age = (int) args[1];
+				ArrayList values = (ArrayList) args[2];
+				return new CustomClazz(name, age, values);
+			}
+			else throw new PickleException("expected 0 or 3 constructor arguments");
+		}
+	}
+
+	[Test]
+	public void testUnpickleCustomClass() {
+		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108, 97, 122, 122, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
+		
+		Unpickler.registerConstructor("__main__","CustomClazz", new CustomClazzConstructor());
+		CustomClazz o = (CustomClazz) U(pickled);
+		Assert.AreEqual("Harry" ,o.name);
+		Assert.AreEqual(34 ,o.age);
+		Assert.AreEqual(new ArrayList() {1,2,3}, o.values);
+	}
 }
 }

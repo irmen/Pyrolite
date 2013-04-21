@@ -3,8 +3,10 @@ package net.razorvine.pickle.test;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
+import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PickleUtils;
 import net.razorvine.pickle.Pickler;
@@ -85,5 +87,80 @@ public class UnpicklerComplexTests {
 		assertEquals("someobject",proxy.objectid);
 		assertEquals("localhost",proxy.hostname);
 		assertEquals(9999,proxy.port);
+	}
+	
+	@Test(expected=PickleException.class)
+	public void testUnpickleUnsupportedClass() throws IOException {
+		byte[] pickled = new byte[] {
+				(byte)128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108,
+				97, 115, 115, 10, 113, 0, 41, (byte)129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3,
+				75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3,
+				101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
+		Object o = U(pickled);
+	}
+
+	
+	public class CustomClazz {
+		public String name;
+		public int age;
+		public ArrayList values;
+		public CustomClazz() 
+		{
+			
+		}
+		public CustomClazz(String name, int age, ArrayList values)
+		{
+			this.name=name;
+			this.age=age;
+			this.values=values;
+		}
+		
+		/**
+		 * called by the Unpickler to restore state.
+		 */
+		public void __setstate__(HashMap args) {
+			this.name = (String) args.get("name");
+			this.age = (Integer) args.get("age");
+			this.values = (ArrayList) args.get("values");
+		}			
+	}
+	
+	class CustomClazzConstructor implements IObjectConstructor
+	{
+		public Object construct(Object[] args) throws PickleException
+		{
+			if(args.length==0)
+			{
+				return new CustomClazz();    // default constructor
+			}
+			else if(args.length==3)
+			{
+				String name = (String)args[0];
+				int age = (Integer) args[1];
+				ArrayList values = (ArrayList) args[2];
+				return new CustomClazz(name, age, values);
+			}
+			else throw new PickleException("expected 0 or 3 constructor arguments");
+		}
+	}
+
+	@Test
+	public void testUnpickleCustomClass() throws IOException {
+		byte[] pickled = new byte[] {
+				(byte)128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108,
+				97, 122, 122, 10, 113, 0, 41, (byte)129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3,
+				75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3,
+				101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
+		
+		Unpickler.registerConstructor("__main__","CustomClazz", new CustomClazzConstructor());
+		CustomClazz o = (CustomClazz) U(pickled);
+		assertEquals("Harry" ,o.name);
+		assertEquals(34 ,o.age);
+		ArrayList expected = new ArrayList() {{
+			add(1);
+			add(2);
+			add(3);
+		}};
+		assertEquals(expected, o.values);
 	}
 }

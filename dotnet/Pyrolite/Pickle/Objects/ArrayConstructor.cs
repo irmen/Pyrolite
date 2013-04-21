@@ -140,7 +140,7 @@ public class ArrayConstructor : IObjectConstructor {
 	/**
 	 * Create an object based on machine code type
 	 */
-	public Object construct(char typecode, int machinecode, byte[] data) {
+	public object construct(char typecode, int machinecode, byte[] data) {
 		// Machine format codes.
 		// Search for "enum machine_format_code" in Modules/arraymodule.c to get
 		// the authoritative values.
