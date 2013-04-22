@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Razorvine.Pickle;
 using Razorvine.Pyro;
@@ -75,10 +76,16 @@ public class UnpickleComplexTests
 		Assert.AreEqual(9999,proxy.port);
 	}
 	
-	[Test,ExpectedException(typeof(PickleException), ExpectedMessage="unsupported class: __main__.CustomClass")]
+	[Test]
 	public void testUnpickleUnsupportedClass() {
+		// an unsupported class is mapped to a dictionary containing the class's attributes, and a __class__ attribute with the name of the class
 		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108, 97, 115, 115, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
-		object o = U(pickled);
+		IDictionary<string, object> o = (IDictionary<string, object> ) U(pickled);
+		Assert.AreEqual(4, o.Count);
+		Assert.AreEqual("Harry", o["name"]);
+		Assert.AreEqual(34, o["age"]);
+		Assert.AreEqual(new ArrayList() {1,2,3}, o["values"]);
+		Assert.AreEqual("__main__.CustomClass", o["__class__"]);
 	}
 
 	

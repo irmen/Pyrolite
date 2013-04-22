@@ -497,7 +497,8 @@ public class Unpickler : IDisposable {
 			if(module=="exceptions") {
 				constructor=new AnyClassConstructor(typeof(PythonException));
 			} else {
-				throw new PickleException("unsupported class: " + module + "." + name);
+				// return a dictionary with the class's properties
+				constructor=new ClassDictConstructor(module, name);
 			}
 		}
 		stack.add(constructor);
