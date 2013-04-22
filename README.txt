@@ -212,6 +212,7 @@ Map, Hashtable      dict
 Collection          list
 Enumerable          list
 object with public properties      dictionary of those properties + __class__
+anonymous class type        dictonary of the public properties
 Razorvine.Pyro.PyroURI      Pyro4.core.URI
 Razorvine.Pyro.PyroProxy    cannot be pickled.
 
