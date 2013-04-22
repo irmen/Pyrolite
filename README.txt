@@ -110,6 +110,7 @@ dict                java.util.Map
 bytes               byte[]
 bytearray           byte[]
 decimal             BigDecimal    
+custom class        Map<String, Object>  (dict with class attributes including its name in "__class__")
 Pyro4.core.URI      net.razorvine.pyro.PyroURI
 Pyro4.core.Proxy    net.razorvine.pyro.PyroProxy
 Pyro4.errors.*      net.razorvine.pyro.PyroException
@@ -172,6 +173,7 @@ dict                Hashtable (key=object, value=object)
 bytes               ubyte[]
 bytearray           ubyte[]
 decimal             decimal
+custom class        IDictionary<string, object>  (dict with class attributes including its name in "__class__")
 Pyro4.core.URI      Razorvine.Pyro.PyroURI
 Pyro4.core.Proxy    Razorvine.Pyro.PyroProxy
 Pyro4.errors.*      Razorvine.Pyro.PyroException

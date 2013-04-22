@@ -13,6 +13,7 @@ import java.util.Map;
 import net.razorvine.pickle.objects.AnyClassConstructor;
 import net.razorvine.pickle.objects.ArrayConstructor;
 import net.razorvine.pickle.objects.ByteArrayConstructor;
+import net.razorvine.pickle.objects.ClassDictConstructor;
 import net.razorvine.pickle.objects.ComplexNumber;
 import net.razorvine.pickle.objects.DateTimeConstructor;
 import net.razorvine.pickle.objects.SetConstructor;
@@ -493,7 +494,8 @@ public class Unpickler {
 			if(module.equals("exceptions")) {
 				constructor=new AnyClassConstructor(PythonException.class);
 			} else {
-				throw new PickleException("unsupported class: " + module + "." + name);
+				// return a dictionary with the class's properties
+				constructor=new ClassDictConstructor(module, name);
 			}
 		}
 		stack.add(constructor);

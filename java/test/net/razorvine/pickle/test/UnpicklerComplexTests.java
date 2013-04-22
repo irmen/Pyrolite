@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
@@ -89,14 +90,26 @@ public class UnpicklerComplexTests {
 		assertEquals(9999,proxy.port);
 	}
 	
-	@Test(expected=PickleException.class)
+	@Test
 	public void testUnpickleUnsupportedClass() throws IOException {
+		// an unsupported class is mapped to a dictionary containing the class's attributes, and a __class__ attribute with the name of the class
 		byte[] pickled = new byte[] {
 				(byte)128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108,
 				97, 115, 115, 10, 113, 0, 41, (byte)129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3,
 				75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3,
 				101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
-		Object o = U(pickled);
+
+		Map<String, Object> o = (Map<String, Object>) U(pickled);
+		assertEquals(4, o.size());
+		assertEquals("Harry", o.get("name"));
+		assertEquals(34, o.get("age"));
+		ArrayList expected = new ArrayList() {{
+			add(1);
+			add(2);
+			add(3);
+		}};
+		assertEquals(expected, o.get("values"));
+		assertEquals("__main__.CustomClass", o.get("__class__"));
 	}
 
 	
