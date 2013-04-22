@@ -1,5 +1,10 @@
 #!/bin/sh
+echo "Building"
+. ./build-dotnet-mono.sh
+
 echo "Running tests"
-# find . -name *.exe | grep bin/.*Tests.exe | xargs nunit-console
-# mono ./dotnet/Pyrolite.Tests/bin/Debug/Pyrolite.Tests.exe
-nunit-console -noshadow -nothread dotnet/Pyrolite.Tests/bin/Debug/Pyrolite.Tests.exe
+
+# note: nunit-2.6.2 crashes on Mono. Stick with 2.6.1 for the time being.
+NUNIT="mono ${MONO_OPTIONS} ${HOME}/Projects/NUnit-2.6.1/bin/nunit-console.exe"
+
+${NUNIT} -noshadow -nothread dotnet/Pyrolite.Tests/bin/Debug/Pyrolite.Tests.exe

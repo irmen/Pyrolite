@@ -23,7 +23,7 @@ namespace Pyrolite.Tests
 		    if( runner.Load(package) )
 		    {
 		    	Console.WriteLine("running tests");
-		        TestResult results = runner.Run( new MyListener() );
+			TestResult results = runner.Run (new MyListener(), new MyTestFilter(), false, LoggingThreshold.Debug);
 		        fail=results.IsFailure;
 		    }
 		    
@@ -34,8 +34,16 @@ namespace Pyrolite.Tests
 		    else return 0;
 		}
 	}
-	
-	class MyListener :EventListener
+
+	class MyTestFilter : TestFilter
+	{
+		public override bool Match (ITest test)
+		{
+			return true;
+		}
+	}
+
+	class MyListener : EventListener
 	{
 		TestName currentTest;
 		int count;
@@ -67,8 +75,8 @@ namespace Pyrolite.Tests
 		{
 			currentTest=testName;
 		}
-		
-		public void TestFinished(TestCaseResult result)
+
+		public void TestFinished(TestResult result)
 		{
 			if(!result.Executed) {
 				// skipped test
@@ -90,7 +98,7 @@ namespace Pyrolite.Tests
 		{
 		}
 		
-		public void SuiteFinished(TestSuiteResult result)
+		public void SuiteFinished(TestResult result)
 		{
 		}
 		

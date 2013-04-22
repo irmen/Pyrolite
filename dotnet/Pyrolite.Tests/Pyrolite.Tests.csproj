@@ -54,47 +54,34 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <WarningLevel>4</WarningLevel>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <WarningLevel>4</WarningLevel>
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System">
     </Reference>
-    <Reference Include="System.Core">
+    <Reference Include="System.Core" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\NUnit-2.6.1\bin\framework\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.core, Version=2.4.8.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
-      <HintPath>lib\nunit.core.dll</HintPath>
+    <Reference Include="nunit.core">
+      <HintPath>..\..\..\NUnit-2.6.1\bin\lib\nunit.core.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.core.interfaces, Version=2.4.8.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
-      <HintPath>lib\nunit.core.interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.framework, Version=2.4.8.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
-      <HintPath>lib\nunit.framework.dll</HintPath>
+    <Reference Include="nunit.core.interfaces">
+      <HintPath>..\..\..\NUnit-2.6.1\bin\lib\nunit.core.interfaces.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -140,9 +127,6 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Pyro" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
 </Project>
