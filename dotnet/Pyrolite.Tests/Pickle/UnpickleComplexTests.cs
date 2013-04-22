@@ -55,7 +55,7 @@ public class UnpickleComplexTests
 		Pickler p=new Pickler();
 		byte[] pickled_proxy=p.dumps(proxy);
 		object result=U(pickled_proxy);
-		Assert.IsInstanceOfType(typeof(System.Collections.Hashtable), result); // proxy objects cannot be properly pickled and are pickled as bean, hence HashMap
+		Assert.IsInstanceOf<System.Collections.Hashtable>(result); // proxy objects cannot be properly pickled and are pickled as bean, hence Hashtable
 	}
 
 	[Test]
