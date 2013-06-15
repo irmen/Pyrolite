@@ -21,7 +21,7 @@ class ClassDictConstructor : IObjectConstructor {
 
 	public object construct(object[] args) {
 		if(args.Length>0)
-			throw new PickleException("expected zero arguments for construction of ClassDict");
+			throw new PickleException("expected zero arguments for construction of ClassDict (for "+module+"."+name+")");
 		return new ClassDict(module, name);
 	}
 }
