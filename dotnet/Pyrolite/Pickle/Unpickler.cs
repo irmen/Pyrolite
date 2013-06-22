@@ -495,7 +495,21 @@ public class Unpickler : IDisposable {
 		} else {
 			// check if it is an exception
 			if(module=="exceptions") {
+				// python 2.x
 				constructor=new AnyClassConstructor(typeof(PythonException));
+			} else if(module=="builtins" || module=="__builtin__") {
+				if(name.EndsWith("Error") || name.EndsWith("Warning") || name.EndsWith("Exception")
+						|| name=="GeneratorExit" || name=="KeyboardInterrupt"
+						|| name=="StopIteration" || name=="SystemExit")
+				{
+					// it's a python 3.x exception
+					constructor=new AnyClassConstructor(typeof(PythonException));
+				}
+				else
+				{
+					// return a dictionary with the class's properties
+					constructor=new ClassDictConstructor(module, name);
+				}			
 			} else {
 				// return a dictionary with the class's properties
 				constructor=new ClassDictConstructor(module, name);

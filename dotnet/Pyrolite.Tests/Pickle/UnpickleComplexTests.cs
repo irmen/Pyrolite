@@ -141,5 +141,28 @@ public class UnpickleComplexTests
 		Assert.AreEqual(34 ,o.age);
 		Assert.AreEqual(new ArrayList() {1,2,3}, o.values);
 	}
+
+
+	
+	[Test]
+	public void testUnpickleException() {
+		// python 2.x
+		PythonException x = (PythonException) U("cexceptions\nZeroDivisionError\np0\n(S'hello'\np1\ntp2\nRp3\n.");
+		Assert.AreEqual("hello", x.Message);
+		// python 3.x
+		x = (PythonException) U("c__builtin__\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
+		Assert.AreEqual("hello", x.Message);
+		x = (PythonException) U("cbuiltins\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
+		Assert.AreEqual("hello", x.Message);
+
+		// python 2.x
+		x = (PythonException) U("cexceptions\nGeneratorExit\np0\n(tRp1\n.");
+		Assert.IsNull(x.InnerException);
+		// python 3.x
+		x = (PythonException) U("c__builtin__\nGeneratorExit\np0\n(tRp1\n.");
+		Assert.AreEqual("Exception of type 'Razorvine.Pickle.PythonException' was thrown.", x.Message);
+		x = (PythonException) U("cbuiltins\nGeneratorExit\np0\n(tRp1\n.");
+		Assert.AreEqual("Exception of type 'Razorvine.Pickle.PythonException' was thrown.", x.Message);
+	}
 }
 }

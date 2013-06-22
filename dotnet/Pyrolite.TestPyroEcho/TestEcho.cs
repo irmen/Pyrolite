@@ -2,6 +2,7 @@
 
 using System;
 using System.Text;
+using System.Collections.Generic;
 using Razorvine.Pickle;
 using Razorvine.Pyro;
 
@@ -23,12 +24,15 @@ public class TestEcho {
 	
 	public static void Test() {
 
-		Console.WriteLine("Testing Pyro echo server (make sure it's running on localhost 9999)...");
+		Console.WriteLine("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
 		setConfig();
+
+        NameServerProxy ns = NameServerProxy.locateNS(null);
+        PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
 		
-		PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
+		// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
 
 		Object x=42;
 		Console.WriteLine("echo param:");
@@ -45,6 +49,18 @@ public class TestEcho {
 		Console.WriteLine("return value:");
 		PrettyPrint.print(result);
 
+		Console.WriteLine("dict test.");
+		IDictionary<string, object> map = new Dictionary<string, object>()
+		{
+			{"value", 42},
+			{"message", "hello"},
+			{"timestamp", DateTime.Now}
+		};
+		result = p.call("echo", map);
+		Console.WriteLine("return value:");
+		PrettyPrint.print(result);
+		
+		
 		Console.WriteLine("error test.");
 		try {
 			result=p.call("error");

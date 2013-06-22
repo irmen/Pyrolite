@@ -72,7 +72,15 @@ public class NameServerProxy : PyroProxy {
 			byte[] buf=Encoding.ASCII.GetBytes("GET_NSURI");
 			udpclient.Send(buf, buf.Length, ipendpoint);
 			IPEndPoint source=null;
-			buf=udpclient.Receive(ref source);
+			try {
+				buf=udpclient.Receive(ref source);
+			} catch (SocketException) {
+				// try localhost explicitly (if host wasn't localhost already)
+				if(host==null || (!host.StartsWith("127.0") && host!="localhost"))
+					return locateNS("localhost", Config.NS_PORT);
+				else
+					throw;
+			}
 			string location=Encoding.ASCII.GetString(buf);
 			return new NameServerProxy(new PyroURI(location));
 		}
