@@ -11,6 +11,7 @@ import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PickleUtils;
 import net.razorvine.pickle.Pickler;
+import net.razorvine.pickle.PythonException;
 import net.razorvine.pickle.Unpickler;
 import net.razorvine.pyro.PyroProxy;
 import net.razorvine.pyro.PyroURI;
@@ -175,5 +176,26 @@ public class UnpicklerComplexTests {
 			add(3);
 		}};
 		assertEquals(expected, o.values);
+	}
+	
+	@Test
+	public void testUnpickleException() throws IOException {
+		// python 2.x
+		PythonException x = (PythonException) U("cexceptions\nZeroDivisionError\np0\n(S'hello'\np1\ntp2\nRp3\n.");
+		assertEquals("hello", x.getMessage());
+		// python 3.x
+		x = (PythonException) U("c__builtin__\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
+		assertEquals("hello", x.getMessage());
+		x = (PythonException) U("cbuiltins\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
+		assertEquals("hello", x.getMessage());
+
+		// python 2.x
+		x = (PythonException) U("cexceptions\nGeneratorExit\np0\n(tRp1\n.");
+		assertNull(x.getMessage());
+		// python 3.x
+		x = (PythonException) U("c__builtin__\nGeneratorExit\np0\n(tRp1\n.");
+		assertNull(x.getMessage());
+		x = (PythonException) U("cbuiltins\nGeneratorExit\np0\n(tRp1\n.");
+		assertNull(x.getMessage());
 	}
 }

@@ -492,7 +492,21 @@ public class Unpickler {
 		if (constructor == null) {
 			// check if it is an exception
 			if(module.equals("exceptions")) {
+				// python 2.x
 				constructor=new AnyClassConstructor(PythonException.class);
+			} else if(module.equals("builtins") || module.equals("__builtin__")) {
+				if(name.endsWith("Error") || name.endsWith("Warning") || name.endsWith("Exception")
+						|| name.equals("GeneratorExit") || name.equals("KeyboardInterrupt")
+						|| name.equals("StopIteration") || name.equals("SystemExit"))
+				{
+					// it's a python 3.x exception
+					constructor=new AnyClassConstructor(PythonException.class);
+				}
+				else
+				{
+					// return a dictionary with the class's properties
+					constructor=new ClassDictConstructor(module, name);
+				}
 			} else {
 				// return a dictionary with the class's properties
 				constructor=new ClassDictConstructor(module, name);

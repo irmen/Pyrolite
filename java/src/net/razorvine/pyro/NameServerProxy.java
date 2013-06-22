@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Map;
 
@@ -78,7 +79,18 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		udpsock.send(packet);
 		
 		DatagramPacket response=new DatagramPacket(new byte[100], 100);
-		udpsock.receive(response);
+		try
+		{
+			udpsock.receive(response);
+		}
+		catch(SocketTimeoutException x)
+		{
+			// try localhost explicitly (if host wasn't localhost already)
+			if(!host.startsWith("127.0") && !host.equals("localhost"))
+			{
+				return locateNS("localhost", Config.NS_PORT);
+			}
+		}
 		String location=new String(response.getData(), 0, response.getLength());
 		return new NameServerProxy(new PyroURI(location));
 	}

@@ -21,6 +21,16 @@ public class PythonException extends RuntimeException {
 		super(message);
 	}
 	
+	public PythonException(Throwable cause)
+	{
+		super(cause);
+	}
+
+	public PythonException()
+	{
+		super();
+	}
+	
 	/**
 	 * called by the unpickler to restore state
 	 */
