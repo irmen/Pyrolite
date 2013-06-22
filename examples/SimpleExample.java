@@ -34,6 +34,16 @@ public class SimpleExample {
         System.out.println("message="+result.get("messge"));
         System.out.println("timestamp=" + ((Calendar)result.get("timestamp")).getTime());
 
+        
+        // error
+        try {
+        	remoteobject.call("error", null);
+        } catch (PyroException e) {
+        	System.out.println("Pyro Exception (expected)! "+e.getMessage());
+        	System.out.println("Pyro Exception cause: "+e.getCause());
+        	System.out.println("Pyro Exception remote traceback:\n" + e._pyroTraceback);
+        }
+        
         remoteobject.close();
         ns.close();
     }
