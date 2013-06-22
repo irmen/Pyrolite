@@ -87,9 +87,9 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		{
 			// try localhost explicitly (if host wasn't localhost already)
 			if(!host.startsWith("127.0") && !host.equals("localhost"))
-			{
 				return locateNS("localhost", Config.NS_PORT);
-			}
+			else
+				throw x;
 		}
 		String location=new String(response.getData(), 0, response.getLength());
 		return new NameServerProxy(new PyroURI(location));
