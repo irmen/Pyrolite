@@ -1,5 +1,6 @@
 package net.razorvine.pickle;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -29,6 +30,12 @@ public class PythonException extends RuntimeException {
 	public PythonException()
 	{
 		super();
+	}
+	
+	// special constructor for UnicodeDecodeError
+	public PythonException(String encoding, byte[] data, Integer i1, Integer i2, String message)
+	{
+		super("UnicodeDecodeError: "+encoding+": "+message);
 	}
 	
 	/**

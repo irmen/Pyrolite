@@ -273,22 +273,16 @@ public class Pickler {
 	void put_calendar(Calendar cal) throws IOException {
 		out.write(Opcodes.GLOBAL);
 		out.write("datetime\ndatetime\n".getBytes());
-		out.write(Opcodes.SHORT_BINSTRING);
-		out.write(10);
-		int year=cal.get(Calendar.YEAR);
-		out.write(year>>8);
-		out.write(year&0xff);
-		out.write(cal.get(Calendar.MONTH)+1);  // months start at 0 in java
-		out.write(cal.get(Calendar.DAY_OF_MONTH));
-		out.write(cal.get(Calendar.HOUR_OF_DAY));
-		out.write(cal.get(Calendar.MINUTE));
-		out.write(cal.get(Calendar.SECOND));
-		int microsecs=1000*cal.get(Calendar.MILLISECOND);
-		out.write((microsecs>>16)&0xff);
-		out.write((microsecs>>8)&0xff);
-		out.write(microsecs&0xff);
-		out.write(Opcodes.TUPLE1);
-		out.write(Opcodes.REDUCE);		
+		out.write(Opcodes.MARK);
+		save(cal.get(Calendar.YEAR));
+		save(cal.get(Calendar.MONTH)+1);    // months start at 0 in java
+		save(cal.get(Calendar.DAY_OF_MONTH));
+		save(cal.get(Calendar.HOUR_OF_DAY));
+		save(cal.get(Calendar.MINUTE));
+		save(cal.get(Calendar.SECOND));
+		save(cal.get(Calendar.MILLISECOND)*1000);
+		out.write(Opcodes.TUPLE);
+		out.write(Opcodes.REDUCE);
 	}
 
 	void put_timedelta(TimeDelta delta) throws IOException {
@@ -304,16 +298,13 @@ public class Pickler {
 	void put_time(Time time) throws IOException {
 		out.write(Opcodes.GLOBAL);
 		out.write("datetime\ntime\n".getBytes());
-		out.write(Opcodes.SHORT_BINSTRING);
-		out.write(6);
-		out.write(time.hours);
-		out.write(time.minutes);
-		out.write(time.seconds);
-		out.write((time.microseconds>>16)&0xff);
-		out.write((time.microseconds>>8)&0xff);
-		out.write(time.microseconds&0xff);
-		out.write(Opcodes.TUPLE1);
-		out.write(Opcodes.REDUCE);	
+		out.write(Opcodes.MARK);
+		save(time.hours);
+		save(time.minutes);
+		save(time.seconds);
+		save(time.microseconds);
+		out.write(Opcodes.TUPLE);
+		out.write(Opcodes.REDUCE);
 	}
 
 	void put_arrayOfObjects(Object[] array) throws IOException {
