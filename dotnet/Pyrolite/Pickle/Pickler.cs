@@ -246,21 +246,16 @@ public class Pickler : IDisposable {
 		outs.WriteByte(Opcodes.GLOBAL);
 		byte[] bytes=Encoding.Default.GetBytes("datetime\ndatetime\n");
 		outs.Write(bytes,0,bytes.Length);
-		outs.WriteByte(Opcodes.SHORT_BINSTRING);
-		outs.WriteByte(10);
-		outs.WriteByte((byte)(dt.Year>>8));
-		outs.WriteByte((byte)(dt.Year&0xff));
-		outs.WriteByte((byte)dt.Month);
-		outs.WriteByte((byte)dt.Day);
-		outs.WriteByte((byte)dt.Hour);
-		outs.WriteByte((byte)dt.Minute);
-		outs.WriteByte((byte)dt.Second);
-		int microsecs=1000*dt.Millisecond;
-		outs.WriteByte((byte)((microsecs>>16)&0xff));
-		outs.WriteByte((byte)((microsecs>>8)&0xff));
-		outs.WriteByte((byte)(microsecs&0xff));
-		outs.WriteByte(Opcodes.TUPLE1);
-		outs.WriteByte(Opcodes.REDUCE);	
+		outs.WriteByte(Opcodes.MARK);
+		save(dt.Year);
+		save(dt.Month);
+		save(dt.Day);
+		save(dt.Hour);
+		save(dt.Minute);
+		save(dt.Second);
+		save(dt.Millisecond*1000);
+		outs.WriteByte(Opcodes.TUPLE);
+		outs.WriteByte(Opcodes.REDUCE);
 	}
 		
 	void put_timespan(TimeSpan ts) {

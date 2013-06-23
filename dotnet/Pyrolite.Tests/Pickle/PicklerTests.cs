@@ -129,13 +129,11 @@ public class PicklerTests {
 		DateTime date=new DateTime(2011,12,31,14,33,59);
 		byte[] o = p.dumps(date);
 		Object unpickled=u.loads(o);
-		Assert.AreEqual(B("cdatetime\ndatetime\nU\n\u0007\u00db\u000c\u001f\u000e!;\u0000\u0000\u0000\u0085R"),o);
 		Assert.AreEqual(date, unpickled);
 
 		date=new DateTime(2011,12,31,14,33,59,456);
 		o=p.dumps(date);
 		unpickled=u.loads(o);
-		Assert.AreEqual(B("cdatetime\ndatetime\nU\n\u0007\u00db\u000c\u001f\u000e!;\u0006\u00f5@\u0085R"),o);
 		Assert.AreEqual(date, unpickled);
 	}
 	

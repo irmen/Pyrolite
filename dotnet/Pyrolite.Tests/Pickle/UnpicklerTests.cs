@@ -267,6 +267,18 @@ public class UnpicklerTests {
 		
 		ts=(TimeSpan)U("cdatetime\ntimedelta\nM\u00d9\u0002M\u00d5\u00d2JU\u00f8\u0006\u0000\u0087R.");
 		Assert.AreEqual(new TimeSpan(729, 0, 0, 53973, 456), ts);
+
+		ts = (TimeSpan)U("cdatetime\ntimedelta\nq\x00K\nK;J@\xe2\x01\x00\x87q\x01Rq\x02.");
+		Assert.AreEqual(new TimeSpan(10, 0, 0, 59, 123), ts);
+
+		ts = (TimeSpan)U("cdatetime\ntime\nq\x00U\x06\n\x1d;\x01\xe2@q\x01\x85q\x02Rq\x03.");
+		Assert.AreEqual(new TimeSpan(0, 10, 29, 59, 123), ts);
+		
+		dt = (DateTime)U("cdatetime\ndatetime\n(M\xdd\x07K\x06K\x17K\x0dK\x36K\x01J@\xe2\x01\x00tR.");
+		Assert.AreEqual(new DateTime(2013, 6, 23, 13, 54, 1, 123), dt);
+		
+		ts = (TimeSpan)U("cdatetime\ntime\n(K\x17K\x0dK\x36J@\xe2\x01\x00tR.");
+		Assert.AreEqual(new TimeSpan(0, 23, 13, 54, 123), ts);
 	}
 	
 	[Test]

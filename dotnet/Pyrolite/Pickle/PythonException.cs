@@ -26,6 +26,12 @@ namespace Razorvine.Pickle
 		{
 		}
 
+		// special constructor for UnicodeDecodeError
+		public PythonException(String encoding, byte[] data, int i1, int i2, String message)
+			:base("UnicodeDecodeError: "+encoding+": "+message)
+		{
+		}
+
 		// This constructor is needed for serialization.
 		protected PythonException(SerializationInfo info, StreamingContext context) : base(info, context)
 		{

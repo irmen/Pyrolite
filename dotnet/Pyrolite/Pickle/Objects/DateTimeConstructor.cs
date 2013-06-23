@@ -54,10 +54,24 @@ class DateTimeConstructor : IObjectConstructor {
 		// python datetime.time --> DateTime
 		// args is 10 bytes: yhi, ylo, month, day, hour, minute, second, ms1, ms2, ms3
 		// (can be String or byte[])
+		// alternate constructor is with 7 integer arguments: year, month, day, hour, minute, second, microseconds
+		int yhi, ylo, year, month, day, hour, minute, second, microsec;
+
+		if(args.Length==7)
+		{
+			year = (int)args[0];
+			month = (int)args[1];
+			day = (int)args[2];
+			hour = (int)args[3];
+			minute = (int)args[4];
+			second = (int)args[5];
+			microsec = (int)args[6];
+			
+			return new DateTime(year, month, day, hour, minute, second, microsec/1000);
+		}
 		if (args.Length != 1)
-			throw new PickleException("invalid pickle data for datetime; expected 1 arg, got "+args.Length);
+			throw new PickleException("invalid pickle data for datetime; expected 1 or 7 args, got "+args.Length);
 		
-		int yhi, ylo, month, day, hour, minute, second, microsec;
 		if(args[0] is string) {
 			string parameters = (string) args[0];
 			if (parameters.Length != 10)
@@ -95,9 +109,18 @@ class DateTimeConstructor : IObjectConstructor {
 	private TimeSpan createTime(object[] args) {
 		// python datetime.time --> TimeSpan since midnight
 		// args is 6 bytes: hour, minute, second, ms1,ms2,ms3  (String or byte[])
-		if (args.Length != 1)
-			throw new PickleException("invalid pickle data for time; expected 1 arg, got "+args.Length);
+		// alternate constructor passes 4 integers args: hour, minute, second, microsecond)
 		int hour, minute, second, microsec;
+		if (args.Length==4)
+		{
+			hour = (int) args[0];
+			minute = (int) args[1];
+			second = (int) args[2];
+			microsec = (int) args[3];
+			return new TimeSpan(0, hour, minute, second, microsec/1000);
+		}
+		if (args.Length != 1)
+			throw new PickleException("invalid pickle data for time; expected 1 or 4 args, got "+args.Length);
 		if(args[0] is string) {
 			string parameters = (string) args[0];
 			if (parameters.Length != 6)
