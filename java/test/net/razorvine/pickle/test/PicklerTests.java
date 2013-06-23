@@ -217,7 +217,6 @@ public class PicklerTests {
 		Date date=new GregorianCalendar(2011,Calendar.DECEMBER,31,14,33,59).getTime();
 		byte[] o=p.dumps(date);
 		Object unpickled=u.loads(o);
-		assertArrayEquals(B("cdatetime\ndatetime\nU\n\u0007\u00db\u000c\u001f\u000e!;\u0000\u0000\u0000\u0085R"),o);
 		Date unpickledDate=((Calendar)unpickled).getTime();
 		assertEquals(date,unpickledDate);
 		
@@ -225,7 +224,6 @@ public class PicklerTests {
 		cal.set(Calendar.MILLISECOND, 456);
 		o=p.dumps(cal);
 		unpickled=u.loads(o);
-		assertArrayEquals(B("cdatetime\ndatetime\nU\n\u0007\u00db\u000c\u001f\u000e!;\u0006\u00f5@\u0085R"),o);
 		assertEquals(cal,(Calendar)unpickled);
 	}
 	
@@ -243,7 +241,6 @@ public class PicklerTests {
 
 		byte[] o=p.dumps(time);
 		Object unpickled=u.loads(o);
-		assertArrayEquals(B("cdatetime\ntime\nU\u0006\u0002!;\u0006\u00f8U\u0085R"), o);
 		assertEquals(time, unpickled);
 		
 		TimeDelta delta=new TimeDelta(2, 7000, 456789);

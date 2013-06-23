@@ -50,8 +50,23 @@ public class DateTimeConstructor implements IObjectConstructor {
 		// python datetime.time --> GregorianCalendar
 		// args is 10 bytes: yhi, ylo, month, day, hour, minute, second, ms1, ms2, ms3
 		// (can be String or byte[])
+		// alternate constructor is with 7 integer arguments: year, month, day, hour, minute, second, microseconds
+		if(args.length==7)
+		{
+			int year = (Integer)args[0];
+			int month = ((Integer)args[1]) - 1;   // in java month starts with 0...
+			int day = (Integer)args[2];
+			int hour = (Integer)args[3];
+			int minute = (Integer)args[4];
+			int second = (Integer)args[5];
+			int microsec = (Integer)args[6];
+			
+			Calendar cal = new GregorianCalendar(year, month, day, hour, minute, second);
+			cal.set(Calendar.MILLISECOND, microsec/1000);
+			return cal;
+		}
 		if (args.length != 1)
-			throw new PickleException("invalid pickle data for datetime; expected 1 arg, got "+args.length);
+			throw new PickleException("invalid pickle data for datetime; expected 1 or 7 args, got "+args.length);
 		
 		int yhi, ylo, month, day, hour, minute, second, microsec;
 		if(args[0] instanceof String) {
@@ -93,8 +108,17 @@ public class DateTimeConstructor implements IObjectConstructor {
 	private Time createTime(Object[] args) {
 		// python datetime.time --> Time object
 		// args is 6 bytes: hour, minute, second, ms1,ms2,ms3  (String or byte[])
+		// alternate constructor passes 4 integers args: hour, minute, second, microsecond)
+		if (args.length==4)
+		{
+			int hour = (Integer) args[0];
+			int minute = (Integer) args[1];
+			int second = (Integer) args[2];
+			int microsec = (Integer) args[3];
+			return new Time(hour, minute, second, microsec);
+		}
 		if (args.length != 1)
-			throw new PickleException("invalid pickle data for time; expected 1 arg, got "+args.length);
+			throw new PickleException("invalid pickle data for time; expected 1 or 4 args, got "+args.length);
 		int hour, minute, second, microsec;
 		if(args[0] instanceof String) {
 			String params = (String) args[0];
