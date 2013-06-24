@@ -10,6 +10,7 @@ Contents:
     2. THE LIBRARY
     3. TYPE MAPPINGS
     4. EXCEPTIONS
+    5. SECURITY WARNING
 
 
 1. INTRODUCTION
@@ -28,6 +29,11 @@ jython+pyro or IronPython+Pyro would provide.
 So if you don't need Pyro's full feature set, and don't require your
 Java/.NET code to host Pyro objects itself, Pyrolite may be
 a good choice to connect java or .NET and python.
+
+Note: this Pyrolite version only supports Pyro protocol versions 44 and 45.
+Pyro version up to 4.19 uses protocol 44. If you use Pyro 4.20 (protocol 45)
+the only serializer supported is pickle, so you need to tell Pyro to use that.
+A future Pyrolite version may include support for other serializers.
 
 Java packages:   net.razorvine.pickle,  net.razorvine.pyro
 .NET namespaces: Razorvine.Pickle, Razorvine.Pyro
@@ -229,3 +235,20 @@ and it will be thrown as a normal exception in your program.
 The message string is taken from the original exception. The remote traceback
 string is available on the PyroException object in the _pyroTraceback field. 
 
+
+5. SECURITY WARNING
+---------------------
+
+If you use Pyrolite to talk to a Pyro server it will use pickle as
+serialization protocol. THIS MEANS YOUR PYRO SERVER CAN BE VULNERABLE
+TO REMOTE ARBITRARY CODE EXECUTION (because of the well known security
+problem with the pickle protocol).
+
+Pyro 4.20 is the first Pyro version that has support for other (safe)
+serializers and doesn't use pickle by default. This avoids the security
+problem. But the current version of Pyrolite is only able to talk to Pyro
+when using the pickle protocol. A future Pyrolite version may improve this.
+
+Note: your .NET or Java client code is perfectly safe. The (un)pickler
+implementation in Pyrolite doesn't randomly construct arbitrary objects
+and is safe to use for parsing data from the network.
