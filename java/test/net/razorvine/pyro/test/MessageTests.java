@@ -20,13 +20,45 @@ public class MessageTests {
 
 	@Before
 	public void setUp() throws Exception {
+		Config.HMAC_KEY = null;
+		Config.PROTOCOL_VERSION = 44;
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
 
+	@Test
+	public void testMessageAcceptedVersions() throws IOException {
+		Config.PROTOCOL_VERSION = 44;
+		byte[] data = new byte[] { 1,2,3,4 };
+		byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
+		MessageHeader header = MessageFactory.parseMessageHeader(headerdata);
+
+		Config.PROTOCOL_VERSION = 45;
+		headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
+		header = MessageFactory.parseMessageHeader(headerdata);
+	}
 	
+	@Test
+	public void testMessageInvalidVersion() throws IOException {
+		Config.PROTOCOL_VERSION = 46;
+		byte[] data = new byte[] { 1,2,3,4 };
+		try {
+			byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
+			fail("expected error");
+		} catch (IllegalArgumentException x) {
+			// ok
+		}
+		Config.PROTOCOL_VERSION = 43;
+		try {
+			byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
+			fail("expected error");
+		} catch (IllegalArgumentException x) {
+			// ok
+		}
+	}
+
 	@Test
 	public void testMessage() throws IOException {
 		Config.HMAC_KEY = null;

@@ -1,6 +1,5 @@
 package net.razorvine.pickle;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 

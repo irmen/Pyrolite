@@ -13,6 +13,8 @@ public class SimpleExample {
     	// $ python -m Pyro4.test.echoserver -Nv
     	// Then run this example client.
     	
+    	// Config.PROTOCOL_VERSION = 45;		// uncomment this to enable talking to Pyro 4.20
+    	
         NameServerProxy ns = NameServerProxy.locateNS(null);
         PyroProxy remoteobject = new PyroProxy(ns.lookup("test.echoserver"));
 
@@ -37,7 +39,7 @@ public class SimpleExample {
         
         // error
         try {
-        	remoteobject.call("error", null);
+        	remoteobject.call("error", (Object)null);
         } catch (PyroException e) {
         	System.out.println("Pyro Exception (expected)! "+e.getMessage());
         	System.out.println("Pyro Exception cause: "+e.getCause());

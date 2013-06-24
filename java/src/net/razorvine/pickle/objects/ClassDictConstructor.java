@@ -1,7 +1,5 @@
 package net.razorvine.pickle.objects;
 
-import java.util.HashMap;
-import java.util.Map;
 import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
 
