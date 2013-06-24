@@ -284,7 +284,7 @@ public class Unpickler {
 			break;
 
 		default:
-			throw new InvalidOpcodeException("invalid pickle opcode: " + key + " (is the server using a different serializer?)");
+			throw new InvalidOpcodeException("invalid pickle opcode: " + key);
 		}
 	}
 

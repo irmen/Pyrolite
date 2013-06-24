@@ -15,6 +15,49 @@ namespace Pyrolite.Tests.Pyro
 /// </summary>
 [TestFixture]
 public class MessageTests {
+	
+	[TestFixtureSetUp]
+	public void setUp() {
+		Config.HMAC_KEY = null;
+		Config.PROTOCOL_VERSION = 44;
+	}
+
+	[TestFixtureTearDown]
+	public void tearDown() {
+	}
+	
+	[Test]
+	public void TestMessageAcceptedVersions()
+	{
+		Config.PROTOCOL_VERSION = 44;
+		byte[] data = new byte[] { 1,2,3,4 };
+		byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
+		MessageHeader header = MessageFactory.parseMessageHeader(headerdata);
+
+		Config.PROTOCOL_VERSION = 45;
+		headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
+		header = MessageFactory.parseMessageHeader(headerdata);
+	}
+	
+	[Test]
+	public void TestMessageInvalidVersion()
+	{
+		Config.PROTOCOL_VERSION = 46;
+		byte[] data = new byte[] { 1,2,3,4 };
+		try {
+			byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
+			Assert.Fail("expected error");
+		} catch (ArgumentException x) {
+			// ok
+		}
+		Config.PROTOCOL_VERSION = 43;
+		try {
+			byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
+			Assert.Fail("expected error");
+		} catch (ArgumentException x) {
+			// ok
+		}
+	}	
 
     [Test]
 	public void testMessage()

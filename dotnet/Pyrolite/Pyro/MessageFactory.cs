@@ -25,7 +25,6 @@ public class MessageFactory
     public const short FLAGS_BATCH = 1<<4;
     public const int MAGIC = 0x34E9;
     static readonly byte[] EMPTY_BYTES = new byte[0];
-    public const int PROTOCOL_VERSION=44;
     public const int HEADER_SIZE=38;
     static readonly byte[] EMPTY_HMAC=new byte[20];		// sha1=20 bytes
     
@@ -43,7 +42,11 @@ public class MessageFactory
     		bodyhmac=EMPTY_HMAC;
     	}
  
-    	int headerchecksum=msgtype+PROTOCOL_VERSION+data.Length+flags+sequenceNr+MAGIC;
+    	// special case: we support both protocol version 44 and 45 but nothing else (yet).
+    	if(Config.PROTOCOL_VERSION < 44 || Config.PROTOCOL_VERSION > 45)
+    		throw new ArgumentException("only supported values for Config.PROTOCOL_VERSION are 44 or 45");
+
+    	int headerchecksum=msgtype+Config.PROTOCOL_VERSION+data.Length+flags+sequenceNr+MAGIC;
     	byte[] header=new byte[HEADER_SIZE];
     	
     	// headerFmt = '!4sHHHHiH20s'    # header (id, version, msgtype, flags, sequencenumber, dataLen, checksum, hmac)
@@ -51,8 +54,8 @@ public class MessageFactory
     	header[1]=(byte)'Y';
     	header[2]=(byte)'R';
     	header[3]=(byte)'O';
-    	header[4]=(byte) (PROTOCOL_VERSION>>8);
-    	header[5]=(byte) (PROTOCOL_VERSION&0xff);
+    	header[4]=(byte) (Config.PROTOCOL_VERSION>>8);
+    	header[5]=(byte) (Config.PROTOCOL_VERSION&0xff);
     	header[6]=(byte) (msgtype>>8);
     	header[7]=(byte) (msgtype&0xff);
     	header[8]=(byte) (flags>>8);
@@ -118,8 +121,16 @@ public class MessageFactory
     	}
     	
     	int version=(headerdata[4]<<8)|headerdata[5];
-    	if(headerdata[0]!='P'||headerdata[1]!='Y'||headerdata[2]!='R'||headerdata[3]!='O'||version!=PROTOCOL_VERSION) {
-    		throw new PyroException("invalid msg or unsupported protocol version");    		
+    	if(headerdata[0]!='P'||headerdata[1]!='Y'||headerdata[2]!='R'||headerdata[3]!='O') {
+    		throw new PyroException("invalid message");    		
+    	}
+    	if(version!=Config.PROTOCOL_VERSION) {
+    		// As a special case, we support both protocol version 45 and 44.
+    		// The only difference is that version 45 potentially uses a different serializer than pickle.
+    		// We don't support that (yet), but we DO support the case where version 45 does use pickle.
+    		// The wire data is identical to version 44 in that case.
+    		if(version != 45 && version != 44)
+    			throw new PyroException("invalid protocol version: "+version);
     	}
 
     	MessageHeader header=new MessageHeader();
