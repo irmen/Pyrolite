@@ -1,6 +1,0 @@
-
-Stuff left TO DO in Pyrolite:
-
-- support Serpent serialization of Pyro 4.20 (protocol 45)
-- Implement memo-ing in the Pickler to be able to pickle recursive objects (note: unpickling works fine already).
-
