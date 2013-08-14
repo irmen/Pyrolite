@@ -323,6 +323,7 @@ public class PicklerTests {
 		byte[] o;
 		Pickler p=new Pickler();
 		
+		// self-referencing list
 		string reused = "reused";
 		IList list=new ArrayList();
 		list.Add(reused);
@@ -341,6 +342,15 @@ public class PicklerTests {
 		Assert.AreSame(s1, s2);
 		Assert.AreSame(data, data2);
 		Assert.AreSame(data[0], data2[0]);
+		
+		// self-referencing hashtable
+		Hashtable h = new Hashtable();
+		h["myself"] = h;
+		o=p.dumps(h);
+		Assert.AreEqual("\x80\x02}q\x00(X\x06\x00\x00\x0000myselfq\x01h\x0000u.", S(o));
+		Hashtable h2 = (Hashtable) u.loads(o);
+		Assert.AreEqual(1, h2.Count);
+		Assert.AreSame(h2, h2["myself"]);
 	}
 
 	public class Person {

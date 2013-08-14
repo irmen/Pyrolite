@@ -84,11 +84,11 @@ public class Pickler : IDisposable {
 		outs.WriteByte(Opcodes.PROTO);
 		outs.WriteByte((byte)PROTOCOL);
 		save(o);
-		if(recurse!=0)  // sanity check
-			throw new PickleException("recursive structure error, please report this problem");
 		memo = null;  // get rid of the memo table
 		outs.WriteByte(Opcodes.STOP);
 		outs.Flush();
+		if(recurse!=0)  // sanity check
+			throw new PickleException("recursive structure error, please report this problem");
 	}
 
 	/**
