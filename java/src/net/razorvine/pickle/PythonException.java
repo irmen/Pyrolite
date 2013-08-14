@@ -40,7 +40,7 @@ public class PythonException extends RuntimeException {
 	/**
 	 * called by the unpickler to restore state
 	 */
-	public void __setstate__(HashMap<?,?> args) {
+	public void __setstate__(HashMap<String,Object> args) {
 		Object tb=args.get("_pyroTraceback");
 		// if the traceback is a list of strings, create one string from it
 		if(tb instanceof List) {

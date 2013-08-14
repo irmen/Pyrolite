@@ -20,7 +20,7 @@ public class FlameRemoteConsole {
 	/**
 	 * called by the Unpickler to restore state
 	 */
-	public void __setstate__(HashMap args) throws IOException {
+	public void __setstate__(HashMap<?, ?> args) throws IOException {
 		remoteconsole=(PyroProxy)args.get("remoteconsole"); 
 	}
 

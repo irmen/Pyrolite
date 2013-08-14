@@ -18,13 +18,13 @@ public class FlameBuiltin {
 	/**
 	 * called by the Unpickler to restore state
 	 */
-	public void __setstate__(HashMap args) throws IOException {
+	public void __setstate__(HashMap<?, ?> args) throws IOException {
 		flameserver=(PyroProxy) args.get("flameserver");
 		builtin=(String) args.get("builtin");
 	}
 	
 	public Object call(Object... arguments) throws PickleException, PyroException, IOException {
-		return flameserver.call("_invokeBuiltin", builtin, arguments, new HashMap(0));
+		return flameserver.call("_invokeBuiltin", builtin, arguments, new HashMap<Object, Object>(0));
 	}
 
 	public void close()	{

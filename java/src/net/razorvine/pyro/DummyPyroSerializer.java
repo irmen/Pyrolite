@@ -11,6 +11,6 @@ public class DummyPyroSerializer {
 	/**
 	 * called by the Unpickler to restore state
 	 */
-	public void __setstate__(java.util.HashMap args) throws IOException {
+	public void __setstate__(java.util.HashMap<?,?> args) throws IOException {
 	}
 }

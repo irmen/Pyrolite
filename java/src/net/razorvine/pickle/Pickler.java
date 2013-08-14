@@ -25,6 +25,7 @@ import net.razorvine.pickle.objects.TimeDelta;
 /**
  * Pickle an object graph into a Python-compatible pickle stream. For
  * simplicity, the only supported pickle protocol at this time is protocol 2.
+ * This class is NOT threadsafe! (Don't use the same pickler from different threads)
  *
  * See the README.txt for a table with the type mappings.
  * 
@@ -34,21 +35,26 @@ public class Pickler {
 
 	public static int HIGHEST_PROTOCOL = 2;
 
-
+	private static int MAX_RECURSE_DEPTH = 1000;
+	private int recurse = 0;  // recursion level
 	private OutputStream out;
 	private int PROTOCOL = 2;
 	private PickleUtils utils;
 	private static Map<Class<?>, IObjectPickler> customPicklers=new HashMap<Class<?>, IObjectPickler>();
 	private boolean useMemo=true;
+	private HashMap<Object, Integer> memo;    // maps objects to memo index 
 	
 	/**
 	 * Create a Pickler.
 	 */
 	public Pickler() {
+		this(true);
 	}
 
 	/**
 	 * Create a Pickler. Specify if it is to use a memo table or not.
+	 * The memo table is NOT reused across different calls.
+	 * If you use a memo table, you can only pickle objects that are hashable.
 	 */
 	public Pickler(boolean useMemo) {
 		this.useMemo=useMemo;
@@ -58,6 +64,7 @@ public class Pickler {
 	 * Close the pickler stream, discard any internal buffers.
 	 */
 	public void close() throws IOException {
+		memo = null;
 		out.flush();
 		out.close();
 	}
@@ -84,12 +91,18 @@ public class Pickler {
 	 */
 	public void dump(Object o, OutputStream stream) throws IOException, PickleException {
 		out = stream;
+		recurse = 0;
+		if(useMemo)
+			memo = new HashMap<Object, Integer>();
 		utils = new PickleUtils(null);
 		out.write(Opcodes.PROTO);
 		out.write(PROTOCOL);
 		save(o);
+		memo = null;  // get rid of the memo table
 		out.write(Opcodes.STOP);
 		out.flush();
+		if(recurse!=0)  // sanity check
+			throw new PickleException("recursive structure error, please report this problem");
 	}
 
 	/**
@@ -98,31 +111,86 @@ public class Pickler {
 	 * within custom picklers. This is handy if as part of the custom pickler, you need
 	 * to write a couple of normal objects such as strings or ints, that are already
 	 * supported by the pickler.
+	 * This method can be called recursively to output sub-objects. 
 	 */
 	public void save(Object o) throws PickleException, IOException {
+		recurse++;
+		if(recurse>MAX_RECURSE_DEPTH)
+			throw new java.lang.StackOverflowError("recursion too deep in Pickler.save (>"+MAX_RECURSE_DEPTH+")"); 
+
 		// null type?
 		if(o==null) {
 			out.write(Opcodes.NONE);
+			recurse--;
 			return;
 		}
 		
-		// check the dispatch table
-		Class<?> t=o.getClass();
-		Pair<Boolean, Boolean> result=dispatch(t,o);    // returns:  output_ok, must_memo
-		if(result.a) {
-			if(result.b && useMemo) {
-				// @todo: add to memo
-			}
+		// check the memo table, otherwise simply dispatch
+		Class<?> t = o.getClass();
+		if(lookupMemo(t, o) || dispatch(t, o)){
+			recurse--;
 			return;
 		}
-
+		
 		throw new PickleException("couldn't pickle object of type "+t);
 	}
 
 	/**
+	 * Write the object to the memo table and output a memo write opcode
+	 * Only works for hashable objects
+	 */
+	private void writeMemo(Object obj) throws IOException {
+		if(!this.useMemo)
+			return;
+		if(!memo.containsKey(obj))
+		{
+			int memo_index = memo.size();
+			memo.put(obj, memo_index);
+			if(memo_index<=0xFF)
+			{
+				out.write(Opcodes.BINPUT);
+				out.write((byte)memo_index);
+			}
+			else
+			{
+				out.write(Opcodes.LONG_BINPUT);
+				byte[] index_bytes = utils.integer_to_bytes(memo_index);
+				out.write(index_bytes, 0, 4);
+			}
+		}
+	}
+	
+	/**
+	 * Check the memo table and output a memo lookup if the object is found
+	 */
+	private boolean lookupMemo(Class<?> objectType, Object obj) throws IOException {
+		if(!this.useMemo)
+			return false;
+		if(!objectType.isPrimitive())
+		{
+			if(!memo.containsKey(obj))
+				return false;
+			int memo_index = memo.get(obj);
+			if(memo_index<=0xff)
+			{
+				out.write(Opcodes.BINGET);
+				out.write((byte)memo_index);
+			}
+			else
+			{
+				out.write(Opcodes.LONG_BINGET);
+				byte[] index_bytes = utils.integer_to_bytes(memo_index);
+				out.write(index_bytes, 0, 4);
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	/**
 	 * Process a single object to be pickled.
 	 */
-	private Pair<Boolean, Boolean> dispatch(Class<?> t, Object o) throws IOException {
+	private boolean dispatch(Class<?> t, Object o) throws IOException {
 		// is it a primitive array?
 		Class<?> componentType = t.getComponentType();
 		if(componentType!=null) {
@@ -132,74 +200,75 @@ public class Pickler {
 				put_arrayOfObjects((Object[])o);
 			}
 			
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		
 		// first the primitive types
 		if(o instanceof Boolean || t.equals(Boolean.TYPE)) {
 			put_bool((Boolean)o);
-			return new Pair<Boolean,Boolean>(true,false);
+			return true;
 		}
 		if(o instanceof Byte || t.equals(Byte.TYPE)) {
 			put_long(((Byte)o).longValue());
-			return new Pair<Boolean,Boolean>(true,false);
+			return true;
 		}
 		if(o instanceof Short || t.equals(Short.TYPE)) {
 			put_long(((Short)o).longValue());
-			return new Pair<Boolean,Boolean>(true,false);
+			return true;
 		}
 		if(o instanceof Integer || t.equals(Integer.TYPE)) {
 			put_long(((Integer)o).longValue());
-			return new Pair<Boolean,Boolean>(true,false);
+			return true;
 		}
 		if(o instanceof Long || t.equals(Long.TYPE)) {
 			put_long(((Long)o).longValue());
-			return new Pair<Boolean,Boolean>(true,false);
+			return true;
 		}
 		if(o instanceof Float || t.equals(Float.TYPE)) {
 			put_float(((Float)o).doubleValue());
-			return new Pair<Boolean,Boolean>(true,false);
+			return true;
 		}
 		if(o instanceof Double || t.equals(Double.TYPE)) {
 			put_float(((Double)o).doubleValue());
-			return new Pair<Boolean,Boolean>(true,false);
+			return true;
 		}
 		if(o instanceof Character || t.equals(Character.TYPE)) {
 			put_string(""+o);
-			return new Pair<Boolean,Boolean>(true,false);
+			return true;
 		}
 		
 		// check registry
 		IObjectPickler custompickler=customPicklers.get(t);
 		if(custompickler!=null) {
 			custompickler.pickle(o, this.out, this);
-			return new Pair<Boolean,Boolean>(true,true);
+			writeMemo(o);
+			return true;
 		}
 		
 		// more complex types
 		if(o instanceof String) {
 			put_string((String)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof BigInteger) {
 			put_bigint((BigInteger)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		} 
 		if(o instanceof BigDecimal) {
 			put_decimal((BigDecimal)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof Calendar) {
 			put_calendar((Calendar)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof Time) {
 			put_time((Time)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof TimeDelta) {
 			put_timedelta((TimeDelta)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof java.util.Date) {
 			// a java Date contains a date+time so map this on Calendar
@@ -208,38 +277,40 @@ public class Pickler {
 			Calendar cal=GregorianCalendar.getInstance();
 			cal.setTime(date);
 			put_calendar(cal);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof Enum) {
 			put_string(o.toString());
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof Set<?>) {
 			put_set((Set<?>)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof Map<?,?>) {
 			put_map((Map<?,?>)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof List<?>) {
 			put_collection((List<?>)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		if(o instanceof Collection<?>) {
 			put_collection((Collection<?>)o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
 		// javabean		
 		if(o instanceof java.io.Serializable ) {
 			put_javabean(o);
-			return new Pair<Boolean,Boolean>(true,true);
+			return true;
 		}
-		return new Pair<Boolean,Boolean>(false,false);
+
+		return false;
 	}
 
 	void put_collection(Collection<?> list) throws IOException {
 		out.write(Opcodes.EMPTY_LIST);
+		writeMemo(list);
 		out.write(Opcodes.MARK);
 		for(Object o: list) {
 			save(o);
@@ -249,6 +320,7 @@ public class Pickler {
 
 	void put_map(Map<?,?> o) throws IOException {
 		out.write(Opcodes.EMPTY_DICT);
+		writeMemo(o);
 		out.write(Opcodes.MARK);
 		for(Object k: o.keySet()) {
 			save(k);
@@ -261,6 +333,7 @@ public class Pickler {
 		out.write(Opcodes.GLOBAL);
 		out.write("__builtin__\nset\n".getBytes());
 		out.write(Opcodes.EMPTY_LIST);
+		writeMemo(o);
 		out.write(Opcodes.MARK);
 		for(Object x: o) {
 			save(x);
@@ -283,6 +356,7 @@ public class Pickler {
 		save(cal.get(Calendar.MILLISECOND)*1000);
 		out.write(Opcodes.TUPLE);
 		out.write(Opcodes.REDUCE);
+		writeMemo(cal);
 	}
 
 	void put_timedelta(TimeDelta delta) throws IOException {
@@ -292,7 +366,8 @@ public class Pickler {
 		save(delta.seconds);
 		save(delta.microseconds);
 		out.write(Opcodes.TUPLE3);
-		out.write(Opcodes.REDUCE);	
+		out.write(Opcodes.REDUCE);
+		writeMemo(delta);
 	}
 
 	void put_time(Time time) throws IOException {
@@ -305,6 +380,7 @@ public class Pickler {
 		save(time.microseconds);
 		out.write(Opcodes.TUPLE);
 		out.write(Opcodes.REDUCE);
+		writeMemo(time);
 	}
 
 	void put_arrayOfObjects(Object[] array) throws IOException {
@@ -316,13 +392,19 @@ public class Pickler {
 		if(array.length==0) {
 			out.write(Opcodes.EMPTY_TUPLE);
 		} else if(array.length==1) {
+			if(array[0]==array)
+				throw new PickleException("recursive array not supported, use list");
 			save(array[0]);
 			out.write(Opcodes.TUPLE1);
 		} else if(array.length==2) {
+			if(array[0]==array || array[1]==array)
+				throw new PickleException("recursive array not supported, use list");
 			save(array[0]);
 			save(array[1]);
 			out.write(Opcodes.TUPLE2);
 		} else if(array.length==3) {
+			if(array[0]==array || array[1]==array || array[2]==array)
+				throw new PickleException("recursive array not supported, use list");
 			save(array[0]);
 			save(array[1]);
 			save(array[2]);
@@ -330,10 +412,13 @@ public class Pickler {
 		} else {
 			out.write(Opcodes.MARK);
 			for(Object o: array) {
+				if(o == array)
+					throw new PickleException("recursive array not supported, use list");
 				save(o);
 			}
 			out.write(Opcodes.TUPLE);
 		}
+		writeMemo(array);		// tuples cannot contain self-references so it is fine to put this at the end
 	}
 
 	void put_arrayOfPrimitives(Class<?> t, Object array) throws IOException {
@@ -363,6 +448,7 @@ public class Pickler {
 			put_string("latin-1");   // this is what Python writes in the pickle
 			out.write(Opcodes.TUPLE2);
 			out.write(Opcodes.REDUCE);
+			writeMemo(array);
 			return;
 		} 
 		
@@ -411,6 +497,8 @@ public class Pickler {
 		out.write(Opcodes.APPENDS);
 		out.write(Opcodes.TUPLE2);
 		out.write(Opcodes.REDUCE);
+
+		writeMemo(array);		// array of primitives can by definition never be recursive, so okay to put this at the end
 	}
 
 	void put_decimal(BigDecimal d) throws IOException {
@@ -420,6 +508,7 @@ public class Pickler {
 		put_string(d.toEngineeringString());
 		out.write(Opcodes.TUPLE1);
 		out.write(Opcodes.REDUCE);
+		writeMemo(d);
 	}
 
 
@@ -441,6 +530,7 @@ public class Pickler {
 		out.write(Opcodes.BINUNICODE);
 		out.write(utils.integer_to_bytes(encoded.length));
 		out.write(encoded);
+		writeMemo(string);
 	}
 
 	void put_float(double d) throws IOException {

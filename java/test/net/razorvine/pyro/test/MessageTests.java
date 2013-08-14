@@ -16,6 +16,7 @@ import org.junit.Test;
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */
+@SuppressWarnings("unused")
 public class MessageTests {
 
 	@Before

@@ -25,6 +25,7 @@ import org.junit.Test;
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */
+@SuppressWarnings({"unchecked", "serial"})
 public class UnpicklerComplexTests {
 
 	Object U(String strdata) throws PickleException, IOException
@@ -90,6 +91,23 @@ public class UnpicklerComplexTests {
 		assertEquals("localhost",proxy.hostname);
 		assertEquals(9999,proxy.port);
 	}
+
+	@Test
+	public void testUnpickleMemo() throws PickleException, IOException {
+		// the pickle is of the following list: [65, 'hello', 'hello', {'recurse': [...]}, 'hello']
+		// i.e. the 4th element is a dict referring back to the list itself and the 'hello' strings are reused
+		byte[] pickle = new byte[]
+			{(byte) 128, 2, 93, 113, 0, 40, 75, 65, 85, 5, 104, 101, 108, 108, 111, 113, 1, 104, 1, 125, 113, 2,
+			85, 7, 114, 101, 99, 117, 114, 115, 101, 113, 3, 104, 0, 115, 104, 1, 101, 46};
+		ArrayList<Object> a = (ArrayList<Object>) U(pickle);
+		assertEquals(5, a.size());
+		assertEquals(65, a.get(0));
+		assertEquals("hello", a.get(1));
+		assertSame(a.get(1), a.get(2));
+		assertSame(a.get(1), a.get(4));
+		HashMap<String, Object> h = (HashMap<String,Object>) a.get(3);
+		assertSame(a, h.get("recurse"));
+	}
 	
 	@Test
 	public void testUnpickleUnsupportedClass() throws IOException {
@@ -104,7 +122,7 @@ public class UnpicklerComplexTests {
 		assertEquals(4, o.size());
 		assertEquals("Harry", o.get("name"));
 		assertEquals(34, o.get("age"));
-		ArrayList expected = new ArrayList() {{
+		ArrayList<Object> expected = new ArrayList<Object>() {{
 			add(1);
 			add(2);
 			add(3);
@@ -117,12 +135,12 @@ public class UnpicklerComplexTests {
 	public class CustomClazz {
 		public String name;
 		public int age;
-		public ArrayList values;
+		public ArrayList<Object> values;
 		public CustomClazz() 
 		{
 			
 		}
-		public CustomClazz(String name, int age, ArrayList values)
+		public CustomClazz(String name, int age, ArrayList<Object> values)
 		{
 			this.name=name;
 			this.age=age;
@@ -132,10 +150,10 @@ public class UnpicklerComplexTests {
 		/**
 		 * called by the Unpickler to restore state.
 		 */
-		public void __setstate__(HashMap args) {
+		public void __setstate__(HashMap<String, Object> args) {
 			this.name = (String) args.get("name");
 			this.age = (Integer) args.get("age");
-			this.values = (ArrayList) args.get("values");
+			this.values = (ArrayList<Object>) args.get("values");
 		}			
 	}
 	
@@ -151,7 +169,7 @@ public class UnpicklerComplexTests {
 			{
 				String name = (String)args[0];
 				int age = (Integer) args[1];
-				ArrayList values = (ArrayList) args[2];
+				ArrayList<Object> values = (ArrayList<Object>) args[2];
 				return new CustomClazz(name, age, values);
 			}
 			else throw new PickleException("expected 0 or 3 constructor arguments");
@@ -170,7 +188,7 @@ public class UnpicklerComplexTests {
 		CustomClazz o = (CustomClazz) U(pickled);
 		assertEquals("Harry" ,o.name);
 		assertEquals(34 ,o.age);
-		ArrayList expected = new ArrayList() {{
+		ArrayList<Object> expected = new ArrayList<Object>() {{
 			add(1);
 			add(2);
 			add(3);

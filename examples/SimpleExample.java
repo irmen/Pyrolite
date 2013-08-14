@@ -7,7 +7,8 @@ import net.razorvine.pyro.*;
 
 public class SimpleExample {
 
-    public static void main(String[] args) throws IOException
+    @SuppressWarnings("unchecked")
+	public static void main(String[] args) throws IOException
     {
     	// First, Make sure you have the builtin echoserver running, with name server enabled:
     	// $ python -m Pyro4.test.echoserver -Nv
@@ -31,7 +32,7 @@ public class SimpleExample {
         Object obj = remoteobject.call("echo", argument);
         
         System.out.println("complex echo response: "+obj);
-        Map<String, Object> result = (Map<String, Object>)obj;
+        Map<String, Object> result = (Map<String, Object>) obj;
         System.out.println("value="+result.get("value"));
         System.out.println("message="+result.get("messge"));
         System.out.println("timestamp=" + ((Calendar)result.get("timestamp")).getTime());

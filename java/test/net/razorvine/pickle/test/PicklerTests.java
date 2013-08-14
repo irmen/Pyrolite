@@ -9,6 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -76,6 +77,10 @@ public class PicklerTests {
 			result[i+2]=(byte)shorts[i];
 		}
 		return result;
+	}
+
+	String S(byte[] pickled) {
+		return PickleUtils.rawStringFromBytes(pickled);
 	}
 
 	public enum DayEnum {
@@ -208,6 +213,24 @@ public class PicklerTests {
 		assertArrayEquals(B("carray\narray\nU\u0001d](G?\u00f1\u0099\u0099\u0099\u0099\u0099\u009aG@\u0001\u0099\u0099\u0099\u0099\u0099\u009aG@\nffffffe\u0086R"), o);
 	}
 	
+	@Test(expected=PickleException.class)
+	public void testRecursiveArray2() throws PickleException, IOException
+	{
+		Pickler p = new Pickler(false);
+		Object[] a = new Object[] { "hello", "placeholder" };
+		a[1] = a; // make it recursive
+		p.dumps(a);
+	}
+	
+	@Test(expected=PickleException.class)
+	public void testRecursiveArray6() throws PickleException, IOException
+	{
+		Pickler p = new Pickler(false);
+		Object[] a = new Object[] { "a","b","c","d","e","f" };
+		a[5] = a; // make it recursive
+		p.dumps(a);
+	}
+
 	@Test
 	public void testDates() throws PickleException, IOException
 	{
@@ -349,6 +372,115 @@ public class PicklerTests {
 		o=p.dumps(queue);
 		assertArrayEquals(B("](K\u0001K\u0003K\u0002e"), o);
  	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMemoization() throws PickleException, IOException  
+	{
+		byte[] o;
+		Pickler p=new Pickler();
+		
+		String reused = "reused";
+		String another = "another";
+		ArrayList<Object> list=new ArrayList<Object>();
+		ArrayList<Object> sublist = new ArrayList<Object>();
+		sublist.add(reused);
+		sublist.add(reused);
+		sublist.add(another);
+		list.add(reused);
+		list.add(reused);
+		list.add(another);
+		list.add(sublist);
+		o=p.dumps(list);
+		assertEquals("\u0080\u0002]q\u0000(X\u0006\u0000\u0000\u0000reusedq\u0001h\u0001X\u0007\u0000\u0000\u0000anotherq\u0002]q\u0003(h\u0001h\u0001h\u0002ee.", S(o));
+		
+		Unpickler u = new Unpickler();
+		ArrayList<Object> data = (ArrayList<Object>) u.loads(o);
+		assertEquals(4, data.size());
+		String s1 = (String) data.get(0);
+		String s2 = (String) data.get(1);
+		String s3 = (String) data.get(2);
+		data = (ArrayList<Object>) data.get(3);
+		String s4 = (String) data.get(0);
+		String s5 = (String) data.get(1);
+		String s6 = (String) data.get(2);
+		assertEquals("reused", s1);
+		assertEquals("another", s3);
+		assertSame(s1, s2);
+		assertSame(s3, s6);
+		assertSame(s1, s4);
+		assertSame(s1, s5);
+	}
+		
+	@SuppressWarnings("unused")
+	@Test(expected=StackOverflowError.class)
+	public void testMemoizationRecursiveNoMemo() throws PickleException, IOException  
+	{
+		byte[] o;
+		Pickler p=new Pickler(false);
+		
+		String reused = "reused";
+		ArrayList<Object> list=new ArrayList<Object>();
+		list.add(reused);
+		list.add(reused);
+		list.add(list);
+		o=p.dumps(list);
+	}
+
+	@SuppressWarnings({"unchecked", "serial"})
+	@Test
+	public void testMemoizationRecursiveMemo() throws PickleException, IOException  
+	{
+		// we have to override the hashCode() method because otherwise
+		// the default implementation will crash in a recursive call
+		class RecursiveList extends ArrayList<Object> {
+			@Override
+			public int hashCode()
+			{
+				return 21751*this.size();
+			}
+		}
+		class RecursiveHashMap extends HashMap<String, Object> {
+			@Override
+			public int hashCode()
+			{
+				return 19937*this.size();
+			}
+		}
+		
+		byte[] o;
+		Pickler p=new Pickler();
+		Unpickler u = new Unpickler();
+		
+		// self-referencing list
+		String reused = "reused";
+		RecursiveList list=new RecursiveList();
+		list.add(reused);
+		list.add(reused);
+		list.add(list);
+		o=p.dumps(list);
+		assertEquals("\u0080\u0002]q\u0000(X\u0006\u0000\u0000\u0000reusedq\u0001h\u0001h\u0000e.", S(o));
+
+		ArrayList<Object> data = (ArrayList<Object>) u.loads(o);
+		assertEquals(3, data.size());
+		String s1 = (String) data.get(0);
+		String s2 = (String) data.get(1);
+		ArrayList<Object> data2 = (ArrayList<Object>) data.get(2);
+		assertEquals("reused", s1);
+		assertSame(s1, s2);
+		assertSame(data, data2);
+		assertSame(data.get(0), data2.get(0));
+		
+		// self-referencing hashtable
+		RecursiveHashMap h = new RecursiveHashMap();
+		h.put("myself", h);
+		o=p.dumps(h);
+		assertEquals("\u0080\u0002}q\u0000(X\u0006\u0000\u0000\u0000myselfq\u0001h\u0000u.", S(o));
+		HashMap<String, Object> h2 = (HashMap<String,Object>) u.loads(o);
+		assertEquals(1, h2.size());
+		assertSame(h2, h2.get("myself"));
+	}
+	
 
 	public class PersonBean implements java.io.Serializable {
 		private static final long serialVersionUID = 3236709849734459121L;
