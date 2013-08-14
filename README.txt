@@ -1,5 +1,5 @@
 
-Pyrolite - Python Remote Objects "light"
+Pyrolite - Python Remote Objects "light" and Pickle for Java/.NET
 
   Pyrolite is written by Irmen de Jong (irmen@razorvine.net).
   This software is distributed under the terms written in the file `LICENSE`.
@@ -19,8 +19,8 @@ Contents:
 This library allows your Java or .NET program to interface very easily with
 the Python world. It uses the Pyro protocol to call methods on remote
 objects. (See http://irmen.home.xs4all.nl/pyro/).
-Pyrolite uses its native pickle protocol implementation to exchange data
-with Python. 
+Pyrolite contains and uses a feature complete pickle protocol
+implementation to exchange data with Pyro/Python. 
 
 Pyrolite only implements part of the client side Pyro library,
 hence its name 'lite'...  Because Pyrolite has no dependencies,
