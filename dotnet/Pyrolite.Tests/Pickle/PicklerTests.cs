@@ -41,6 +41,10 @@ public class PicklerTests {
 		return result;
 	}
 	
+	string S(byte[] pickled) {
+		return PickleUtils.rawStringFromBytes(pickled);
+	}
+
 	public enum DayEnum {
 	    SUNDAY, MONDAY, TUESDAY, WEDNESDAY, 
 	    THURSDAY, FRIDAY, SATURDAY 
@@ -120,6 +124,26 @@ public class PicklerTests {
 		Assert.AreEqual(B("carray\narray\nU\u0001d](G?\u00f1\u0099\u0099\u0099\u0099\u0099\u009aG@\u0001\u0099\u0099\u0099\u0099\u0099\u009aG@\nffffffe\u0086R"), o);
 	}
 	
+	[Test]
+	[ExpectedException(ExpectedException=typeof(PickleException), ExpectedMessage="recursive array not supported, use list")]
+	public void TestRecursiveArray2()
+	{
+		Pickler p = new Pickler(false);
+		object[] a = new object[] { "hello", "placeholder" };
+		a[1] = a; // make it recursive
+		p.dumps(a);
+	}
+	
+	[Test]
+	[ExpectedException(ExpectedException=typeof(PickleException), ExpectedMessage="recursive array not supported, use list")]
+	public void TestRecursiveArray6()
+	{
+		Pickler p = new Pickler(false);
+		object[] a = new object[] { "a","b","c","d","e","f" };
+		a[5] = a; // make it recursive
+		p.dumps(a);
+	}
+
 	[Test]
 	public void testDates() 
 	{
@@ -239,6 +263,85 @@ public class PicklerTests {
 		o=p.dumps(queue);
 		Assert.AreEqual(B("](K\u0001K\u0002K\u0003e"), o);
  	}
+
+	[Test]
+	public void testMemoization()  
+	{
+		byte[] o;
+		Pickler p=new Pickler();
+		
+		string reused = "reused";
+		string another = "another";
+		IList list=new ArrayList();
+		IList sublist = new ArrayList();
+		sublist.Add(reused);
+		sublist.Add(reused);
+		sublist.Add(another);
+		list.Add(reused);
+		list.Add(reused);
+		list.Add(another);
+		list.Add(sublist);
+		o=p.dumps(list);
+		Assert.AreEqual("\x80\x02]q\x00(X\x06\x00\x00\x0000reusedq\x01h\x01X\x07\x00\x00\x0000anotherq\x02]q\x03(h\x01h\x01h\x0002ee.", S(o));
+		
+		Unpickler u = new Unpickler();
+		ArrayList data = (ArrayList) u.loads(o);
+		Assert.AreEqual(4, data.Count);
+		string s1 = (string) data[0];
+		string s2 = (string) data[1];
+		string s3 = (string) data[2];
+		data = (ArrayList) data[3];
+		string s4 = (string) data[0];
+		string s5 = (string) data[1];
+		string s6 = (string) data[2];
+		Assert.AreEqual("reused", s1);
+		Assert.AreEqual("another", s3);
+		Assert.AreSame(s1, s2);
+		Assert.AreSame(s3, s6);
+		Assert.AreSame(s1, s4);
+		Assert.AreSame(s1, s5);
+	}
+		
+	[Test]
+	[ExpectedException(ExpectedException=typeof(StackOverflowException))]
+	public void testMemoizationRecursiveNoMemo()  
+	{
+		byte[] o;
+		Pickler p=new Pickler(false);
+		
+		string reused = "reused";
+		IList list=new ArrayList();
+		list.Add(reused);
+		list.Add(reused);
+		list.Add(list);
+		o=p.dumps(list);
+	}
+
+	[Test]
+	public void testMemoizationRecursiveMemo()  
+	{
+		byte[] o;
+		Pickler p=new Pickler();
+		
+		string reused = "reused";
+		IList list=new ArrayList();
+		list.Add(reused);
+		list.Add(reused);
+		list.Add(list);
+		o=p.dumps(list);
+		Assert.AreEqual("\x80\x02]q\x00(X\x06\x00\x00\x0000reusedq\x01h\x01h\x0000e.", S(o));
+
+		Unpickler u = new Unpickler();
+		ArrayList data = (ArrayList) u.loads(o);
+		Assert.AreEqual(3, data.Count);
+		string s1 = (string) data[0];
+		string s2 = (string) data[1];
+		ArrayList data2 = (ArrayList) data[2];
+		Assert.AreEqual("reused", s1);
+		Assert.AreSame(s1, s2);
+		Assert.AreSame(data, data2);
+		Assert.AreSame(data[0], data2[0]);
+	}
 
 	public class Person {
 		

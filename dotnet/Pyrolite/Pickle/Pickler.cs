@@ -16,25 +16,31 @@ namespace Razorvine.Pickle
 /// Pickle an object graph into a Python-compatible pickle stream. For
 /// simplicity, the only supported pickle protocol at this time is protocol 2. 
 /// See README.txt for a table with the type mapping.
+/// This class is NOT threadsafe! (Don't use the same pickler from different threads)
 /// </summary>
 public class Pickler : IDisposable {
 
 	public static int HIGHEST_PROTOCOL = 2;
 
+	private const int MAX_RECURSE_DEPTH = 200;
 	private Stream outs;
+	private int recurse = 0;	// recursion level
 	private int PROTOCOL = 2;
 	private PickleUtils utils;
 	private static IDictionary<Type, IObjectPickler> customPicklers = new Dictionary<Type, IObjectPickler>();
 	private bool useMemo=true;
+	private IDictionary<object, int> memo;		// maps objects to memo index
 	
 	/**
 	 * Create a Pickler.
 	 */
-	public Pickler() {
+	public Pickler() : this(true) {
 	}
 
 	/**
 	 * Create a Pickler. Specify if it is to use a memo table or not.
+	 * The memo table is NOT reused across different calls.
+	 * If you use a memo table, you can only pickle objects that are hashable.
 	 */
 	public Pickler(bool useMemo) {
 		this.useMemo=useMemo;
@@ -44,6 +50,7 @@ public class Pickler : IDisposable {
 	 * Close the pickler stream, discard any internal buffers.
 	 */
 	public void close() {
+		memo = null;
 		outs.Flush();
 		outs.Close();
 	}
@@ -70,10 +77,16 @@ public class Pickler : IDisposable {
 	 */
 	public void dump(object o, Stream stream) {
 		outs = stream;
+		recurse = 0;
+		if(useMemo)
+			memo = new Dictionary<object, int>();
 		utils = new PickleUtils(null);
 		outs.WriteByte(Opcodes.PROTO);
 		outs.WriteByte((byte)PROTOCOL);
 		save(o);
+		if(recurse!=0)  // sanity check
+			throw new PickleException("recursive structure error, please report this problem");
+		memo = null;  // get rid of the memo table
 		outs.WriteByte(Opcodes.STOP);
 		outs.Flush();
 	}
@@ -84,34 +97,90 @@ public class Pickler : IDisposable {
 	 * within custom picklers. This is handy if as part of the custom pickler, you need
 	 * to write a couple of normal objects such as strings or ints, that are already
 	 * supported by the pickler.
+	 * This method can be called recursively to output sub-objects.
 	 */
 	public void save(object o) {
+		recurse++;
+		if(recurse>MAX_RECURSE_DEPTH)
+			throw new StackOverflowException("recursion too deep in Pickler.save (>"+MAX_RECURSE_DEPTH+")");
+
 		// null type?
 		if(o==null) {
 			outs.WriteByte(Opcodes.NONE);
+			recurse--;
 			return;
 		}
-		
-		// check the dispatch table
+
+
 		Type t=o.GetType();
-		bool must_memo;
-		if(dispatch(t, o, out must_memo)) {
-			if(must_memo && this.useMemo) {
-				// @todo: add to memo
-			}
+		
+		// check the memo table, otherwise simply dispatch
+		if(LookupMemo(t, o) || dispatch(t, o)){
+			recurse--;
 			return;
 		}
 
 		throw new PickleException("couldn't pickle object of type "+t);
 	}
+	
+	/**
+	 * Write the object to the memo table and output a memo write opcode
+	 * Only works for hashable objects
+	 */
+	private void WriteMemo(object obj) {
+		if(!this.useMemo)
+			return;
+		if(!memo.ContainsKey(obj))
+		{
+			int memo_index = memo.Count;
+			memo[obj] = memo_index;
+			if(memo_index<=0xFF)
+			{
+				outs.WriteByte(Opcodes.BINPUT);
+				outs.WriteByte((byte)memo_index);
+			}
+			else
+			{
+				outs.WriteByte(Opcodes.LONG_BINPUT);
+				byte[] index_bytes = utils.integer_to_bytes(memo_index);
+				outs.Write(index_bytes, 0, 4);
+			}
+		}
+	}
+	
+	/**
+	 * Check the memo table and output a memo lookup if the object is found
+	 */
+	private bool LookupMemo(Type objectType, object obj) {
+		if(!this.useMemo)
+			return false;
+		if(!objectType.IsPrimitive)
+		{
+			int memo_index;
+			if(memo.TryGetValue(obj, out memo_index))
+			{
+				if(memo_index<=0xff)
+				{
+					outs.WriteByte(Opcodes.BINGET);
+					outs.WriteByte((byte)memo_index);
+				}
+				else
+				{
+					outs.WriteByte(Opcodes.LONG_BINGET);
+					byte[] index_bytes = utils.integer_to_bytes(memo_index);
+					outs.Write(index_bytes, 0, 4);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Process a single object to be pickled.
 	 */
-	private bool dispatch(Type t, object o, out bool must_memo) {
+	private bool dispatch(Type t, object o) {
 		// is it a primitive array?
-		must_memo=true;
-		
 		if(o is Array) {
 			Type componentType=t.GetElementType();
 			if(componentType.IsPrimitive) {
@@ -125,62 +194,50 @@ public class Pickler : IDisposable {
 		// first the primitive types
 		if(o is bool) {
 			put_bool((Boolean)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is byte) {
 			put_long((byte)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is sbyte) {
 			put_long((sbyte)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is short) {
 			put_long((short)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is ushort) {
 			put_long((ushort)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is int) {
 			put_long((int)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is uint) {
 			put_long((uint)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is long) {
 			put_long((long)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is ulong) {
 			put_ulong((ulong)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is float) {
 			put_float((float)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is double) {
 			put_float((double)o);
-			must_memo=false;
 			return true;
 		}
 		if(o is char) {
 			put_string(""+o);
-			must_memo=false;
 			return true;
 		}
 		
@@ -188,6 +245,7 @@ public class Pickler : IDisposable {
 		if(customPicklers.ContainsKey(t)) {
 			IObjectPickler custompickler=customPicklers[t];
 			custompickler.pickle(o, this.outs, this);
+			WriteMemo(o);
 			return true;
 		}
 		
@@ -232,7 +290,7 @@ public class Pickler : IDisposable {
 			put_objwithproperties(o);
 			return true;
 		}
-		must_memo=false;
+
 		return false;
 	}
 	
@@ -256,6 +314,7 @@ public class Pickler : IDisposable {
 		save(dt.Millisecond*1000);
 		outs.WriteByte(Opcodes.TUPLE);
 		outs.WriteByte(Opcodes.REDUCE);
+		WriteMemo(dt);
 	}
 		
 	void put_timespan(TimeSpan ts) {
@@ -267,10 +326,12 @@ public class Pickler : IDisposable {
 		save(ts.Milliseconds*1000);
 		outs.WriteByte(Opcodes.TUPLE3);
 		outs.WriteByte(Opcodes.REDUCE);	
+		WriteMemo(ts);
 	}
 
 	void put_enumerable(IEnumerable list) {
 		outs.WriteByte(Opcodes.EMPTY_LIST);
+		WriteMemo(list);
 		outs.WriteByte(Opcodes.MARK);
 		foreach(var o in list) {
 			save(o);
@@ -280,6 +341,7 @@ public class Pickler : IDisposable {
 
 	void put_map(IDictionary o) {
 		outs.WriteByte(Opcodes.EMPTY_DICT);
+		WriteMemo(o);
 		outs.WriteByte(Opcodes.MARK);
 		foreach(var k in o.Keys) {
 			save(k);
@@ -293,6 +355,7 @@ public class Pickler : IDisposable {
 		byte[] output=Encoding.ASCII.GetBytes("__builtin__\nset\n");
 		outs.Write(output,0,output.Length);
 		outs.WriteByte(Opcodes.EMPTY_LIST);
+		WriteMemo(o);
 		outs.WriteByte(Opcodes.MARK);
 		foreach(object x in o) {
 			save(x);
@@ -311,13 +374,19 @@ public class Pickler : IDisposable {
 		if(array.Length==0) {
 			outs.WriteByte(Opcodes.EMPTY_TUPLE);
 		} else if(array.Length==1) {
+			if(array[0]==array)
+				throw new PickleException("recursive array not supported, use list");
 			save(array[0]);
 			outs.WriteByte(Opcodes.TUPLE1);
 		} else if(array.Length==2) {
+			if(array[0]==array || array[1]==array)
+				throw new PickleException("recursive array not supported, use list");
 			save(array[0]);
 			save(array[1]);
 			outs.WriteByte(Opcodes.TUPLE2);
 		} else if(array.Length==3) {
+			if(array[0]==array || array[1]==array || array[2]==array)
+				throw new PickleException("recursive array not supported, use list");
 			save(array[0]);
 			save(array[1]);
 			save(array[2]);
@@ -325,10 +394,13 @@ public class Pickler : IDisposable {
 		} else {
 			outs.WriteByte(Opcodes.MARK);
 			foreach(object o in array) {
+				if(o==array)
+					throw new PickleException("recursive array not supported, use list");
 				save(o);
 			}
 			outs.WriteByte(Opcodes.TUPLE);
 		}
+		WriteMemo(array);		// tuples cannot contain self-references so it is fine to put this at the end
 	}
 
 	void put_arrayOfPrimitives(Type t, object array) {
@@ -360,6 +432,7 @@ public class Pickler : IDisposable {
 			put_string("latin-1");	// this is what python writes in the pickle
 			outs.WriteByte(Opcodes.TUPLE2);
 			outs.WriteByte(Opcodes.REDUCE);
+			WriteMemo(array);
 			return;
 		} 
 		
@@ -437,6 +510,8 @@ public class Pickler : IDisposable {
 		outs.WriteByte(Opcodes.APPENDS);
 		outs.WriteByte(Opcodes.TUPLE2);
 		outs.WriteByte(Opcodes.REDUCE);
+
+		WriteMemo(array);		// array of primitives can by definition never be recursive, so okay to put this at the end
 	}
 
 	void put_decimal(decimal d) {
@@ -447,6 +522,7 @@ public class Pickler : IDisposable {
 		put_string(Convert.ToString(d, CultureInfo.InvariantCulture));
 		outs.WriteByte(Opcodes.TUPLE1);
 		outs.WriteByte(Opcodes.REDUCE);
+		WriteMemo(d);
 	}
 
 	void put_string(string str) {
@@ -455,6 +531,7 @@ public class Pickler : IDisposable {
 		byte[] output=utils.integer_to_bytes(encoded.Length);
 		outs.Write(output,0,output.Length);
 		outs.Write(encoded,0,encoded.Length);
+		WriteMemo(str);
 	}
 
 	void put_float(double d) {

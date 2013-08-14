@@ -70,12 +70,11 @@ More examples can be found in the examples directory.
 2. THE LIBRARY
 ---------------------
 
-The library consists of 2 parts:
-- a thin version of the client side part of Pyro.
-- an almost complete implementation of Python's pickle protocol.
-  (Only memoizing is not implemented yet in the Pickler).
-  It is fully compatible with pickles from Python 2.x and Python 3.x.
-  (You can use this independently from the rest of the library if you wish).
+The library consists of 2 parts: a thin version of the client side part of Pyro,
+and a feature complete implementation of Python's pickle protocol,
+including memoization. It is fully compatible with pickles from Python 2.x
+and Python 3.x, and you can use it idependently from the rest of the library,
+to read and write Python pickle structures.
 
 
 The source archive contains the full source, and also unit test code
@@ -143,7 +142,7 @@ short               int
 BigDecimal          decimal
 BigInteger          long
 any array           array if elements are primitive type (else tuple)
-Object[]            tuple
+Object[]            tuple (cannot contain self-references)
 byte[]              bytearray
 java.util.Date      datetime.datetime
 java.util.Calendar  datetime.datetime
@@ -209,7 +208,7 @@ uint/ushort/byte    int
 decimal             decimal
 byte[]              bytearray
 primitivetype[]     array
-object[]            tuple
+object[]            tuple  (cannot contain self-references)
 DateTime            datetime.datetime
 TimeSpan            datetime.timedelta
 Enum                just the enum value as string
@@ -249,6 +248,6 @@ serializers and doesn't use pickle by default. This avoids the security
 problem. But the current version of Pyrolite is only able to talk to Pyro
 when using the pickle protocol. A future Pyrolite version may improve this.
 
-Note: your .NET or Java client code is perfectly safe. The (un)pickler
+Note: your .NET or Java client code is perfectly safe. The unpickler
 implementation in Pyrolite doesn't randomly construct arbitrary objects
 and is safe to use for parsing data from the network.
