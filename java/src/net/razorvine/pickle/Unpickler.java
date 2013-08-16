@@ -21,6 +21,7 @@ import net.razorvine.pickle.objects.SetConstructor;
 /**
  * Unpickles an object graph from a pickle data inputstream.
  * Maps the python objects on the corresponding java equivalents or similar types.
+ * This class is NOT threadsafe! (Don't use the same pickler from different threads)
  * 
  * See the README.txt for a table of the type mappings.
  *  
@@ -30,9 +31,9 @@ public class Unpickler {
 
 	private final int HIGHEST_PROTOCOL = 3;
 
-	private PickleUtils pu;
 	private Map<Integer, Object> memo;
 	private UnpickleStack stack;
+	private InputStream input;
 	private static Map<String, IObjectConstructor> objectConstructors;
 
 	static {
@@ -73,11 +74,11 @@ public class Unpickler {
 	 * @return the reconstituted object hierarchy specified in the file.
 	 */
 	public Object load(InputStream stream) throws PickleException, IOException {
-		pu = new PickleUtils(stream);
 		stack = new UnpickleStack();
+		input = stream;
 		try {
 			while (true) {
-				short key = pu.readbyte();
+				short key = PickleUtils.readbyte(input);
 				if (key == -1)
 					throw new IOException("premature end of file");
 				dispatch(key);
@@ -102,6 +103,11 @@ public class Unpickler {
 	public void close() {
 		if(stack!=null)	stack.clear();
 		if(memo!=null) memo.clear();
+		if(input!=null)
+			try {
+				input.close();
+			} catch (IOException e) {
+			}
 	}
 
 	private class StopException extends RuntimeException {
@@ -300,7 +306,7 @@ public class Unpickler {
 	}
 
 	void load_proto() throws IOException {
-		short proto = pu.readbyte();
+		short proto = PickleUtils.readbyte(input);
 		if (proto < 0 || proto > HIGHEST_PROTOCOL)
 			throw new PickleException("unsupported pickle protocol: " + proto);
 	}
@@ -318,7 +324,7 @@ public class Unpickler {
 	}
 
 	void load_int() throws IOException {
-		String data = pu.readline(true);
+		String data = PickleUtils.readline(input, true);
 		Object val;
 		if (data.equals(Opcodes.FALSE.substring(1)))
 			val = false;
@@ -337,52 +343,52 @@ public class Unpickler {
 	}
 
 	void load_binint() throws IOException {
-		int integer = PickleUtils.bytes_to_integer(pu.readbytes(4));
+		int integer = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
 		stack.add(integer);
 	}
 
 	void load_binint1() throws IOException {
-		stack.add((int)pu.readbyte());
+		stack.add((int)PickleUtils.readbyte(input));
 	}
 
 	void load_binint2() throws IOException {
-		int integer = PickleUtils.bytes_to_integer(pu.readbytes(2));
+		int integer = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 2));
 		stack.add(integer);
 	}
 
 	void load_long() throws IOException {
-		String val = pu.readline();
+		String val = PickleUtils.readline(input);
 		if (val != null && val.endsWith("L")) {
 			val = val.substring(0, val.length() - 1);
 		}
 		BigInteger bi = new BigInteger(val);
-		stack.add(pu.optimizeBigint(bi));
+		stack.add(PickleUtils.optimizeBigint(bi));
 	}
 
 	void load_long1() throws IOException {
-		short n = pu.readbyte();
-		byte[] data = pu.readbytes(n);
-		stack.add(pu.decode_long(data));
+		short n = PickleUtils.readbyte(input);
+		byte[] data = PickleUtils.readbytes(input, n);
+		stack.add(PickleUtils.decode_long(data));
 	}
 
 	void load_long4() throws IOException {
-		int n = PickleUtils.bytes_to_integer(pu.readbytes(4));
-		byte[] data = pu.readbytes(n);
-		stack.add(pu.decode_long(data));
+		int n = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+		byte[] data = PickleUtils.readbytes(input, n);
+		stack.add(PickleUtils.decode_long(data));
 	}
 
 	void load_float() throws IOException {
-		String val = pu.readline(true);
+		String val = PickleUtils.readline(input, true);
 		stack.add(Double.parseDouble(val));
 	}
 
 	void load_binfloat() throws IOException {
-		double val = PickleUtils.bytes_to_double(pu.readbytes(8),0);
+		double val = PickleUtils.bytes_to_double(PickleUtils.readbytes(input, 8),0);
 		stack.add(val);
 	}
 
 	void load_string() throws IOException {
-		String rep = pu.readline();
+		String rep = PickleUtils.readline(input);
 		boolean quotesOk = false;
 		for (String q : new String[] { "\"", "'" }) // double or single quote
 		{
@@ -399,40 +405,40 @@ public class Unpickler {
 		if (!quotesOk)
 			throw new PickleException("insecure string pickle");
 
-		stack.add(pu.decode_escaped(rep));
+		stack.add(PickleUtils.decode_escaped(rep));
 	}
 
 	void load_binstring() throws IOException {
-		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
-		byte[] data = pu.readbytes(len);
+		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+		byte[] data = PickleUtils.readbytes(input, len);
 		stack.add(PickleUtils.rawStringFromBytes(data));
 	}
 
 	void load_binbytes() throws IOException {
-		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
-		stack.add(pu.readbytes(len));
+		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+		stack.add(PickleUtils.readbytes(input, len));
 	}
 
 	void load_unicode() throws IOException {
-		String str=pu.decode_unicode_escaped(pu.readline());
+		String str=PickleUtils.decode_unicode_escaped(PickleUtils.readline(input));
 		stack.add(str);
 	}
 
 	void load_binunicode() throws IOException {
-		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
-		byte[] data = pu.readbytes(len);
+		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+		byte[] data = PickleUtils.readbytes(input, len);
 		stack.add(new String(data,"UTF-8"));
 	}
 
 	void load_short_binstring() throws IOException {
-		short len = pu.readbyte();
-		byte[] data = pu.readbytes(len);
+		short len = PickleUtils.readbyte(input);
+		byte[] data = PickleUtils.readbytes(input, len);
 		stack.add(PickleUtils.rawStringFromBytes(data));
 	}
 
 	void load_short_binbytes() throws IOException {
-		short len = pu.readbyte();
-		stack.add(pu.readbytes(len));
+		short len = PickleUtils.readbyte(input);
+		stack.add(PickleUtils.readbytes(input, len));
 	}
 
 	void load_tuple() {
@@ -486,8 +492,8 @@ public class Unpickler {
 	}
 
 	void load_global() throws IOException {
-		String module = pu.readline();
-		String name = pu.readline();
+		String module = PickleUtils.readline(input);
+		String name = PickleUtils.readline(input);
 		IObjectConstructor constructor = objectConstructors.get(module + "." + name);
 		if (constructor == null) {
 			// check if it is an exception
@@ -532,35 +538,35 @@ public class Unpickler {
 	}
 
 	void load_get() throws IOException {
-		int i = Integer.parseInt(pu.readline(), 10);
+		int i = Integer.parseInt(PickleUtils.readline(input), 10);
 		if(!memo.containsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo.get(i));
 	}
 
 	void load_binget() throws IOException {
-		int i = pu.readbyte();
+		int i = PickleUtils.readbyte(input);
 		if(!memo.containsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo.get(i));
 	}
 
 	void load_long_binget() throws IOException {
-		int i = PickleUtils.bytes_to_integer(pu.readbytes(4));
+		int i = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
 		if(!memo.containsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo.get(i));
 	}
 
 	void load_put() throws IOException {
-		int i = Integer.parseInt(pu.readline(), 10);
+		int i = Integer.parseInt(PickleUtils.readline(input), 10);
 		memo.put(i, stack.peek());
 	}
 
 	void load_binput() throws IOException {
-		int i = pu.readbyte();
+		int i = PickleUtils.readbyte(input);
 		memo.put(i, stack.peek());
 	}
 
 	void load_long_binput() throws IOException {
-		int i = PickleUtils.bytes_to_integer(pu.readbytes(4));
+		int i = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
 		memo.put(i, stack.peek());
 	}
 

@@ -39,7 +39,6 @@ public class Pickler {
 	private int recurse = 0;  // recursion level
 	private OutputStream out;
 	private int PROTOCOL = 2;
-	private PickleUtils utils;
 	private static Map<Class<?>, IObjectPickler> customPicklers=new HashMap<Class<?>, IObjectPickler>();
 	private boolean useMemo=true;
 	private HashMap<Object, Integer> memo;    // maps objects to memo index 
@@ -94,7 +93,6 @@ public class Pickler {
 		recurse = 0;
 		if(useMemo)
 			memo = new HashMap<Object, Integer>();
-		utils = new PickleUtils(null);
 		out.write(Opcodes.PROTO);
 		out.write(PROTOCOL);
 		save(o);
@@ -154,7 +152,7 @@ public class Pickler {
 			else
 			{
 				out.write(Opcodes.LONG_BINPUT);
-				byte[] index_bytes = utils.integer_to_bytes(memo_index);
+				byte[] index_bytes = PickleUtils.integer_to_bytes(memo_index);
 				out.write(index_bytes, 0, 4);
 			}
 		}
@@ -179,7 +177,7 @@ public class Pickler {
 			else
 			{
 				out.write(Opcodes.LONG_BINGET);
-				byte[] index_bytes = utils.integer_to_bytes(memo_index);
+				byte[] index_bytes = PickleUtils.integer_to_bytes(memo_index);
 				out.write(index_bytes, 0, 4);
 			}
 			return true;
@@ -513,14 +511,14 @@ public class Pickler {
 
 
 	void put_bigint(BigInteger i) throws IOException {
-		byte[] b=utils.encode_long(i);
+		byte[] b=PickleUtils.encode_long(i);
 		if(b.length<=0xff) {	
 			out.write(Opcodes.LONG1);
 			out.write(b.length);
 			out.write(b);
 		} else {
 			out.write(Opcodes.LONG4);
-			out.write(utils.integer_to_bytes(b.length));
+			out.write(PickleUtils.integer_to_bytes(b.length));
 			out.write(b);
 		}
 	}
@@ -528,14 +526,14 @@ public class Pickler {
 	void put_string(String string) throws IOException {
 		byte[] encoded=string.getBytes("UTF-8");
 		out.write(Opcodes.BINUNICODE);
-		out.write(utils.integer_to_bytes(encoded.length));
+		out.write(PickleUtils.integer_to_bytes(encoded.length));
 		out.write(encoded);
 		writeMemo(string);
 	}
 
 	void put_float(double d) throws IOException {
 		out.write(Opcodes.BINFLOAT);
-		out.write(utils.double_to_bytes(d));
+		out.write(PickleUtils.double_to_bytes(d));
 	}	
 
 	void put_long(long v) throws IOException {
@@ -560,7 +558,7 @@ public class Pickler {
 		if(high_bits==0 || high_bits==-1) {
             // All high bits are copies of bit 2**31, so the value fits in a 4-byte signed int.
 			out.write(Opcodes.BININT);
-			out.write(utils.integer_to_bytes((int)v));
+			out.write(PickleUtils.integer_to_bytes((int)v));
             return;
 		}
 		

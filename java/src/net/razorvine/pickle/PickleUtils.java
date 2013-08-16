@@ -10,28 +10,19 @@ import java.math.BigInteger;
  * 
  * @author Irmen de Jong (irmen@razorvine.net)
  */
-public class PickleUtils {
+public abstract class PickleUtils {
 
-	private InputStream input;
-	
-	/**
-	 * Create a pickle utils instance and remember the given input stream. 
-	 */
-	public PickleUtils(InputStream stream) {
-		this.input = stream;
-	}
-	
 	/**
 	 * read a line of text, excluding the terminating LF char
 	 */
-	public String readline() throws IOException {
-		return readline(false);
+	public static String readline(InputStream input) throws IOException {
+		return readline(input, false);
 	}
 
 	/**
 	 * read a line of text, possibly including the terminating LF char
 	 */
-	public String readline(boolean includeLF) throws IOException {
+	public static String readline(InputStream input, boolean includeLF) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		while (true) {
 			int c = input.read();
@@ -51,7 +42,7 @@ public class PickleUtils {
 	/**
 	 * read a single unsigned byte
 	 */
-	public short readbyte() throws IOException {
+	public static short readbyte(InputStream input) throws IOException {
 		int b = input.read();
 		return (short) b;
 	}
@@ -59,18 +50,18 @@ public class PickleUtils {
 	/**
 	 * read a number of signed bytes
 	 */
-	public byte[] readbytes(int n) throws IOException {
+	public static byte[] readbytes(InputStream input, int n) throws IOException {
 		byte[] buffer = new byte[n];
-		readbytes_into(buffer, 0, n);
+		readbytes_into(input, buffer, 0, n);
 		return buffer;
 	}
 
 	/**
 	 * read a number of signed bytes into the specified location in an existing byte array
 	 */
-	public void readbytes_into(byte[] buffer, int offset, int length) throws IOException {
+	public static void readbytes_into(InputStream input, byte[] buffer, int offset, int length) throws IOException {
 		while (length > 0) {
-			int read = this.input.read(buffer, offset, length);
+			int read = input.read(buffer, offset, length);
 			if (read == -1)
 				throw new IOException("expected more bytes in input stream");
 			offset += read;
@@ -150,7 +141,7 @@ public class PickleUtils {
 	/**
 	 * Convert a signed integer to its 4-byte representation. (little endian)
 	 */
-	public byte[] integer_to_bytes(int i) {
+	public static byte[] integer_to_bytes(int i) {
 		final byte[] b = new byte[4];
 		b[0] = (byte) (i & 0xff);
 		i >>= 8;
@@ -165,7 +156,7 @@ public class PickleUtils {
 	/**
 	 * Convert a double to its 8-byte representation (big endian).
 	 */
-	public byte[] double_to_bytes(double d) {
+	public static byte[] double_to_bytes(double d) {
 		long bits = Double.doubleToRawLongBits(d);
 		final byte[] b = new byte[8];
 		b[7] = (byte) (bits & 0xff);
@@ -232,7 +223,7 @@ public class PickleUtils {
 	/**
 	 * read an arbitrary 'long' number. Returns an int/long/BigInteger as appropriate to hold the number.
 	 */
-	public Number decode_long(byte[] data) {
+	public static Number decode_long(byte[] data) {
 		if (data.length == 0)
 			return 0L;
 		// first reverse the byte array because pickle stores it little-endian
@@ -246,7 +237,7 @@ public class PickleUtils {
 	/**
 	 * encode an arbitrary long number into a byte array (little endian).
 	 */
-	public byte[] encode_long(BigInteger big) {
+	public static byte[] encode_long(BigInteger big) {
 		byte[] data=big.toByteArray();
 		// reverse the byte array because pickle uses little endian
 		byte[] data2=new byte[data.length];
@@ -259,7 +250,7 @@ public class PickleUtils {
 	/**
 	 * Optimize a biginteger, if possible return a long primitive datatype.
 	 */
-	public Number optimizeBigint(BigInteger bigint) {
+	public static Number optimizeBigint(BigInteger bigint) {
 		// final BigInteger MAXINT=BigInteger.valueOf(Integer.MAX_VALUE);
 		// final BigInteger MININT=BigInteger.valueOf(Integer.MIN_VALUE);
 		final BigInteger MAXLONG = BigInteger.valueOf(Long.MAX_VALUE);
@@ -310,7 +301,7 @@ public class PickleUtils {
 	/**
 	 * Decode a string with possible escaped char sequences in it (\x??).
 	 */
-	public String decode_escaped(String str) {
+	public static String decode_escaped(String str) {
 		if(str.indexOf('\\')==-1)
 			return str;
 		StringBuilder sb=new StringBuilder(str.length());
@@ -344,7 +335,7 @@ public class PickleUtils {
 	/**
 	 * Decode a string with possible escaped unicode in it (\u20ac)
 	 */
-	public String decode_unicode_escaped(String str) {
+	public static String decode_unicode_escaped(String str) {
 		if(str.indexOf('\\')==-1)
 			return str;
 		StringBuilder sb=new StringBuilder(str.length());
