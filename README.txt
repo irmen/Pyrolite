@@ -10,6 +10,7 @@ Contents:
     3. TYPE MAPPINGS
     4. EXCEPTIONS
     5. SECURITY WARNING
+    6. DOWNLOAD COMPILED BINARIES
 
 
 1. INTRODUCTION
@@ -252,3 +253,11 @@ when using the pickle protocol. A future Pyrolite version may improve this.
 Note: your .NET or Java client code is perfectly safe. The unpickler
 implementation in Pyrolite doesn't randomly construct arbitrary objects
 and is safe to use for parsing data from the network.
+
+
+6. DOWNLOAD COMPILED BINARIES
+-----------------------------
+
+Precompiled binaries (java jar, .net assembly dll) are here:
+http://irmen.home.xs4all.nl/pyrolite/
+
