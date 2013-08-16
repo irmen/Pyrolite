@@ -31,14 +31,13 @@ public class PickleUtilsTest {
 	[Test]
 	public void testReadline() {
 		Stream bis = new MemoryStream(filedata);
-		PickleUtils p=new PickleUtils(bis);
-		Assert.AreEqual("str1", p.readline());
-		Assert.AreEqual("str2  ", p.readline());
-		Assert.AreEqual("  str3  ", p.readline());
-		Assert.AreEqual("end", p.readline());
+		Assert.AreEqual("str1", PickleUtils.readline(bis));
+		Assert.AreEqual("str2  ", PickleUtils.readline(bis));
+		Assert.AreEqual("  str3  ", PickleUtils.readline(bis));
+		Assert.AreEqual("end", PickleUtils.readline(bis));
 		try
 		{
-			p.readline();
+			PickleUtils.readline(bis);
 			Assert.Fail("expected IOException");
 		}
 		catch(IOException) {}
@@ -47,14 +46,13 @@ public class PickleUtilsTest {
 	[Test]
 	public void testReadlineWithLF() {
 		Stream bis=new MemoryStream(filedata);
-		PickleUtils p=new PickleUtils(bis);
-		Assert.AreEqual("str1\n", p.readline(true));
-		Assert.AreEqual("str2  \n", p.readline(true));
-		Assert.AreEqual("  str3  \n", p.readline(true));
-		Assert.AreEqual("end", p.readline(true));
+		Assert.AreEqual("str1\n", PickleUtils.readline(bis, true));
+		Assert.AreEqual("str2  \n", PickleUtils.readline(bis, true));
+		Assert.AreEqual("  str3  \n", PickleUtils.readline(bis, true));
+		Assert.AreEqual("end", PickleUtils.readline(bis, true));
 		try
 		{
-			p.readline(true);
+			PickleUtils.readline(bis, true);
 			Assert.Fail("expected IOException");
 		}
 		catch(IOException) {}
@@ -63,15 +61,14 @@ public class PickleUtilsTest {
 	[Test]
 	public void testReadbytes() {
 		Stream bis=new MemoryStream(filedata);
-		PickleUtils p=new PickleUtils(bis);
 		
-		Assert.AreEqual(115, p.readbyte());
-		Assert.AreEqual(new byte[]{}, p.readbytes(0));
-		Assert.AreEqual(new byte[]{116}, p.readbytes(1));
-		Assert.AreEqual(new byte[]{114,49,10,115,116}, p.readbytes(5));
+		Assert.AreEqual(115, PickleUtils.readbyte(bis));
+		Assert.AreEqual(new byte[]{}, PickleUtils.readbytes(bis, 0));
+		Assert.AreEqual(new byte[]{116}, PickleUtils.readbytes(bis, 1));
+		Assert.AreEqual(new byte[]{114,49,10,115,116}, PickleUtils.readbytes(bis, 5));
 		try
 		{
-			p.readbytes(999);
+			PickleUtils.readbytes(bis, 999);
 			Assert.Fail("expected IOException");
 		}
 		catch(IOException) {}
@@ -80,11 +77,10 @@ public class PickleUtilsTest {
 	[Test]
 	public void testReadbytes_into() {
 		Stream bis=new MemoryStream(filedata);
-		PickleUtils p=new PickleUtils(bis);
 		byte[] bytes = new byte[] {0,0,0,0,0,0,0,0,0,0};
-		p.readbytes_into(bytes, 1, 4);
+		PickleUtils.readbytes_into(bis, bytes, 1, 4);
 		Assert.AreEqual(new byte[] {0,115,116,114,49,0,0,0,0,0}, bytes);
-		p.readbytes_into(bytes, 8, 1);
+		PickleUtils.readbytes_into(bis, bytes, 8, 1);
 		Assert.AreEqual(new byte[] {0,115,116,114,49,0,0,0,10,0}, bytes);
 	}
 
@@ -154,14 +150,13 @@ public class PickleUtilsTest {
 	[Test]
 	public void testInteger_to_bytes()
 	{
-		PickleUtils p=new PickleUtils(null);
-		Assert.AreEqual(new byte[]{0,0,0,0}, p.integer_to_bytes(0));
-		Assert.AreEqual(new byte[]{0x78, 0x56, 0x34, 0x12}, p.integer_to_bytes(0x12345678));
-		Assert.AreEqual(new byte[]{0x40, 0x20, 0x80, 0xff}, p.integer_to_bytes(-8380352));
-		Assert.AreEqual(new byte[]{0xfe, 0xff, 0xff ,0xee}, p.integer_to_bytes(-285212674));
-		Assert.AreEqual(new byte[]{0xff, 0xff, 0xff, 0xff}, p.integer_to_bytes(-1));
-		Assert.AreEqual(new byte[]{0xee, 0x02, 0xcc, 0x01}, p.integer_to_bytes(0x01cc02ee));
-		Assert.AreEqual(new byte[]{0x02, 0xee, 0x01, 0xcc}, p.integer_to_bytes(-872288766));
+		Assert.AreEqual(new byte[]{0,0,0,0}, PickleUtils.integer_to_bytes(0));
+		Assert.AreEqual(new byte[]{0x78, 0x56, 0x34, 0x12}, PickleUtils.integer_to_bytes(0x12345678));
+		Assert.AreEqual(new byte[]{0x40, 0x20, 0x80, 0xff}, PickleUtils.integer_to_bytes(-8380352));
+		Assert.AreEqual(new byte[]{0xfe, 0xff, 0xff ,0xee}, PickleUtils.integer_to_bytes(-285212674));
+		Assert.AreEqual(new byte[]{0xff, 0xff, 0xff, 0xff}, PickleUtils.integer_to_bytes(-1));
+		Assert.AreEqual(new byte[]{0xee, 0x02, 0xcc, 0x01}, PickleUtils.integer_to_bytes(0x01cc02ee));
+		Assert.AreEqual(new byte[]{0x02, 0xee, 0x01, 0xcc}, PickleUtils.integer_to_bytes(-872288766));
 	}
 	
 	[Test]
@@ -218,42 +213,40 @@ public class PickleUtilsTest {
 	[Test]
 	public void testDouble_to_bytes()
 	{
-		PickleUtils p=new PickleUtils(null);
-		Assert.AreEqual(new byte[]{0,0,0,0,0,0,0,0}, p.double_to_bytes(0.0d));
-		Assert.AreEqual(new byte[]{0x3f,0xf0,0,0,0,0,0,0}, p.double_to_bytes(1.0d));
-		Assert.AreEqual(new byte[]{0x3f,0xf1,0x99,0x99,0x99,0x99,0x99,0x9a}, p.double_to_bytes(1.1d));
-		Assert.AreEqual(new byte[]{0x40,0x93,0x4a,0x45,0x6d,0x5c,0xfa,0xad}, p.double_to_bytes(1234.5678d));
-		Assert.AreEqual(new byte[]{0x59,0x8a,0x42,0xd1,0xce,0xf5,0x3f,0x46}, p.double_to_bytes(2.17e123d));
-		Assert.AreEqual(new byte[]{0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a}, p.double_to_bytes(1.23456789e300d));
+		Assert.AreEqual(new byte[]{0,0,0,0,0,0,0,0}, PickleUtils.double_to_bytes(0.0d));
+		Assert.AreEqual(new byte[]{0x3f,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes(1.0d));
+		Assert.AreEqual(new byte[]{0x3f,0xf1,0x99,0x99,0x99,0x99,0x99,0x9a}, PickleUtils.double_to_bytes(1.1d));
+		Assert.AreEqual(new byte[]{0x40,0x93,0x4a,0x45,0x6d,0x5c,0xfa,0xad}, PickleUtils.double_to_bytes(1234.5678d));
+		Assert.AreEqual(new byte[]{0x59,0x8a,0x42,0xd1,0xce,0xf5,0x3f,0x46}, PickleUtils.double_to_bytes(2.17e123d));
+		Assert.AreEqual(new byte[]{0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a}, PickleUtils.double_to_bytes(1.23456789e300d));
 		// cannot test NaN because it's not always the same byte representation...
 		// Assert.AreEqual(new byte[]{0xff,0xf8,0,0,0,0,0,0}, p.double_to_bytes(Double.NaN));
-		Assert.AreEqual(new byte[]{0x7f,0xf0,0,0,0,0,0,0}, p.double_to_bytes(Double.PositiveInfinity));
-		Assert.AreEqual(new byte[]{0xff,0xf0,0,0,0,0,0,0}, p.double_to_bytes(Double.NegativeInfinity));
+		Assert.AreEqual(new byte[]{0x7f,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes(Double.PositiveInfinity));
+		Assert.AreEqual(new byte[]{0xff,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes(Double.NegativeInfinity));
 	}
 
 	[Test]
 	public void testDecode_long()
 	{
-		PickleUtils p=new PickleUtils(null);
-		Assert.AreEqual(0L, p.decode_long(new byte[0]));
-		Assert.AreEqual(0L, p.decode_long(new byte[]{0}));
-		Assert.AreEqual(1L, p.decode_long(new byte[]{1}));
-		Assert.AreEqual(10L, p.decode_long(new byte[]{10}));
-		Assert.AreEqual(255L, p.decode_long(new byte[]{0xff,0x00}));
-		Assert.AreEqual(32767L, p.decode_long(new byte[]{0xff,0x7f}));
-		Assert.AreEqual(-256L, p.decode_long(new byte[]{0x00,0xff}));
-		Assert.AreEqual(-32768L, p.decode_long(new byte[]{0x00,0x80}));
-		Assert.AreEqual(-128L, p.decode_long(new byte[]{0x80}));
-		Assert.AreEqual(127L, p.decode_long(new byte[]{0x7f}));
-		Assert.AreEqual(128L, p.decode_long(new byte[]{0x80, 0x00}));
+		Assert.AreEqual(0L, PickleUtils.decode_long(new byte[0]));
+		Assert.AreEqual(0L, PickleUtils.decode_long(new byte[]{0}));
+		Assert.AreEqual(1L, PickleUtils.decode_long(new byte[]{1}));
+		Assert.AreEqual(10L, PickleUtils.decode_long(new byte[]{10}));
+		Assert.AreEqual(255L, PickleUtils.decode_long(new byte[]{0xff,0x00}));
+		Assert.AreEqual(32767L, PickleUtils.decode_long(new byte[]{0xff,0x7f}));
+		Assert.AreEqual(-256L, PickleUtils.decode_long(new byte[]{0x00,0xff}));
+		Assert.AreEqual(-32768L, PickleUtils.decode_long(new byte[]{0x00,0x80}));
+		Assert.AreEqual(-128L, PickleUtils.decode_long(new byte[]{0x80}));
+		Assert.AreEqual(127L, PickleUtils.decode_long(new byte[]{0x7f}));
+		Assert.AreEqual(128L, PickleUtils.decode_long(new byte[]{0x80, 0x00}));
 
-		Assert.AreEqual(128L, p.decode_long(new byte[]{0x80, 0x00}));
-		Assert.AreEqual(0x78563412L, p.decode_long(new byte[]{0x12,0x34,0x56,0x78}));
-		Assert.AreEqual(0x785634f2L, p.decode_long(new byte[]{0xf2,0x34,0x56,0x78}));
-		Assert.AreEqual(0x12345678L, p.decode_long(new byte[]{0x78,0x56,0x34,0x12}));
+		Assert.AreEqual(128L, PickleUtils.decode_long(new byte[]{0x80, 0x00}));
+		Assert.AreEqual(0x78563412L, PickleUtils.decode_long(new byte[]{0x12,0x34,0x56,0x78}));
+		Assert.AreEqual(0x785634f2L, PickleUtils.decode_long(new byte[]{0xf2,0x34,0x56,0x78}));
+		Assert.AreEqual(0x12345678L, PickleUtils.decode_long(new byte[]{0x78,0x56,0x34,0x12}));
 		
-		Assert.AreEqual(-231451016L, p.decode_long(new byte[]{0x78,0x56,0x34,0xf2}));
-		Assert.AreEqual(0xf2345678L, p.decode_long(new byte[]{0x78,0x56,0x34,0xf2,0x00}));
+		Assert.AreEqual(-231451016L, PickleUtils.decode_long(new byte[]{0x78,0x56,0x34,0xf2}));
+		Assert.AreEqual(0xf2345678L, PickleUtils.decode_long(new byte[]{0x78,0x56,0x34,0xf2,0x00}));
 	}
 }
 

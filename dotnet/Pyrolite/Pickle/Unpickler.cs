@@ -15,15 +15,16 @@ namespace Razorvine.Pickle
 /// <summary>
 /// Unpickles an object graph from a pickle data inputstream.
 /// Maps the python objects on the corresponding java equivalents or similar types.
+/// This class is NOT threadsafe! (Don't use the same unpickler from different threads)
 /// See the README.txt for a table with the type mappings.
 /// </summary>
 public class Unpickler : IDisposable {
 
 	private const int HIGHEST_PROTOCOL = 3;
 
-	private PickleUtils pu;
 	private IDictionary<int, object> memo;
 	private UnpickleStack stack;
+	private Stream input;
 	private static IDictionary<string, IObjectConstructor> objectConstructors;
 
 	static Unpickler() {
@@ -64,11 +65,11 @@ public class Unpickler : IDisposable {
 	 * @return the reconstituted object hierarchy specified in the file.
 	 */
 	public object load(Stream stream) {
-		pu = new PickleUtils(stream);
+		input = stream;
 		stack = new UnpickleStack();
 		try {
 			while (true) {
-				byte key = pu.readbyte();
+				byte key = PickleUtils.readbyte(input);
 				dispatch(key);
 			}
 		} catch (StopException x) {
@@ -91,6 +92,7 @@ public class Unpickler : IDisposable {
 	public void close() {
 		if(stack!=null)	stack.clear();
 		if(memo!=null) memo.Clear();
+		if(input!=null) input.Close();
 	}
 
 	private class StopException : Exception {
@@ -295,7 +297,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_proto() {
-		byte proto = pu.readbyte();
+		byte proto = PickleUtils.readbyte(input);
 		if (proto > HIGHEST_PROTOCOL)
 			throw new PickleException("unsupported pickle protocol: " + proto);
 	}
@@ -313,7 +315,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_int() {
-		string data = pu.readline(true);
+		string data = PickleUtils.readline(input, true);
 		object val;
 		if (data==Opcodes.FALSE.Substring(1))
 			val = false;
@@ -332,21 +334,21 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_binint()  {
-		int integer = PickleUtils.bytes_to_integer(pu.readbytes(4));
+		int integer = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
 		stack.add(integer);
 	}
 
 	void load_binint1() {
-		stack.add((int)pu.readbyte());
+		stack.add((int)PickleUtils.readbyte(input));
 	}
 
 	void load_binint2() {
-		int integer = PickleUtils.bytes_to_integer(pu.readbytes(2));
+		int integer = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 2));
 		stack.add(integer);
 	}
 
 	void load_long() {
-		string val = pu.readline();
+		string val = PickleUtils.readline(input);
 		if (val.EndsWith("L")) {
 			val = val.Substring(0, val.Length - 1);
 		}
@@ -359,30 +361,30 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_long1() {
-		byte n = pu.readbyte();
-		byte[] data = pu.readbytes(n);
-		stack.add(pu.decode_long(data));
+		byte n = PickleUtils.readbyte(input);
+		byte[] data = PickleUtils.readbytes(input, n);
+		stack.add(PickleUtils.decode_long(data));
 	}
 
 	void load_long4() {
-		int n = PickleUtils.bytes_to_integer(pu.readbytes(4));
-		byte[] data = pu.readbytes(n);
-		stack.add(pu.decode_long(data));
+		int n = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+		byte[] data = PickleUtils.readbytes(input, n);
+		stack.add(PickleUtils.decode_long(data));
 	}
 
 	void load_float() {
-		string val = pu.readline(true);
+		string val = PickleUtils.readline(input, true);
 		double d=double.Parse(val, NumberStyles.Float|NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingSign, NumberFormatInfo.InvariantInfo);
 		stack.add(d);
 	}
 
 	void load_binfloat() {
-		double val = PickleUtils.bytes_to_double(pu.readbytes(8),0);
+		double val = PickleUtils.bytes_to_double(PickleUtils.readbytes(input, 8),0);
 		stack.add(val);
 	}
 
 	void load_string() {
-		string rep = pu.readline();
+		string rep = PickleUtils.readline(input);
 		bool quotesOk = false;
 		foreach (string q in new string[] { "\"", "'" }) // double or single quote
 		{
@@ -399,40 +401,40 @@ public class Unpickler : IDisposable {
 		if (!quotesOk)
 			throw new PickleException("insecure string pickle");
 
-		stack.add(pu.decode_escaped(rep));
+		stack.add(PickleUtils.decode_escaped(rep));
 	}
 
 	void load_binstring() {
-		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
-		byte[] data = pu.readbytes(len);
+		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+		byte[] data = PickleUtils.readbytes(input, len);
 		stack.add(PickleUtils.rawStringFromBytes(data));
 	}
 
 	void load_binbytes() {
-		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
-		stack.add(pu.readbytes(len));
+		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+		stack.add(PickleUtils.readbytes(input, len));
 	}
 
 	void load_unicode() {
-		string str=pu.decode_unicode_escaped(pu.readline());
+		string str=PickleUtils.decode_unicode_escaped(PickleUtils.readline(input));
 		stack.add(str);
 	}
 
 	void load_binunicode() {
-		int len = PickleUtils.bytes_to_integer(pu.readbytes(4));
-		byte[] data = pu.readbytes(len);
+		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+		byte[] data = PickleUtils.readbytes(input, len);
 		stack.add(Encoding.UTF8.GetString(data));
 	}
 
 	void load_short_binstring() {
-		byte len = pu.readbyte();
-		byte[] data = pu.readbytes(len);
+		byte len = PickleUtils.readbyte(input);
+		byte[] data = PickleUtils.readbytes(input, len);
 		stack.add(PickleUtils.rawStringFromBytes(data));
 	}
 
 	void load_short_binbytes() {
-		byte len = pu.readbyte();
-		stack.add(pu.readbytes(len));
+		byte len = PickleUtils.readbyte(input);
+		stack.add(PickleUtils.readbytes(input, len));
 	}
 
 	void load_tuple() {
@@ -487,8 +489,8 @@ public class Unpickler : IDisposable {
 
 	void load_global() {
 		IObjectConstructor constructor;
-		string module = pu.readline();
-		string name = pu.readline();
+		string module = PickleUtils.readline(input);
+		string name = PickleUtils.readline(input);
 		string key=module+"."+name;
 		if(objectConstructors.ContainsKey(key)) {
 			 constructor = objectConstructors[module + "." + name];
@@ -535,35 +537,35 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_get() {
-		int i = int.Parse(pu.readline());
+		int i = int.Parse(PickleUtils.readline(input));
 		if(!memo.ContainsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo[i]);
 	}
 
 	void load_binget() {
-		byte i = pu.readbyte();
+		byte i = PickleUtils.readbyte(input);
 		if(!memo.ContainsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo[(int)i]);
 	}
 
 	void load_long_binget() {
-		int i = PickleUtils.bytes_to_integer(pu.readbytes(4));
+		int i = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
 		if(!memo.ContainsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo[i]);
 	}
 
 	void load_put() {
-		int i = int.Parse(pu.readline());
+		int i = int.Parse(PickleUtils.readline(input));
 		memo[i]=stack.peek();
 	}
 
 	void load_binput() {
-		byte i = pu.readbyte();
+		byte i = PickleUtils.readbyte(input);
 		memo[(int)i]=stack.peek();
 	}
 
 	void load_long_binput() {
-		int i = PickleUtils.bytes_to_integer(pu.readbytes(4));
+		int i = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
 		memo[i]=stack.peek();
 	}
 

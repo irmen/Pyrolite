@@ -47,14 +47,14 @@ public class MessageTests {
 		try {
 			byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
 			Assert.Fail("expected error");
-		} catch (ArgumentException x) {
+		} catch (ArgumentException) {
 			// ok
 		}
 		Config.PROTOCOL_VERSION = 43;
 		try {
 			byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.FLAGS_EXCEPTION, data, MessageFactory.FLAGS_EXCEPTION, 123);
 			Assert.Fail("expected error");
-		} catch (ArgumentException x) {
+		} catch (ArgumentException) {
 			// ok
 		}
 	}	

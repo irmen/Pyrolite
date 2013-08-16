@@ -10,28 +10,19 @@ namespace Razorvine.Pickle
 /// <summary>
 /// Utility stuff for dealing with pickle data streams. 
 /// </summary>
-public class PickleUtils {
+public static class PickleUtils {
 
-	private Stream input;
-	
-	/**
-	 * Create a pickle utils instance and remember the given input stream. 
-	 */
-	public PickleUtils(Stream stream) {
-		this.input = stream;
-	}
-	
 	/**
 	 * read a line of text, excluding the terminating LF char
 	 */
-	public string readline() {
-		return readline(false);
+	public static string readline(Stream input) {
+		return readline(input, false);
 	}
 
 	/**
 	 * read a line of text, possibly including the terminating LF char
 	 */
-	public string readline(bool includeLF) {
+	public static string readline(Stream input, bool includeLF) {
 		StringBuilder sb = new StringBuilder();
 		while (true) {
 			int c = input.ReadByte();
@@ -51,7 +42,7 @@ public class PickleUtils {
 	/**
 	 * read a single unsigned byte
 	 */
-	public byte readbyte() {
+	public static byte readbyte(Stream input) {
 		int b = input.ReadByte();
 		if(b<0) {
 			throw new IOException("premature end of input stream");
@@ -62,18 +53,18 @@ public class PickleUtils {
 	/**
 	 * read a number of signed bytes
 	 */
-	public byte[] readbytes(int n) {
+	public static byte[] readbytes(Stream input, int n) {
 		byte[] buffer = new byte[n];
-		readbytes_into(buffer, 0, n);
+		readbytes_into(input, buffer, 0, n);
 		return buffer;
 	}
 
 	/**
 	 * read a number of signed bytes into the specified location in an existing byte array
 	 */
-	public void readbytes_into(byte[] buffer, int offset, int length) {
+	public static void readbytes_into(Stream input, byte[] buffer, int offset, int length) {
 		while (length > 0) {
-			int read = this.input.Read(buffer, offset, length);
+			int read = input.Read(buffer, offset, length);
 			if (read <= 0)
 				throw new IOException("read error; expected more bytes");
 			offset += read;
@@ -142,7 +133,7 @@ public class PickleUtils {
 	/**
 	 * Convert a signed integer to its 4-byte representation. (little endian)
 	 */
-	public byte[] integer_to_bytes(int i) {
+	public static byte[] integer_to_bytes(int i) {
 		byte[] bytes=BitConverter.GetBytes(i);
 		if(!BitConverter.IsLittleEndian) {
 			// reverse the bytes to make them little endian
@@ -154,7 +145,7 @@ public class PickleUtils {
 	/**
 	 * Convert a double to its 8-byte representation (big endian).
 	 */
-	public byte[] double_to_bytes(double d) {
+	public static byte[] double_to_bytes(double d) {
 		byte[] bytes=BitConverter.GetBytes(d);
 		if(BitConverter.IsLittleEndian) {
 			// reverse the bytes to make them big endian for the output
@@ -198,7 +189,7 @@ public class PickleUtils {
 	 * because c# doesn't have a bigint, we look if stuff fits into a regular long,
 	 * and raise an exception if it's bigger.
 	 */
-	public long decode_long(byte[] data) {
+	public static long decode_long(byte[] data) {
 		if (data.Length == 0)
 			return 0L;
 		if (data.Length>8)
@@ -252,7 +243,7 @@ public class PickleUtils {
 	/**
 	 * Decode a string with possible escaped char sequences in it (\x??).
 	 */
-	public string decode_escaped(string str) {
+	public static string decode_escaped(string str) {
 		if(str.IndexOf('\\')==-1)
 			return str;
 		StringBuilder sb=new StringBuilder(str.Length);
@@ -286,7 +277,7 @@ public class PickleUtils {
 	/**
 	 * Decode a string with possible escaped unicode in it (\u20ac)
 	 */
-	public string decode_unicode_escaped(string str) {
+	public static string decode_unicode_escaped(string str) {
 		if(str.IndexOf('\\')==-1)
 			return str;
 		StringBuilder sb=new StringBuilder(str.Length);

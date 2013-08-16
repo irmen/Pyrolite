@@ -13,7 +13,7 @@ public static class Config  {
     public static int NS_BCPORT = 9091;
     public static int PROTOCOL_VERSION = 44;    // up to Pyro 4.19.  version 45 is for Pyro 4.20
 
-	public const string PYROLITE_VERSION="1.12";
+	public const string PYROLITE_VERSION="1.13";
 }
 
 }

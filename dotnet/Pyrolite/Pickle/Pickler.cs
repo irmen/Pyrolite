@@ -26,7 +26,6 @@ public class Pickler : IDisposable {
 	private Stream outs;
 	private int recurse = 0;	// recursion level
 	private int PROTOCOL = 2;
-	private PickleUtils utils;
 	private static IDictionary<Type, IObjectPickler> customPicklers = new Dictionary<Type, IObjectPickler>();
 	private bool useMemo=true;
 	private IDictionary<object, int> memo;		// maps objects to memo index
@@ -80,7 +79,6 @@ public class Pickler : IDisposable {
 		recurse = 0;
 		if(useMemo)
 			memo = new Dictionary<object, int>();
-		utils = new PickleUtils(null);
 		outs.WriteByte(Opcodes.PROTO);
 		outs.WriteByte((byte)PROTOCOL);
 		save(o);
@@ -142,7 +140,7 @@ public class Pickler : IDisposable {
 			else
 			{
 				outs.WriteByte(Opcodes.LONG_BINPUT);
-				byte[] index_bytes = utils.integer_to_bytes(memo_index);
+				byte[] index_bytes = PickleUtils.integer_to_bytes(memo_index);
 				outs.Write(index_bytes, 0, 4);
 			}
 		}
@@ -167,7 +165,7 @@ public class Pickler : IDisposable {
 				else
 				{
 					outs.WriteByte(Opcodes.LONG_BINGET);
-					byte[] index_bytes = utils.integer_to_bytes(memo_index);
+					byte[] index_bytes = PickleUtils.integer_to_bytes(memo_index);
 					outs.Write(index_bytes, 0, 4);
 				}
 				return true;
@@ -528,7 +526,7 @@ public class Pickler : IDisposable {
 	void put_string(string str) {
 		byte[] encoded=Encoding.UTF8.GetBytes(str);
 		outs.WriteByte(Opcodes.BINUNICODE);
-		byte[] output=utils.integer_to_bytes(encoded.Length);
+		byte[] output=PickleUtils.integer_to_bytes(encoded.Length);
 		outs.Write(output,0,output.Length);
 		outs.Write(encoded,0,encoded.Length);
 		WriteMemo(str);
@@ -536,7 +534,7 @@ public class Pickler : IDisposable {
 
 	void put_float(double d) {
 		outs.WriteByte(Opcodes.BINFLOAT);
-		byte[] output=utils.double_to_bytes(d);
+		byte[] output=PickleUtils.double_to_bytes(d);
 		outs.Write(output,0,output.Length);
 	}	
 
@@ -563,7 +561,7 @@ public class Pickler : IDisposable {
 		if(high_bits==0 || high_bits==-1) {
 			// All high bits are copies of bit 2**31, so the value fits in a 4-byte signed int.
 			outs.WriteByte(Opcodes.BININT);
-			output=utils.integer_to_bytes((int)v);
+			output=PickleUtils.integer_to_bytes((int)v);
 			outs.Write(output,0,output.Length);
 			return;
 		}
