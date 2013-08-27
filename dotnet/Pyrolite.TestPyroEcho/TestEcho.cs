@@ -84,11 +84,6 @@ public class TestEcho {
 		if(tracedir!=null) {
 			Config.MSG_TRACE_DIR=tracedir;
 		}
-		string protocolver=Environment.GetEnvironmentVariable("PYRO_PROTOCOL_VERSION");
-		if(protocolver!=null) {
-			Config.PROTOCOL_VERSION=int.Parse(protocolver);
-		}
-    	// Config.PROTOCOL_VERSION = 45;		// uncomment this (or set env var) to enable talking to Pyro 4.20  
 	}
 }
 

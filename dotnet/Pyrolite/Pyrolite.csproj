@@ -118,13 +118,14 @@
     <Compile Include="Pyro\FlameModule.cs" />
     <Compile Include="Pyro\FlameRemoteConsole.cs" />
     <Compile Include="Pyro\IOUtil.cs" />
-    <Compile Include="Pyro\MessageFactory.cs" />
+    <Compile Include="Pyro\Message.cs" />
     <Compile Include="Pyro\NameServerProxy.cs" />
     <Compile Include="Pyro\ProxyClassConstructor.cs" />
     <Compile Include="Pyro\PyroException.cs" />
     <Compile Include="Pyro\PyroProxy.cs" />
     <Compile Include="Pyro\PyroURI.cs" />
     <Compile Include="Pyro\PyroUriPickler.cs" />
+    <Compile Include="Pyro\Serializers.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">

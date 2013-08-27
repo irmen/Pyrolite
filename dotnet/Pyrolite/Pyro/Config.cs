@@ -11,10 +11,9 @@ public static class Config  {
 	public static string MSG_TRACE_DIR=null;
     public static int NS_PORT = 9090;
     public static int NS_BCPORT = 9091;
-    public static int PROTOCOL_VERSION = 44;    // up to Pyro 4.19.  version 45 is for Pyro 4.20
+    public const int PROTOCOL_VERSION = 46;    // Pyro 4.22 and newer, cannot be modified
 
-	public const string PYROLITE_VERSION="1.13";
+	public const string PYROLITE_VERSION="1.20";
 }
 
 }
-
