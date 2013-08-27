@@ -17,23 +17,17 @@ Contents:
 ---------------------
 
 This library allows your Java or .NET program to interface very easily with
-the Python world. It uses the Pyro protocol to call methods on remote
-objects. (See https://github.com/irmen/Pyro4).
-Pyrolite contains and uses a feature complete pickle protocol
-implementation to exchange data with Pyro/Python. 
+the Python world. It uses the Pyro protocol to call methods on remote objects.
+(See https://github.com/irmen/Pyro4). Pyrolite contains and uses a feature
+complete pickle protocol implementation to exchange data with Pyro/Python.
 
-Pyrolite only implements part of the client side Pyro library,
-hence its name 'lite'...  Because Pyrolite has no dependencies,
-it is a much lighter way to use Pyro from Java/.NET than a solution with
-jython+pyro or IronPython+Pyro would provide.
-So if you don't need Pyro's full feature set, and don't require your
-Java/.NET code to host Pyro objects itself, Pyrolite may be
-a good choice to connect java or .NET and python.
+Pyrolite only implements part of the client side Pyro library, hence its name
+'lite'...  But because Pyrolite has no dependencies, it is a much lighter way
+to use Pyro from Java/.NET than a solution with jython+pyro or IronPython+Pyro
+would provide. So if you don't need Pyro's full feature set, and don't require
+your Java/.NET code to host Pyro objects itself, Pyrolite may be a good choice
+to connect java or .NET and python.
 
-Note: this Pyrolite version only supports Pyro protocol versions 44 and 45.
-Pyro version up to 4.19 uses protocol 44. If you use Pyro 4.20 (protocol 45)
-the only serializer supported is pickle, so you need to tell Pyro to use that.
-A future Pyrolite version may include support for other serializers.
 
 Java packages:   net.razorvine.pickle,  net.razorvine.pyro
 .NET namespaces: Razorvine.Pickle, Razorvine.Pyro
@@ -64,25 +58,25 @@ Same piece of example code in C#:
         }
     }
         
-More examples can be found in the examples directory.
-You could also study the unit tests. These include a lot of code dealing
-with just the pickle subsystem as well.
+More examples can be found in the examples directory. You could also study the
+unit tests. These include a lot of code dealing with just the pickle subsystem
+as well.
 
 
 2. THE LIBRARY
 ---------------------
 
-The library consists of 2 parts: a thin version of the client side part of Pyro,
-and a feature complete implementation of Python's pickle protocol,
-including memoization. It is fully compatible with pickles from Python 2.x
-and Python 3.x, and you can use it idependently from the rest of the library,
-to read and write Python pickle structures.
+The library consists of 2 parts: a thin version of the client side part of
+Pyro, and a feature complete implementation of Python's pickle protocol,
+including memoization. It is fully compatible with pickles from Python 2.x and
+Python 3.x, and you can use it idependently from the rest of the library, to
+read and write Python pickle structures.
 
 
-The source archive contains the full source, and also unit test code
-and a couple of example programs in the java/test/ directory.
+The source archive contains the full source, and also unit test code and a
+couple of example programs in the java/test/ directory.
 
-Pyrolite uses Pyro4 protocol only.
+Pyrolite speaks Pyro4 protocol version 46 only (Pyro 4.22 and newer).
 Pyrolite requires Java 1.5 or newer.
 The .net version requires .net runtime 3.5. Created and tested with Mono.
 The Java source was developed using Pycharm.
@@ -125,9 +119,9 @@ Pyro4.utils.flame.FlameBuiltin     net.razorvine.pyro.FlameBuiltin
 Pyro4.utils.flame.FlameModule      net.razorvine.pyro.FlameModule 
 Pyro4.utils.flame.RemoteInteractiveConsole    net.razorvine.pyro.FlameRemoteConsole 
 
-The unpickler simply returns an Object. Because Java is a statically
-typed language you will have to cast that to the appropriate type.
-Refer to this table to see what you can expect to receive.
+The unpickler simply returns an Object. Because Java is a statically typed
+language you will have to cast that to the appropriate type. Refer to this
+table to see what you can expect to receive.
                     
 
 JAVA     ---->      PYTHON
@@ -188,11 +182,10 @@ Pyro4.utils.flame.FlameBuiltin     Razorvine.Pyro.FlameBuiltin
 Pyro4.utils.flame.FlameModule      Razorvine.Pyro.FlameModule 
 Pyro4.utils.flame.RemoteInteractiveConsole    Razorvine.Pyro.FlameRemoteConsole 
 
-The unpickler simply returns an object. Because C# is a statically
-typed language you will have to cast that to the appropriate type.
-Refer to this table to see what you can expect to receive.
-TIP: if you are using C# 4.0 you can use the 'dynamic' type in some
-places to avoid excessive type casting.
+The unpickler simply returns an object. Because C# is a statically typed
+language you will have to cast that to the appropriate type. Refer to this
+table to see what you can expect to receive. TIP: if you are using C# 4.0 you
+can use the 'dynamic' type in some places to avoid excessive type casting.
 
 
   C#      ---->     PYTHON
@@ -227,32 +220,33 @@ Razorvine.Pyro.PyroProxy    cannot be pickled.
 4. EXCEPTIONS
 ---------------------
 
-Pyrolite also maps Python exceptions that may occur in the remote object.
-It has a rather simplistic approach:
+Pyrolite also maps Python exceptions that may occur in the remote object. It
+has a rather simplistic approach:
 
-*all* exceptions, including the Pyro ones (Pyro4.errors.*), are converted
-to PyroException objects. PyroException is a normal Java or C# exception type,
-and it will be thrown as a normal exception in your program. 
-The message string is taken from the original exception. The remote traceback
-string is available on the PyroException object in the _pyroTraceback field. 
+*all* exceptions, including the Pyro ones (Pyro4.errors.*), are converted to
+PyroException objects. PyroException is a normal Java or C# exception type,
+and it will be thrown as a normal exception in your program.  The message
+string is taken from the original exception. The remote traceback string is
+available on the PyroException object in the _pyroTraceback field.
 
 
 5. SECURITY WARNING
 ---------------------
 
 If you use Pyrolite to talk to a Pyro server it will use pickle as
-serialization protocol. THIS MEANS YOUR PYRO SERVER CAN BE VULNERABLE
-TO REMOTE ARBITRARY CODE EXECUTION (because of the well known security
-problem with the pickle protocol).
+serialization protocol. THIS MEANS YOUR PYRO SERVER CAN BE VULNERABLE TO
+REMOTE ARBITRARY CODE EXECUTION (because of the well known security problem
+with the pickle protocol).
 
-Pyro 4.20 is the first Pyro version that has support for other (safe)
-serializers and doesn't use pickle by default. This avoids the security
-problem. But the current version of Pyrolite is only able to talk to Pyro
-when using the pickle protocol. A future Pyrolite version may improve this.
+The current version of Pyrolite is only able to talk to Pyro when using the
+pickle protocol. Because pickle is not enabled by default in recent Pyro
+versions, you will have to configure Pyro to allow the use of pickle. See the
+Pyro documentation on how to do this. A future Pyrolite version may improve
+this by allowing other serializers.
 
 Note: your .NET or Java client code is perfectly safe. The unpickler
-implementation in Pyrolite doesn't randomly construct arbitrary objects
-and is safe to use for parsing data from the network.
+implementation in Pyrolite doesn't randomly construct arbitrary objects and is
+safe to use for parsing data from the network.
 
 
 6. DOWNLOAD COMPILED BINARIES
@@ -260,4 +254,3 @@ and is safe to use for parsing data from the network.
 
 Precompiled binaries (java jar, .net assembly dll) are here:
 http://irmen.home.xs4all.nl/pyrolite/
-
