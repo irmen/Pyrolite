@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 
 import net.razorvine.pickle.PrettyPrint;
 import net.razorvine.pyro.Config;
+import net.razorvine.pyro.NameServerProxy;
 import net.razorvine.pyro.PyroException;
 import net.razorvine.pyro.PyroProxy;
 
@@ -17,12 +18,15 @@ public class EchoExample {
 
 	public static void main(String[] args) throws IOException {
 
-		System.out.println("Testing Pyro echo server (make sure it's running on localhost 9999)...");
+		System.out.println("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
 		System.out.println("Pyrolite version: "+Config.PYROLITE_VERSION);
 
 		setConfig();
+
+		NameServerProxy ns = NameServerProxy.locateNS(null);
+		PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
 		
-		PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
+		// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
 
 		Object x=42;
 		System.out.println("echo param:");

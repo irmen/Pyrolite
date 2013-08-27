@@ -115,7 +115,7 @@ public class PyroProxy implements Serializable {
 	 * @param arguments zero or more arguments for the remote method
 	 */
 	public void call_oneway(String method, Object... arguments) throws PickleException, PyroException, IOException {
-		call(method, MessageFactory.FLAGS_ONEWAY, arguments);
+		call(method, Message.FLAGS_ONEWAY, arguments);
 	}
 
 	/**
@@ -134,26 +134,24 @@ public class PyroProxy implements Serializable {
 		Pickler pickler=new Pickler(false);
 		byte[] pickle = pickler.dumps(invokeparams);
 		pickler.close();
-		byte[] headerdata = MessageFactory.createMsgHeader(MessageFactory.MSG_INVOKE, pickle, flags, sequenceNr);
+		Message msg = new Message(Message.MSG_INVOKE, pickle, Message.SERIALIZER_PICKLE, flags, sequenceNr, null);
 		Message resultmsg;
 		synchronized (this.sock) {
-			IOUtil.send(sock_out, headerdata);
-			IOUtil.send(sock_out, pickle);
+			IOUtil.send(sock_out, msg.to_bytes());
 			if(Config.MSG_TRACE_DIR!=null) {
-				MessageFactory.TraceMessageSend(sequenceNr, headerdata, pickle);
+				Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
 			}
 			pickle = null;
-			headerdata = null;
 
-			if ((flags & MessageFactory.FLAGS_ONEWAY) != 0)
+			if ((flags & Message.FLAGS_ONEWAY) != 0)
 				return null;
 
-			resultmsg = MessageFactory.getMessage(sock_in, MessageFactory.MSG_RESULT);
+			resultmsg = Message.recv(sock_in, new int[]{Message.MSG_RESULT});
 		}
-		if (resultmsg.sequence != sequenceNr) {
+		if (resultmsg.seq != sequenceNr) {
 			throw new PyroException("result msg out of sync");
 		}
-		if ((resultmsg.flags & MessageFactory.FLAGS_COMPRESSED) != 0) {
+		if ((resultmsg.flags & Message.FLAGS_COMPRESSED) != 0) {
 			Inflater decompresser = new Inflater();
 			decompresser.setInput(resultmsg.data);
 			ByteArrayOutputStream bos = new ByteArrayOutputStream(resultmsg.data.length);
@@ -169,7 +167,7 @@ public class PyroProxy implements Serializable {
 				throw new PyroException("invalid compressed data: ", e);
 			}
 		}
-		if ((resultmsg.flags & MessageFactory.FLAGS_EXCEPTION) != 0) {
+		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
 			Unpickler unpickler=new Unpickler();
 			Throwable rx = (Throwable) unpickler.loads(resultmsg.data);
 			unpickler.close();
@@ -219,7 +217,7 @@ public class PyroProxy implements Serializable {
 	 */
 	protected void handshake() throws IOException {
 		// do connection handshake
-		MessageFactory.getMessage(sock_in, MessageFactory.MSG_CONNECTOK);
+		Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK});
 		// message data is ignored for now, should be 'ok' :)
 	}
 
