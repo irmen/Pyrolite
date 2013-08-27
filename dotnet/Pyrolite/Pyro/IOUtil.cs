@@ -29,11 +29,11 @@ class IOUtil
 			throw new IOException("premature end of data");
 		}
 		while (numRead < size) {
-		  int len = ins.Read(bytes, numRead, size - numRead);
-		  if(len<=0) {
-			  throw new IOException("premature end of data");
-		  }
-		  numRead+=len;
+			int len = ins.Read(bytes, numRead, size - numRead);
+			if(len<=0) {
+				throw new IOException("premature end of data");
+			}
+			numRead+=len;
 		}
 		return bytes;
 	}

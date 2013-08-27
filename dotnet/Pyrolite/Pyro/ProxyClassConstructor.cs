@@ -6,7 +6,7 @@ using Razorvine.Pickle;
 namespace Razorvine.Pyro
 {
 	/// <summary>
-	/// Description of ProxyClassConstructor.
+	/// Construct a PyroProxy class. Used for the pickle serializer.
 	/// </summary>
 	public class ProxyClassConstructor : IObjectConstructor
 	{

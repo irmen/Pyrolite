@@ -1,8 +1,6 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System.Text.RegularExpressions;
-using Razorvine.Pickle;
-using Razorvine.Pickle.Objects;
 
 namespace Razorvine.Pyro
 {
@@ -17,11 +15,7 @@ public class PyroURI {
 	public string host {get;set;}
 	public int port {get;set;}
 
-	static PyroURI() {
-		Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(typeof(PyroURI)));
-		Pickler.registerCustomPickler(typeof(PyroURI), new PyroUriPickler());
-	}
-	
+
 	public PyroURI() {
 		protocol="PYRO";
 	}

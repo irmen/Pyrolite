@@ -1,14 +1,12 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using Razorvine.Pickle;
-using Razorvine.Pickle.Objects;
 
 namespace Razorvine.Pyro
 {
@@ -25,26 +23,6 @@ public class PyroProxy : IDisposable {
 	private ushort sequenceNr = 0;
 	private TcpClient sock;
 	private NetworkStream sock_stream;
-
-	static PyroProxy() {
-		Unpickler.registerConstructor("Pyro4.errors", "PyroError", new AnyClassConstructor(typeof(PyroException)));
-		Unpickler.registerConstructor("Pyro4.errors", "CommunicationError", new AnyClassConstructor(typeof(PyroException)));
-		Unpickler.registerConstructor("Pyro4.errors", "ConnectionClosedError", new AnyClassConstructor(typeof(PyroException)));
-		Unpickler.registerConstructor("Pyro4.errors", "TimeoutError", new AnyClassConstructor(typeof(PyroException)));
-		Unpickler.registerConstructor("Pyro4.errors", "ProtocolError", new AnyClassConstructor(typeof(PyroException)));
-		Unpickler.registerConstructor("Pyro4.errors", "NamingError", new AnyClassConstructor(typeof(PyroException)));
-		Unpickler.registerConstructor("Pyro4.errors", "DaemonError", new AnyClassConstructor(typeof(PyroException)));
-		Unpickler.registerConstructor("Pyro4.errors", "SecurityError", new AnyClassConstructor(typeof(PyroException)));
-		Unpickler.registerConstructor("Pyro4.errors", "AsyncResultTimeout",	new AnyClassConstructor(typeof(PyroException)));
-		Unpickler.registerConstructor("Pyro4.core", "Proxy", new ProxyClassConstructor());
-		Unpickler.registerConstructor("Pyro4.util", "Serializer", new AnyClassConstructor(typeof(DummyPyroSerializer)));
-		Unpickler.registerConstructor("Pyro4.utils.flame", "FlameBuiltin", new AnyClassConstructor(typeof(FlameBuiltin)));
-		Unpickler.registerConstructor("Pyro4.utils.flame", "FlameModule", new AnyClassConstructor(typeof(FlameModule)));
-		Unpickler.registerConstructor("Pyro4.utils.flame", "RemoteInteractiveConsole", new AnyClassConstructor(typeof(FlameRemoteConsole)));
-		// make sure a PyroURI can also be pickled even when not directly imported:
-		Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(typeof(PyroURI)));
-		Pickler.registerCustomPickler(typeof(PyroURI), new PyroUriPickler());
-	}
 
 	/**
 	 * No-args constructor for (un)pickling support
@@ -123,13 +101,7 @@ public class PyroProxy : IDisposable {
 		}
 		if (parameters == null)
 			parameters = new object[] {};
-			object[] invokeparams = new object[] {
-					objectid, method, parameters, // vargs
-					new Hashtable(0)   // no kwargs
-				};
-		Pickler pickler=new Pickler(false);
-		byte[] pickle = pickler.dumps(invokeparams);
-		pickler.close();
+		byte[] pickle = new PickleSerializer().serializeCall(objectid, method, parameters, new Dictionary<string,object>(0));
 		var msg = new Message(Message.MSG_INVOKE, pickle, Message.SERIALIZER_PICKLE, flags, sequenceNr, null);
 		Message resultmsg;
 		lock (this.sock) {
@@ -163,26 +135,25 @@ public class PyroProxy : IDisposable {
 				}
 			}
 		}
+
+		PyroSerializer ser=new PickleSerializer();
+
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
-			using(Unpickler unpickler=new Unpickler()) {
-				Exception rx = (Exception) unpickler.loads(resultmsg.data);
-				if (rx is PyroException) {
-					throw (PyroException) rx;
-				} else {
-					PyroException px = new PyroException("remote exception occurred", rx);
-					PropertyInfo remotetbProperty=rx.GetType().GetProperty("_pyroTraceback");
-					if(remotetbProperty!=null) {
-						string remotetb=(string)remotetbProperty.GetValue(rx,null);
-						px._pyroTraceback=remotetb;
-					}
-					throw px;
+			Exception rx = (Exception) ser.deserializeData(resultmsg.data);
+			if (rx is PyroException) {
+				throw (PyroException) rx;
+			} else {
+				PyroException px = new PyroException("remote exception occurred", rx);
+				PropertyInfo remotetbProperty=rx.GetType().GetProperty("_pyroTraceback");
+				if(remotetbProperty!=null) {
+					string remotetb=(string)remotetbProperty.GetValue(rx,null);
+					px._pyroTraceback=remotetb;
 				}
+				throw px;
 			}
 		}
 		
-		using(Unpickler unpickler=new Unpickler()) {
-			return unpickler.loads(resultmsg.data);
-		}
+		return ser.deserializeData(resultmsg.data);
 	}
 
 	/**

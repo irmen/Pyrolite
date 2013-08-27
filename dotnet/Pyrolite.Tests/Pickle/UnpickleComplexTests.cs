@@ -22,10 +22,10 @@ public class UnpickleComplexTests
 	}
 	object U(byte[] data) 
 	{
-		Unpickler u=new Unpickler();
-		object o=u.loads(data);
-		u.close();
-		return o;		
+		using(Unpickler u=new Unpickler())
+		{
+			return u.loads(data);
+		}
 	}
 
 	[TestFixtureSetUp]
@@ -39,23 +39,23 @@ public class UnpickleComplexTests
 	[Test]
 	public void testPickleUnpickleURI() {
 		PyroURI uri=new PyroURI("PYRO:test@localhost:9999");
-		Pickler p=new Pickler();
-		byte[] pickled_uri=p.dumps(uri);
-		PyroURI uri2=(PyroURI) U(pickled_uri);
+		PyroSerializer ser = new PickleSerializer();
+		byte[] pickled_uri=ser.serializeData(uri);
+		PyroURI uri2=(PyroURI) ser.deserializeData(pickled_uri);
 		Assert.AreEqual(uri,uri2);
 
 		uri=new PyroURI();
-		pickled_uri=p.dumps(uri);
-		uri2=(PyroURI) U(pickled_uri);
+		pickled_uri=ser.serializeData(uri);
+		uri2=(PyroURI) ser.deserializeData(pickled_uri);
 		Assert.AreEqual(uri,uri2);
 	}
 
 	[Test]
 	public void testPickleUnpickleProxy() {
 		PyroProxy proxy=new PyroProxy("hostname",9999,"objectid");
-		Pickler p=new Pickler();
-		byte[] pickled_proxy=p.dumps(proxy);
-		object result=U(pickled_proxy);
+		PyroSerializer ser = new PickleSerializer();
+		byte[] pickled_proxy=ser.serializeData(proxy);
+		object result=ser.deserializeData(pickled_proxy);
 		Assert.IsInstanceOf<System.Collections.Hashtable>(result); // proxy objects cannot be properly pickled and are pickled as bean, hence Hashtable
 	}
 
@@ -70,7 +70,8 @@ public class UnpickleComplexTests
 				 101, 116, 10, 113, 8, 93, 113, 9, 133, 113, 10, 82, 113, 11, 99, 80, 121, 114, 111, 52, 46,
 				 117, 116, 105, 108, 10, 83, 101, 114, 105, 97, 108, 105, 122, 101, 114, 10, 113, 12, 41, 129,
 				 113, 13, 125, 113, 14, 98, 71, 0, 0, 0, 0, 0, 0, 0, 0, 116, 113, 15, 98, 46};
-		PyroProxy proxy=(PyroProxy)U(pickled_proxy);
+		PyroSerializer ser = new PickleSerializer();
+		PyroProxy proxy=(PyroProxy)ser.deserializeData(pickled_proxy);
 		Assert.AreEqual("someobject",proxy.objectid);
 		Assert.AreEqual("localhost",proxy.hostname);
 		Assert.AreEqual(9999,proxy.port);
