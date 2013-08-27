@@ -80,7 +80,7 @@ public class UnpickleComplexTests
 	public void testUnpickleMemo() {
 		// the pickle is of the following list: [65, 'hello', 'hello', {'recurse': [...]}, 'hello']
 		// i.e. the 4th element is a dict referring back to the list itself and the 'hello' strings are reused
-		byte[] pickle = new Byte[]
+		byte[] pickle = new byte[]
 			{128, 2, 93, 113, 0, 40, 75, 65, 85, 5, 104, 101, 108, 108, 111, 113, 1, 104, 1, 125, 113, 2,
 			85, 7, 114, 101, 99, 117, 114, 115, 101, 113, 3, 104, 0, 115, 104, 1, 101, 46};
 		ArrayList a = (ArrayList) U(pickle);

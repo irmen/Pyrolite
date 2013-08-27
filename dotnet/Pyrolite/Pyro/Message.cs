@@ -95,7 +95,7 @@ public class Message
 	{
 		byte[] header_bytes = get_header_bytes();
 		byte[] annotations_bytes = get_annotations_bytes();
-		byte[] result = new Byte[header_bytes.Length + annotations_bytes.Length + data.Length];
+		byte[] result = new byte[header_bytes.Length + annotations_bytes.Length + data.Length];
 		Array.Copy(header_bytes, result, header_bytes.Length);
 		Array.Copy(annotations_bytes, 0, result, header_bytes.Length, annotations_bytes.Length);
 		Array.Copy(data, 0, result, header_bytes.Length+annotations_bytes.Length, data.Length);
@@ -104,7 +104,7 @@ public class Message
 
 	public byte[] get_header_bytes()
 	{
-		int checksum = (type+Config.PROTOCOL_VERSION+data.Length+annotations_size+serializer_id+flags+seq+CHECKSUM_MAGIC)&0xffff;
+		int checksum = (type+Config.PROTOCOL_VERSION+data_size+annotations_size+serializer_id+flags+seq+CHECKSUM_MAGIC)&0xffff;
 		byte[] header = new byte[HEADER_SIZE];
 		/*
 		 header format: '!4sHHHHiHHHH' (24 bytes)
@@ -138,10 +138,10 @@ public class Message
 		header[10]=(byte)(seq>>8);
 		header[11]=(byte)(seq&0xff);
 
-		header[12]=(byte)((data.Length>>24)&0xff);
-		header[13]=(byte)((data.Length>>16)&0xff);
-		header[14]=(byte)((data.Length>>8)&0xff);
-		header[15]=(byte)(data.Length&0xff);
+		header[12]=(byte)((data_size>>24)&0xff);
+		header[13]=(byte)((data_size>>16)&0xff);
+		header[14]=(byte)((data_size>>8)&0xff);
+		header[15]=(byte)(data_size&0xff);
 
 		header[16]=(byte)(serializer_id>>8);
 		header[17]=(byte)(serializer_id&0xff);

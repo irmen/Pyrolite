@@ -29,8 +29,8 @@ public class TestEcho {
 
 		setConfig();
 
-        NameServerProxy ns = NameServerProxy.locateNS(null);
-        PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
+		NameServerProxy ns = NameServerProxy.locateNS(null);
+		PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
 		
 		// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
 

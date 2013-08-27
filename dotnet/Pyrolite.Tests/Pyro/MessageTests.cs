@@ -130,10 +130,24 @@ public class MessageTestsHmac {
 	}
 	
 	[Test]
+	public void testMessageHeaderDatasize()
+	{
+		var msg = new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 12345, 60006, 30003, null);
+		msg.data_size = 0x12345678;   // hack it to a large value to see if it comes back ok
+		byte[] hdr = msg.to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		msg = Message.from_header(hdr);
+		Assert.AreEqual(Message.MSG_RESULT, msg.type);
+		Assert.AreEqual(60006, msg.flags);
+		Assert.AreEqual(0x12345678, msg.data_size);
+		Assert.AreEqual(12345, msg.serializer_id);
+		Assert.AreEqual(30003, msg.seq);
+	}
+	
+	[Test]
 	public void TestAnnotations()
 	{
 		var annotations = new Dictionary<string,byte[]>();
-		annotations["TEST"]=new Byte[]{10,20,30,40,50};
+		annotations["TEST"]=new byte[]{10,20,30,40,50};
 		
 		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, annotations);
 		byte[] data = msg.to_bytes();
@@ -151,7 +165,7 @@ public class MessageTestsHmac {
 	{
 		try {
 			var anno = new Dictionary<string, byte[]>();
-			anno["TOOLONG"] = new Byte[]{10,20,30};
+			anno["TOOLONG"] = new byte[]{10,20,30};
 			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, anno);
 			byte[]data = msg.to_bytes();
 			Assert.Fail("should fail, too long");
@@ -160,7 +174,7 @@ public class MessageTestsHmac {
 		}
 		try {
 			var anno = new Dictionary<string, byte[]>();
-			anno["QQ"] = new Byte[]{10,20,30};
+			anno["QQ"] = new byte[]{10,20,30};
 			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, anno);
 			byte[] data = msg.to_bytes();
 			Assert.Fail("should fail, too short");
@@ -173,7 +187,7 @@ public class MessageTestsHmac {
 	public void testRecvAnnotations()
 	{
 		var annotations = new Dictionary<string, byte[]>();
-		annotations["TEST"] = new Byte[]{10, 20,30,40,50};
+		annotations["TEST"] = new byte[]{10, 20,30,40,50};
 		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, annotations);
 		var c = new ConnectionMock();
 		c.send(msg.to_bytes());
