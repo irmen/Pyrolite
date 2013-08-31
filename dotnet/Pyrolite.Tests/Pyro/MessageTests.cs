@@ -49,13 +49,11 @@ class ConnectionMock : MemoryStream
 [TestFixture]
 public class MessageTestsHmac {
 	
-	PyroSerializer ser;
+	ushort serializer_id = new PickleSerializer().serializer_id;
 	
 	[TestFixtureSetUp]
 	public void setUp() {
 		Config.HMAC_KEY = Encoding.ASCII.GetBytes("testsuite");
-		this.ser = new PickleSerializer();
-		// this.ser = Pyro4.util.get_serializer(Pyro4.config.SERIALIZER)  @TODO
 	}
 
 	[TestFixtureTearDown]
@@ -83,9 +81,9 @@ public class MessageTestsHmac {
 	[Test]
 	public void TestMessage()
 	{
-		new Message(99, new byte[0], this.ser.serializer_id, 0, 0, null);  // doesn't check msg type here
+		new Message(99, new byte[0], this.serializer_id, 0, 0, null);  // doesn't check msg type here
 		Assert.Throws(typeof(PyroException), ()=>Message.from_header(Encoding.ASCII.GetBytes("FOOBAR")));
-		var msg = new Message(Message.MSG_CONNECT, Encoding.ASCII.GetBytes("hello"), this.ser.serializer_id, 0, 0, null);
+		var msg = new Message(Message.MSG_CONNECT, Encoding.ASCII.GetBytes("hello"), this.serializer_id, 0, 0, null);
 		Assert.AreEqual(Message.MSG_CONNECT, msg.type);
 		Assert.AreEqual(5, msg.data_size);
 		Assert.AreEqual(new byte[]{(byte)'h',(byte)'e',(byte)'l',(byte)'l',(byte)'o'}, msg.data);
@@ -101,7 +99,7 @@ public class MessageTestsHmac {
 		Assert.AreEqual(4+2+20, msg.annotations_size);
 		Assert.AreEqual(5, msg.data_size);
 
-		hdr = new Message(Message.MSG_RESULT, new byte[0], this.ser.serializer_id, 0, 0, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		hdr = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 0, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg = Message.from_header(hdr);
 		Assert.AreEqual(Message.MSG_RESULT, msg.type);
 		Assert.AreEqual(4+2+20, msg.annotations_size);
@@ -115,17 +113,17 @@ public class MessageTestsHmac {
 		Assert.AreEqual(12345, msg.serializer_id);
 		Assert.AreEqual(30003, msg.seq);
 
-		byte[] data = new Message(255, new byte[0], this.ser.serializer_id, 0, 255, null).to_bytes();
+		byte[] data = new Message(255, new byte[0], this.serializer_id, 0, 255, null).to_bytes();
 		Assert.AreEqual(50, data.Length);
-		data = new Message(1, new byte[0], this.ser.serializer_id, 0, 255, null).to_bytes();
+		data = new Message(1, new byte[0], this.serializer_id, 0, 255, null).to_bytes();
 		Assert.AreEqual(50, data.Length);
-		data = new Message(1, new byte[0], this.ser.serializer_id, 253, 254, null).to_bytes();
+		data = new Message(1, new byte[0], this.serializer_id, 253, 254, null).to_bytes();
 		Assert.AreEqual(50, data.Length);
 
 		// compression is a job of the code supplying the data, so the messagefactory should leave it untouched
 		data = new byte[1000];
-		byte[] msg_bytes1 = new Message(Message.MSG_INVOKE, data, this.ser.serializer_id, 0, 0, null).to_bytes();
-		byte[] msg_bytes2 = new Message(Message.MSG_INVOKE, data, this.ser.serializer_id, Message.FLAGS_COMPRESSED, 0, null).to_bytes();
+		byte[] msg_bytes1 = new Message(Message.MSG_INVOKE, data, this.serializer_id, 0, 0, null).to_bytes();
+		byte[] msg_bytes2 = new Message(Message.MSG_INVOKE, data, this.serializer_id, Message.FLAGS_COMPRESSED, 0, null).to_bytes();
 		Assert.AreEqual(msg_bytes1.Length, msg_bytes2.Length);
 	}
 	
@@ -149,7 +147,7 @@ public class MessageTestsHmac {
 		var annotations = new Dictionary<string,byte[]>();
 		annotations["TEST"]=new byte[]{10,20,30,40,50};
 		
-		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, annotations);
+		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, annotations);
 		byte[] data = msg.to_bytes();
 		int annotations_size = 4+2+20 + 4+2+5;
 		Assert.AreEqual(Message.HEADER_SIZE + 5 + annotations_size, data.Length);
@@ -166,7 +164,7 @@ public class MessageTestsHmac {
 		try {
 			var anno = new Dictionary<string, byte[]>();
 			anno["TOOLONG"] = new byte[]{10,20,30};
-			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, anno);
+			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, anno);
 			byte[]data = msg.to_bytes();
 			Assert.Fail("should fail, too long");
 		} catch(ArgumentException) {
@@ -175,7 +173,7 @@ public class MessageTestsHmac {
 		try {
 			var anno = new Dictionary<string, byte[]>();
 			anno["QQ"] = new byte[]{10,20,30};
-			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, anno);
+			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, anno);
 			byte[] data = msg.to_bytes();
 			Assert.Fail("should fail, too short");
 		} catch (ArgumentException) {
@@ -188,7 +186,7 @@ public class MessageTestsHmac {
 	{
 		var annotations = new Dictionary<string, byte[]>();
 		annotations["TEST"] = new byte[]{10, 20,30,40,50};
-		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, annotations);
+		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, annotations);
 		var c = new ConnectionMock();
 		c.send(msg.to_bytes());
 		msg = Message.recv(c, null);
@@ -203,7 +201,7 @@ public class MessageTestsHmac {
 	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 25390")]
 	public void testProtocolVersion()
 	{
-		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.ser.serializer_id, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 99; // screw up protocol version in message header
 		Message.from_header(msg);
 	}

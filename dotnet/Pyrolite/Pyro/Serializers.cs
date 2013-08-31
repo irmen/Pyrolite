@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
+using Razorvine.Serpent;
 
 namespace Razorvine.Pyro
 {
@@ -17,6 +18,18 @@ namespace Razorvine.Pyro
 		public abstract byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs);
 		public abstract byte[] serializeData(object obj);
 		public abstract object deserializeData(byte[] data);
+		
+		protected static IDictionary<Config.SerializerType, PyroSerializer> AvailableSerializers = new Dictionary<Config.SerializerType, PyroSerializer>();
+		
+		static PyroSerializer() {
+			AvailableSerializers[Config.SerializerType.serpent] = new SerpentSerializer();
+			AvailableSerializers[Config.SerializerType.pickle] = new PickleSerializer();
+		}
+		
+		public static PyroSerializer GetFor(Config.SerializerType type)
+		{
+			return AvailableSerializers[type];
+		}
 	}
 
 	
@@ -73,6 +86,43 @@ namespace Razorvine.Pyro
 			{
 				return u.loads(data);
 			}
+		}
+	}
+	
+	
+	public class SerpentSerializer : PyroSerializer
+	{
+		public override ushort serializer_id {
+			get {
+				return 1; // make sure this matches the id from Pyro
+			}
+		}
+		
+		public override byte[] serializeData(object obj)
+		{
+			return GetSerializer().Serialize(obj);
+		}
+		
+		public override byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs)
+		{
+			object[] invokeparams = new object[] {objectId, method, vargs, kwargs};
+			return GetSerializer().Serialize(invokeparams);
+		}
+		
+		public override object deserializeData(byte[] data)
+		{
+			var ast = GetParser().Parse(data);
+			return ast.GetData();
+		}
+		
+		protected Serpent.Serializer GetSerializer()
+		{
+			return new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS);
+		}
+		
+		protected Serpent.Parser GetParser()
+		{
+			return new Parser();
 		}
 	}
 }
