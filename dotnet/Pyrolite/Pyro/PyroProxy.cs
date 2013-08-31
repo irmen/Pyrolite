@@ -101,8 +101,9 @@ public class PyroProxy : IDisposable {
 		}
 		if (parameters == null)
 			parameters = new object[] {};
-		byte[] pickle = PyroSerializer.GetFor(Config.SERIALIZER).serializeCall(objectid, method, parameters, new Dictionary<string,object>(0));
-		var msg = new Message(Message.MSG_INVOKE, pickle, Message.SERIALIZER_PICKLE, flags, sequenceNr, null);
+		PyroSerializer ser = PyroSerializer.GetFor(Config.SERIALIZER);
+		byte[] pickle = ser.serializeCall(objectid, method, parameters, new Dictionary<string,object>(0));
+		var msg = new Message(Message.MSG_INVOKE, pickle, ser.serializer_id, flags, sequenceNr, null);
 		Message resultmsg;
 		lock (this.sock) {
 			IOUtil.send(sock_stream, msg.to_bytes());
@@ -135,8 +136,6 @@ public class PyroProxy : IDisposable {
 				}
 			}
 		}
-
-		PyroSerializer ser=PyroSerializer.GetFor(Config.SERIALIZER);
 
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
 			Exception rx = (Exception) ser.deserializeData(resultmsg.data);

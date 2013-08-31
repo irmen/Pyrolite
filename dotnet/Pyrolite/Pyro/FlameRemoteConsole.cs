@@ -49,7 +49,7 @@ public class FlameRemoteConsole : IDisposable
 
 	public void close()  {
 		if(remoteconsole!=null) {
-			remoteconsole.call("terminate");
+			remoteconsole.call_oneway("terminate");
 			remoteconsole.close();
 		}
 	}

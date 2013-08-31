@@ -56,6 +56,8 @@ public class TestFlame {
 
 	static void setConfig()
 	{
+		Config.SERIALIZER = Config.SerializerType.pickle;		// flame requires pickle
+		
 		string hmackey=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
 		if(hmackey!=null) {
 			Config.HMAC_KEY=Encoding.UTF8.GetBytes(hmackey);

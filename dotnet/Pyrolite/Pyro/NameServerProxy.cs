@@ -42,7 +42,7 @@ public class NameServerProxy : PyroProxy {
 	}
 	
 	public IDictionary<string,string> list(string prefix, string regex) {
-		Hashtable hash=(Hashtable)this.call("list", prefix, regex);
+		IDictionary hash = (IDictionary) this.call("list", prefix, regex);
 		IDictionary<string,string> typed=new Dictionary<string,string>(hash.Count);
 		foreach(object name in hash.Keys) {
 			typed[(string)name]=(string)hash[name];
