@@ -28,6 +28,7 @@ public class TestNaming {
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
 		setConfig();
+		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
 
 		NameServerProxy ns=NameServerProxy.locateNS(null);
 		Console.WriteLine("discovered ns at "+ns.hostname+":"+ns.port);
@@ -66,6 +67,10 @@ public class TestNaming {
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {
 			Config.MSG_TRACE_DIR=tracedir;
+		}
+		string serializer=Environment.GetEnvironmentVariable("PYRO_SERIALIZER");
+		if(serializer!=null) {
+			Config.SERIALIZER=(Config.SerializerType) Enum.Parse(typeof(Config.SerializerType), serializer, true);
 		}
 	}
 }
