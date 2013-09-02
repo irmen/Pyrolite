@@ -29,6 +29,8 @@ public class TestNaming {
 
 		setConfig();
 		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
+		if(Config.SERIALIZER==Config.SerializerType.serpent)
+			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
 		NameServerProxy ns=NameServerProxy.locateNS(null);
 		Console.WriteLine("discovered ns at "+ns.hostname+":"+ns.port);

@@ -2,9 +2,10 @@
 	
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
-using Razorvine.Serpent;
 
 namespace Razorvine.Pyro
 {
@@ -18,17 +19,40 @@ namespace Razorvine.Pyro
 		public abstract byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs);
 		public abstract byte[] serializeData(object obj);
 		public abstract object deserializeData(byte[] data);
-		
+
 		protected static IDictionary<Config.SerializerType, PyroSerializer> AvailableSerializers = new Dictionary<Config.SerializerType, PyroSerializer>();
 		
-		static PyroSerializer() {
-			AvailableSerializers[Config.SerializerType.serpent] = new SerpentSerializer();
-			AvailableSerializers[Config.SerializerType.pickle] = new PickleSerializer();
-		}
+		protected static readonly PickleSerializer pickleSerializer = new PickleSerializer();
+		protected static SerpentSerializer serpentSerializer = null;
 		
 		public static PyroSerializer GetFor(Config.SerializerType type)
 		{
-			return AvailableSerializers[type];
+			switch(type)
+			{
+				case Config.SerializerType.pickle:
+					return pickleSerializer;
+				case Config.SerializerType.serpent:
+					{
+						// Create a serpent serializer if not yet created.
+						// This is done dynamically so there is no assembly dependency on the Serpent assembly,
+						// and it will become available once you copy that into the correct location.
+						lock(typeof(SerpentSerializer))
+						{
+							if(serpentSerializer==null)
+							{
+								try {
+									serpentSerializer = new SerpentSerializer();
+									return serpentSerializer;
+								} catch (TypeInitializationException x) {
+									throw new PyroException("serpent serializer unavailable", x);
+								}
+							}
+							return serpentSerializer;
+						}
+					}
+				default:
+					throw new ArgumentException("unrecognised serializer type: "+type);
+			}
 		}
 	}
 
@@ -90,39 +114,59 @@ namespace Razorvine.Pyro
 	}
 	
 	
+	/// <summary>
+	/// Serializer using the serpent protocol.
+	/// Uses dynamic access to the Serpent assembly types (with reflection) to avoid
+	/// a required assembly dependency with that.
+	/// </summary>
 	public class SerpentSerializer : PyroSerializer
 	{
+		private static MethodInfo serializeMethod;
+		private static MethodInfo parseMethod;
+		private static MethodInfo astGetDataMethod;
+		private static Type serpentSerializerType;
+		private static Type serpentParserType;
+
 		public override ushort serializer_id {
 			get {
 				return 1; // make sure this matches the id from Pyro
 			}
 		}
 		
+		static SerpentSerializer()
+		{
+			Assembly serpentAssembly = Assembly.Load("Razorvine.Serpent");
+			serpentSerializerType = serpentAssembly.GetType("Razorvine.Serpent.Serializer");
+			serpentParserType = serpentAssembly.GetType("Razorvine.Serpent.Parser");
+			Type astType = serpentAssembly.GetType("Razorvine.Serpent.Ast");
+			
+			serializeMethod = serpentSerializerType.GetMethod("Serialize", new Type[] {typeof(object)});
+			parseMethod = serpentParserType.GetMethod("Parse", new Type[] {typeof(byte[])});
+			astGetDataMethod = astType.GetMethod("GetData");
+		}
+		
 		public override byte[] serializeData(object obj)
 		{
-			return GetSerializer().Serialize(obj);
+			// call the "Serialize" method, using reflection
+			object serializer = Activator.CreateInstance(serpentSerializerType, new object[] {Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS});
+			return (byte[]) serializeMethod.Invoke(serializer, new object[] {obj});
 		}
 		
 		public override byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs)
 		{
 			object[] invokeparams = new object[] {objectId, method, vargs, kwargs};
-			return GetSerializer().Serialize(invokeparams);
+			// call the "Serialize" method, using reflection
+			object serializer = Activator.CreateInstance(serpentSerializerType, new object[] {Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS});
+			return (byte[]) serializeMethod.Invoke(serializer, new object[] {invokeparams});
 		}
 		
 		public override object deserializeData(byte[] data)
 		{
-			var ast = GetParser().Parse(data);
-			return ast.GetData();
-		}
-		
-		protected Serpent.Serializer GetSerializer()
-		{
-			return new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS);
-		}
-		
-		protected Serpent.Parser GetParser()
-		{
-			return new Parser();
+			// call the "Parse" method, using reflection
+			object parser = Activator.CreateInstance(serpentParserType);
+			object ast = parseMethod.Invoke(parser, new object[] {data});
+			// call the "GetData" method on the Ast, using reflection
+			return astGetDataMethod.Invoke(ast, null);
 		}
 	}
 }

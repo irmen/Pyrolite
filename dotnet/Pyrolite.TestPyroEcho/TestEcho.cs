@@ -29,6 +29,8 @@ public class TestEcho {
 
 		setConfig();
 		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
+		if(Config.SERIALIZER==Config.SerializerType.serpent)
+			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
 		NameServerProxy ns = NameServerProxy.locateNS(null);
 		PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
@@ -88,6 +90,8 @@ public class TestEcho {
 		string serializer=Environment.GetEnvironmentVariable("PYRO_SERIALIZER");
 		if(serializer!=null) {
 			Config.SERIALIZER=(Config.SerializerType) Enum.Parse(typeof(Config.SerializerType), serializer, true);
+			
+			//
 		}
 	}
 }
