@@ -1,6 +1,7 @@
 ﻿/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 	
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -85,6 +86,8 @@ namespace Razorvine.Pyro
 			Unpickler.registerConstructor("Pyro4.utils.flame", "RemoteInteractiveConsole", new AnyClassConstructor(typeof(FlameRemoteConsole)));
 			Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(typeof(PyroURI)));
 			Pickler.registerCustomPickler(typeof(PyroURI), new PyroUriPickler());
+			Pickler.registerCustomPickler(typeof(PyroProxy), new PyroProxyPickler());
+			Pickler.registerCustomPickler(typeof(PyroException), new PyroExceptionPickler());
 		}
 
 		public override byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs)
@@ -136,15 +139,50 @@ namespace Razorvine.Pyro
 		static SerpentSerializer()
 		{
 			Assembly serpentAssembly = Assembly.Load("Razorvine.Serpent");
+			Version serpentVersion = serpentAssembly.GetName().Version;
+			Version requiredSerpentVersion = new Version(1, 4);
+			if(serpentVersion<requiredSerpentVersion)
+				throw new NotSupportedException("serpent version "+requiredSerpentVersion+" (or newer) is required");
+
 			serpentSerializerType = serpentAssembly.GetType("Razorvine.Serpent.Serializer");
 			serpentParserType = serpentAssembly.GetType("Razorvine.Serpent.Parser");
 			Type astType = serpentAssembly.GetType("Razorvine.Serpent.Ast");
 			
 			serializeMethod = serpentSerializerType.GetMethod("Serialize", new Type[] {typeof(object)});
 			parseMethod = serpentParserType.GetMethod("Parse", new Type[] {typeof(byte[])});
-			astGetDataMethod = astType.GetMethod("GetData");
+
+			astGetDataMethod = astType.GetMethod("GetData", new Type[]{typeof(Func<IDictionary, object>)});
+			
+			// register a few custom class-to-dict converters
+			MethodInfo registerMethod = serpentSerializerType.GetMethod("RegisterClass", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+			Func<object, IDictionary> converter = PyroUriPickler.ToSerpentDict;
+			registerMethod.Invoke(null, new object[]{typeof(PyroURI), converter});
+			converter = PyroExceptionPickler.ToSerpentDict;
+			registerMethod.Invoke(null, new object[]{typeof(PyroException), converter});
+			converter = PyroProxyPickler.ToSerpentDict;
+			registerMethod.Invoke(null, new object[]{typeof(PyroProxy), converter});
 		}
-		
+	
+		public object DictToInstance(IDictionary dict)
+		{
+			string classname = (string)dict["__class__"];
+			bool isException = dict.Contains("__exception__") && (bool)dict["__exception__"];
+			if(isException)
+			{
+				// map all exception types to the PyroException
+				return PyroExceptionPickler.FromSerpentDict(dict);
+			}
+			switch(classname)
+			{
+				case "Pyro4.core.URI":
+					return PyroUriPickler.FromSerpentDict(dict);
+				case "Pyro4.core.Proxy":
+					return PyroProxyPickler.FromSerpentDict(dict);
+				default:
+					return null;
+			}
+		}
+
 		public override byte[] serializeData(object obj)
 		{
 			// call the "Serialize" method, using reflection
@@ -166,7 +204,8 @@ namespace Razorvine.Pyro
 			object parser = Activator.CreateInstance(serpentParserType);
 			object ast = parseMethod.Invoke(parser, new object[] {data});
 			// call the "GetData" method on the Ast, using reflection
-			return astGetDataMethod.Invoke(ast, null);
+			Func<IDictionary, object> dictToInstanceFunc = DictToInstance;
+			return astGetDataMethod.Invoke(ast, new object[] {dictToInstanceFunc});
 		}
 	}
 }

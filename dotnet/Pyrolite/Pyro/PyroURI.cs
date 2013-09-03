@@ -1,5 +1,6 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
+using System;
 using System.Text.RegularExpressions;
 
 namespace Razorvine.Pyro
@@ -8,6 +9,7 @@ namespace Razorvine.Pyro
 /// <summary>
 /// The Pyro URI object.
 /// </summary>
+[Serializable]
 public class PyroURI {
 
 	public string protocol {get;set;}
@@ -42,6 +44,7 @@ public class PyroURI {
 	}
 
 	public PyroURI(string objectid, string host, int port) {
+		this.protocol = "PYRO";
 		this.objectid = objectid;
 		this.host = host;
 		this.port = port;

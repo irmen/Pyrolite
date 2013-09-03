@@ -3,6 +3,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
 using NUnit.Framework;
 using Razorvine.Pickle;
 using Razorvine.Pyro;
@@ -55,21 +58,23 @@ public class UnpickleComplexTests
 		PyroProxy proxy=new PyroProxy("hostname",9999,"objectid");
 		PyroSerializer ser = new PickleSerializer();
 		byte[] pickled_proxy=ser.serializeData(proxy);
-		object result=ser.deserializeData(pickled_proxy);
-		Assert.IsInstanceOf<System.Collections.Hashtable>(result); // proxy objects cannot be properly pickled and are pickled as bean, hence Hashtable
+		PyroProxy result = (PyroProxy) ser.deserializeData(pickled_proxy);
+		Assert.AreEqual(proxy.hostname, result.hostname);
+		Assert.AreEqual(proxy.objectid, result.objectid);
+		Assert.AreEqual(proxy.port, result.port);
 	}
 
 	[Test]
 	public void testUnpickleRealProxy() {
 		byte[] pickled_proxy=new byte[]
-				{128, 2, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 80, 114, 111, 120, 121, 10, 113,
-				 0, 41, 129, 113, 1, 40, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 85, 82, 73, 10,
-				 113, 2, 41, 129, 113, 3, 40, 85, 4, 80, 89, 82, 79, 113, 4, 85, 10, 115, 111, 109, 101, 111,
-				 98, 106, 101, 99, 116, 113, 5, 78, 85, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 113, 6,
-				 77, 15, 39, 116, 113, 7, 98, 99, 95, 95, 98, 117, 105, 108, 116, 105, 110, 95, 95, 10, 115,
-				 101, 116, 10, 113, 8, 93, 113, 9, 133, 113, 10, 82, 113, 11, 99, 80, 121, 114, 111, 52, 46,
-				 117, 116, 105, 108, 10, 83, 101, 114, 105, 97, 108, 105, 122, 101, 114, 10, 113, 12, 41, 129,
-				 113, 13, 125, 113, 14, 98, 71, 0, 0, 0, 0, 0, 0, 0, 0, 116, 113, 15, 98, 46};
+				{128, 2, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 80, 114, 111,
+	  			120, 121, 10, 113, 1, 41, 129, 113, 2, 99, 80, 121, 114, 111, 52, 46, 99, 
+	  			111, 114, 101, 10, 85, 82, 73, 10, 113, 3, 41, 129, 113, 4, 40, 85, 4, 80,
+	  			89, 82, 79, 113, 5, 85, 10, 115, 111, 109, 101, 111, 98, 106, 101, 99,
+	  			116, 113, 6, 78, 85, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 113, 7,
+	  			77, 15, 39, 116, 98, 99, 95, 95, 98, 117, 105, 108, 116, 105, 110, 95, 95,
+	  			10, 115, 101, 116, 10, 113, 8, 93, 133, 82, 113, 9, 71, 0, 0, 0, 0, 0, 0, 0, 0,
+	  			135, 98, 46};
 		PyroSerializer ser = new PickleSerializer();
 		PyroProxy proxy=(PyroProxy)ser.deserializeData(pickled_proxy);
 		Assert.AreEqual("someobject",proxy.objectid);

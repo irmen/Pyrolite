@@ -90,8 +90,6 @@ public class TestEcho {
 		string serializer=Environment.GetEnvironmentVariable("PYRO_SERIALIZER");
 		if(serializer!=null) {
 			Config.SERIALIZER=(Config.SerializerType) Enum.Parse(typeof(Config.SerializerType), serializer, true);
-			
-			//
 		}
 	}
 }

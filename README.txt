@@ -10,7 +10,8 @@ Contents:
     3. TYPE MAPPINGS
     4. EXCEPTIONS
     5. SECURITY WARNING
-    6. DOWNLOAD COMPILED BINARIES
+    6. RECOMMENDED DEPENDENCY: SERPENT SERIALIZER
+    7. DOWNLOAD COMPILED BINARIES
 
 
 1. INTRODUCTION
@@ -249,7 +250,20 @@ implementation in Pyrolite doesn't randomly construct arbitrary objects and is
 safe to use for parsing data from the network.
 
 
-6. DOWNLOAD COMPILED BINARIES
+6. RECOMMENDED DEPENDENCY: SERPENT SERIALIZER
+---------------------------------------------
+
+The default serializer is set to serpent. Unless you change the configuration
+to use pickle instead, Pyrolite will require the Razorvine.Serpent assembly or
+the serpent jar to be available. If you do not supply this library, Pyrolite
+will still work but only with the built-in pickle serializer. Serpent is a
+separate project, and the library is not included in the Pyrolite project.
+
+You can find the Serpent project at: https://github.com/irmen/Serpent
+You need version 1.4 of Serpent, or newer.
+
+
+7. DOWNLOAD COMPILED BINARIES
 -----------------------------
 
 Precompiled binaries (java jar, .net assembly dll) are here:

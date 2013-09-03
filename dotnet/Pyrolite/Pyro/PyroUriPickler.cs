@@ -1,7 +1,10 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
+using System;
+using System.Collections;
 using System.IO;
 using System.Text;
+
 using Razorvine.Pickle;
 
 namespace Razorvine.Pyro
@@ -27,6 +30,21 @@ public class PyroUriPickler : IObjectPickler {
 		currentPickler.save(uri.port);
 		outs.WriteByte(Opcodes.TUPLE);
 		outs.WriteByte(Opcodes.BUILD);
+	}
+
+	public static IDictionary ToSerpentDict(object obj)
+	{
+		PyroURI uri = (PyroURI)obj;
+		var dict = new Hashtable();
+		dict["state"] = new object[]{uri.protocol, uri.objectid, null, uri.host, uri.port};
+		dict["__class__"] = "Pyro4.core.URI";
+		return dict;
+	}
+	
+	public static object FromSerpentDict(IDictionary dict)
+	{
+		object[] state = (object[])dict["state"];  // protocol, objectid, socketname, hostname, port
+		return new PyroURI((string)state[1], (string)state[3], (int)state[4]);
 	}
 }
 

@@ -62,8 +62,8 @@ public class UnpicklerTests {
 		Assert.AreEqual(1234L,U("L1234\n.")); // long (as long)
 		Assert.AreEqual(12345678987654321L,U("L12345678987654321L\n.")); // long (as long)
 		// Assert.AreEqual(new BigInteger("9999888877776666555544443333222211110000"),U("L9999888877776666555544443333222211110000L\n.")); // long (as bigint)
-		Assert.AreEqual(12345,U("M90."));    // 2 byte unsigned
-		Assert.AreEqual(65535,U("M\u00ff\u00ff."));    // 2 byte unsigned
+		Assert.AreEqual(12345,U("M90."));	// 2 byte unsigned
+		Assert.AreEqual(65535,U("M\u00ff\u00ff."));	// 2 byte unsigned
 		Assert.AreEqual("Foobar",U("S'Foobar'\n."));  // string with quotes
 		Assert.AreEqual("abc",U("T\u0003\u0000\u0000\u0000abc."));  // counted string
 		Assert.AreEqual("abc",U("U\u0003abc."));  // short counted string
@@ -448,10 +448,10 @@ public class UnpicklerTests {
 	[Test]
 	public void testMemoing() 
 	{
-	    ArrayList list=new ArrayList();
-        list.Add("irmen");	 
-        list.Add("irmen");	 
-        list.Add("irmen");	 
+		ArrayList list=new ArrayList();
+		list.Add("irmen");	 
+		list.Add("irmen");	 
+		list.Add("irmen");	 
 		Assert.AreEqual(list, U("]q\u0000(U\u0005irmenq\u0001h\u0001h\u0001e."));
 		
 		ArrayList a=new ArrayList();
@@ -480,8 +480,7 @@ public class UnpicklerTests {
 	public void testBinint2WithObject() 
 	{
 		Unpickler u=new Unpickler();
-		Unpickler.registerConstructor("Pyro4.core", "URI", new StringConstructor());
-		byte[] data=PickleUtils.str2bytes("\u0080\u0002cPyro4.core\nURI\n)\u0081M\u0082#.");
+		byte[] data=PickleUtils.str2bytes("\u0080\u0002cIgnore.Ignore\nIgnore\n)\u0081M\u0082#.");
 		int result=(int) u.loads(data);
 		Assert.AreEqual(9090,result);
 	}

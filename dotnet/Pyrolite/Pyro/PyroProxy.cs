@@ -14,6 +14,7 @@ namespace Razorvine.Pyro
 /// <summary>
 /// Proxy for Pyro objects.
 /// </summary>
+[Serializable]
 public class PyroProxy : IDisposable {
 
 	public string hostname {get;set;}
@@ -180,11 +181,10 @@ public class PyroProxy : IDisposable {
 
 	/**
 	 * called by the Unpickler to restore state.
-	 * args: pyroUri, pyroOneway(hashset), pyroSerializer, pyroTimeout
+	 * args: pyroUri, pyroOneway(hashset), pyroTimeout
 	 */
 	public void __setstate__(object[] args) {
 		PyroURI uri=(PyroURI)args[0];
-		// ignore the oneway hashset, the serializer object and the timeout 
 		// the only thing we need here is the uri.
 		this.hostname=uri.host;
 		this.port=uri.port;

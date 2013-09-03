@@ -10,6 +10,7 @@ namespace Razorvine.Pyro
 	/// <summary>
 	/// Exception thrown when something is wrong in Pyro.
 	/// </summary>
+	[Serializable]
 	public class PyroException : Exception, ISerializable
 	{
 		public String _pyroTraceback {get;set;}
