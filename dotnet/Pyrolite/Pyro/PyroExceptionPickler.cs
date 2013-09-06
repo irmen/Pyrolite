@@ -23,6 +23,15 @@ public class PyroExceptionPickler : IObjectPickler {
 		object[] args = new object[] { error.Message };
 		currentPickler.save(args);
 		outs.WriteByte(Opcodes.REDUCE);
+		
+		if(!string.IsNullOrEmpty(error._pyroTraceback))
+		{
+			// add _pyroTraceback attribute to the output
+			Hashtable tb = new Hashtable();
+			tb["_pyroTraceback"] = new string[]{ error._pyroTraceback };		// transform single string back into list
+			currentPickler.save(tb);
+			outs.WriteByte(Opcodes.BUILD);
+		}
 	}
 	
 	public static IDictionary ToSerpentDict(object obj)
@@ -33,6 +42,8 @@ public class PyroExceptionPickler : IObjectPickler {
 		dict["__class__"] = "PyroError";
 		dict["__exception__"] = true;
 		dict["args"] = new object[] {ex.Message};
+		if(!string.IsNullOrEmpty(ex._pyroTraceback))
+			ex.Data["_pyroTraceback"] = new string[] { ex._pyroTraceback } ;    	// transform single string back into list
 		dict["attributes"] = ex.Data;
 		return dict;
 	}
@@ -48,7 +59,17 @@ public class PyroExceptionPickler : IObjectPickler {
 			ex.Data[key] = entry.Value;
 			if("_pyroTraceback"==key)
 			{
-				ex._pyroTraceback = (string)entry.Value;
+				// if the traceback is a list of strings, create one string from it
+				if(entry.Value is ICollection) {
+					StringBuilder sb=new StringBuilder();
+					ICollection tbcoll=(ICollection)entry.Value;
+					foreach(object line in tbcoll) {
+						sb.Append(line);
+					}	
+					ex._pyroTraceback=sb.ToString();
+				} else {
+					ex._pyroTraceback=(string)entry.Value;
+				}
 			}
 		}
 		return ex;

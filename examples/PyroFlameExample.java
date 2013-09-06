@@ -6,6 +6,9 @@ public class PyroFlameExample {
     public static void main(String[] args) throws IOException
     {
         System.out.println("Pyrolite version: "+Config.PYROLITE_VERSION);
+        
+        Config.SERIALIZER = pickle;   // flame requires pickle serialization
+        
         String hostname=args[0];
         int port=Integer.parseInt(args[1]);
 

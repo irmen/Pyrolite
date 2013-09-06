@@ -6,6 +6,8 @@ public class PyroFlameExample {
     public static void Main(string[] args)
     {
         Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
+		Config.SERIALIZER = Config.SerializerType.pickle;		// flame requires pickle
+	
         string hostname=(string)args[0];
         int port=int.Parse(args[1]);
         using(var flame = new PyroProxy(hostname,port,"Pyro.Flame"))

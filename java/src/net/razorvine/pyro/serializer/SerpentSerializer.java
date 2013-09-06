@@ -1,0 +1,69 @@
+package net.razorvine.pyro.serializer;
+
+import java.io.IOException;
+import java.util.Map;
+
+import net.razorvine.pyro.Config;
+import net.razorvine.pyro.Message;
+import net.razorvine.pyro.PyroException;
+import net.razorvine.pyro.PyroProxy;
+import net.razorvine.pyro.PyroURI;
+import net.razorvine.serpent.IDictToInstance;
+import net.razorvine.serpent.Parser;
+import net.razorvine.serpent.Serializer;
+import net.razorvine.serpent.ast.Ast;
+
+public class SerpentSerializer extends PyroSerializer {
+
+	static {
+		Serializer.registerClass(PyroURI.class, new PyroUriPickler());
+		Serializer.registerClass(PyroException.class, new PyroExceptionPickler());
+		Serializer.registerClass(PyroProxy.class, new PyroProxyPickler());
+	}
+
+	@Override
+	public int getSerializerId() {
+		return Message.SERIALIZER_SERPENT; 
+	}
+
+	@Override
+	public byte[] serializeCall(String objectId, String method, Object[] vargs, Map<String, Object> kwargs) throws IOException {
+		Serializer s = new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS);
+		Object[] invokeparams = new Object[] {objectId, method, vargs, kwargs};
+		return s.serialize(invokeparams);
+	}
+
+	@Override
+	public byte[] serializeData(Object obj) throws IOException {
+		Serializer s = new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS);
+		return s.serialize(obj);
+	}
+
+	@Override
+	public Object deserializeData(byte[] data) throws IOException {
+		Parser p = new Parser();
+		Ast ast = p.parse(data);
+		IDictToInstance dictConverter = new DictConverter();
+		return ast.getData(dictConverter);
+	}
+	
+	class DictConverter implements IDictToInstance
+	{
+		public Object convert(Map<Object, Object> dict) throws IOException {
+			String classname = (String)dict.get("__class__");
+			boolean isException = dict.containsKey("__exception__") && (Boolean)dict.get("__exception__");
+			if(isException)
+			{
+				// map all exception types to the PyroException
+				return PyroExceptionPickler.FromSerpentDict(dict);
+			}
+			if("Pyro4.core.URI".equals(classname))
+				return PyroUriPickler.FromSerpentDict(dict);
+			else if("Pyro4.core.Proxy".equals(classname))
+				return PyroProxyPickler.FromSerpentDict(dict);
+			else
+				return null;
+		}
+	}
+
+}

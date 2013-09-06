@@ -5,10 +5,6 @@ import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.razorvine.pickle.Pickler;
-import net.razorvine.pickle.Unpickler;
-import net.razorvine.pickle.objects.AnyClassConstructor;
-
 /**
  * The Pyro URI object.
  * 
@@ -17,16 +13,11 @@ import net.razorvine.pickle.objects.AnyClassConstructor;
 public class PyroURI implements Serializable {
 
 	private static final long serialVersionUID = -7611447798373262153L;
-	String protocol = "PYRO";
-	String objectid;
-	String host;
-	int port;
+	public String protocol = "PYRO";
+	public String objectid;
+	public String host;
+	public int port;
 
-	static {
-		Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(PyroURI.class));
-		Pickler.registerCustomPickler(PyroURI.class, new PyroUriPickler());
-	}
-	
 	public PyroURI() {
 	}
 

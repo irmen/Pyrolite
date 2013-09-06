@@ -13,9 +13,7 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 import net.razorvine.pickle.PickleException;
-import net.razorvine.pickle.Pickler;
-import net.razorvine.pickle.Unpickler;
-import net.razorvine.pickle.objects.AnyClassConstructor;
+import net.razorvine.pyro.serializer.PyroSerializer;
 
 /**
  * Proxy for Pyro objects.
@@ -34,34 +32,6 @@ public class PyroProxy implements Serializable {
 	private transient OutputStream sock_out;
 	private transient InputStream sock_in;
 
-	static {
-		RegisterPickleConstructors();
-	}
-
-	/**
-	 * register Pyro specific constructors with the Pickle library.
-	 */
-	public static void RegisterPickleConstructors()
-	{
-		Unpickler.registerConstructor("Pyro4.errors", "PyroError", new AnyClassConstructor(PyroException.class));
-		Unpickler.registerConstructor("Pyro4.errors", "CommunicationError", new AnyClassConstructor(PyroException.class));
-		Unpickler.registerConstructor("Pyro4.errors", "ConnectionClosedError", new AnyClassConstructor(PyroException.class));
-		Unpickler.registerConstructor("Pyro4.errors", "TimeoutError", new AnyClassConstructor(PyroException.class));
-		Unpickler.registerConstructor("Pyro4.errors", "ProtocolError", new AnyClassConstructor(PyroException.class));
-		Unpickler.registerConstructor("Pyro4.errors", "NamingError", new AnyClassConstructor(PyroException.class));
-		Unpickler.registerConstructor("Pyro4.errors", "DaemonError", new AnyClassConstructor(PyroException.class));
-		Unpickler.registerConstructor("Pyro4.errors", "SecurityError", new AnyClassConstructor(PyroException.class));
-		Unpickler.registerConstructor("Pyro4.errors", "AsyncResultTimeout",	new AnyClassConstructor(PyroException.class));
-		Unpickler.registerConstructor("Pyro4.core", "Proxy", new ProxyClassConstructor());
-		Unpickler.registerConstructor("Pyro4.util", "Serializer", new AnyClassConstructor(DummyPyroSerializer.class));
-		Unpickler.registerConstructor("Pyro4.utils.flame", "FlameBuiltin", new AnyClassConstructor(FlameBuiltin.class));
-		Unpickler.registerConstructor("Pyro4.utils.flame", "FlameModule", new AnyClassConstructor(FlameModule.class));
-		Unpickler.registerConstructor("Pyro4.utils.flame", "RemoteInteractiveConsole", new AnyClassConstructor(FlameRemoteConsole.class));
-		// make sure a PyroURI can also be pickled even when not directly imported:
-		Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(PyroURI.class));
-		Pickler.registerCustomPickler(PyroURI.class, new PyroUriPickler());
-	}
-	
 	/**
 	 * No-args constructor for (un)pickling support
 	 */
@@ -128,13 +98,9 @@ public class PyroProxy implements Serializable {
 		}
 		if (parameters == null)
 			parameters = new Object[] {};
-		Object[] invokeparams = new Object[] { objectid, method, parameters, // vargs
-				Collections.EMPTY_MAP // kwargs
-		};
-		Pickler pickler=new Pickler(false);
-		byte[] pickle = pickler.dumps(invokeparams);
-		pickler.close();
-		Message msg = new Message(Message.MSG_INVOKE, pickle, Message.SERIALIZER_PICKLE, flags, sequenceNr, null);
+		PyroSerializer ser = PyroSerializer.getFor(Config.SERIALIZER);
+		byte[] pickle = ser.serializeCall(objectid, method, parameters, Collections.<String, Object> emptyMap());
+		Message msg = new Message(Message.MSG_INVOKE, pickle, ser.getSerializerId(), flags, sequenceNr, null);
 		Message resultmsg;
 		synchronized (this.sock) {
 			IOUtil.send(sock_out, msg.to_bytes());
@@ -168,9 +134,7 @@ public class PyroProxy implements Serializable {
 			}
 		}
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
-			Unpickler unpickler=new Unpickler();
-			Throwable rx = (Throwable) unpickler.loads(resultmsg.data);
-			unpickler.close();
+			Throwable rx = (Throwable) ser.deserializeData(resultmsg.data);
 			if (rx instanceof PyroException) {
 				throw (PyroException) rx;
 			} else {
@@ -185,10 +149,7 @@ public class PyroProxy implements Serializable {
 				throw px;
 			}
 		}
-		Unpickler unpickler=new Unpickler();
-		Object result=unpickler.loads(resultmsg.data);
-		unpickler.close();
-		return result;
+		return ser.deserializeData(resultmsg.data);
 	}
 
 	/**

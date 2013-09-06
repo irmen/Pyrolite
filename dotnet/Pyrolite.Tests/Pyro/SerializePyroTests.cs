@@ -35,10 +35,12 @@ namespace Pyrolite.Tests.Pyro
 			Assert.AreEqual(uri.port, proxy2.port);
 
 			var ex = new PyroException("error");
+			ex._pyroTraceback = "traceback";
 			s = this.ser.serializeData(ex);
 			x = this.ser.deserializeData(s);
 			PyroException ex2 = (PyroException) x;
 			Assert.AreEqual(ex.Message, ex2.Message);
+			Assert.AreEqual("traceback", ex2._pyroTraceback);
 		}
 	}
 	
@@ -86,12 +88,12 @@ namespace Pyrolite.Tests.Pyro
 			Assert.IsNull(ex._pyroTraceback);
 			
 			// try another kind of pyro exception
-			s = Encoding.UTF8.GetBytes("{'attributes':{'tb': 'traceback', '_pyroTraceback': 'pyrotraceback'},'__exception__':True,'args':('hello',42),'__class__':'CommunicationError'}");
+			s = Encoding.UTF8.GetBytes("{'attributes':{'tb': 'traceback', '_pyroTraceback': ['line1', 'line2']},'__exception__':True,'args':('hello',42),'__class__':'CommunicationError'}");
 			x = this.ser.deserializeData(s);
 			ex2 = (PyroException) x;
 			Assert.AreEqual("hello", ex2.Message);
 			Assert.AreEqual("traceback", ex2.Data["tb"]);
-			Assert.AreEqual("pyrotraceback", ex2._pyroTraceback);
+			Assert.AreEqual("line1line2", ex2._pyroTraceback);
 		}
 	}
 }

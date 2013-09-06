@@ -13,6 +13,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import net.razorvine.pyro.*;
+import net.razorvine.pyro.serializer.*;
 
 import static org.junit.Assert.*;
 import org.junit.After;
@@ -70,14 +71,14 @@ public class MessageTests {
 	@Test
 	public void TestMessage()
 	{
-		new Message(99, new byte[0], this.ser.serializer_id, 0, 0, null);  // doesn't check msg type here
+		new Message(99, new byte[0], this.ser.getSerializerId(), 0, 0, null);  // doesn't check msg type here
 		try {
 			Message.from_header("FOOBAR".getBytes());
 			fail("should crash");
 		} catch(PyroException x) {
 			// ok
 		}
-		Message msg = new Message(Message.MSG_CONNECT, "hello".getBytes(), this.ser.serializer_id, 0, 0, null);
+		Message msg = new Message(Message.MSG_CONNECT, "hello".getBytes(), this.ser.getSerializerId(), 0, 0, null);
 		assertEquals(Message.MSG_CONNECT, msg.type);
 		assertEquals(5, msg.data_size);
 		assertArrayEquals(new byte[]{(byte)'h',(byte)'e',(byte)'l',(byte)'l',(byte)'o'}, msg.data);
@@ -92,7 +93,7 @@ public class MessageTests {
 		assertEquals(4+2+20, msg.annotations_size);
 		assertEquals(5, msg.data_size);
 
-		hdr = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.serializer_id, 0, 0, null).to_bytes());
+		hdr = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 0, null).to_bytes());
 		msg = Message.from_header(hdr);
 		assertEquals(Message.MSG_RESULT, msg.type);
 		assertEquals(4+2+20, msg.annotations_size);
@@ -106,17 +107,17 @@ public class MessageTests {
 		assertEquals(12345, msg.serializer_id);
 		assertEquals(30003, msg.seq);
 
-		byte[] data = new Message(255, new byte[0], this.ser.serializer_id, 0, 255, null).to_bytes();
+		byte[] data = new Message(255, new byte[0], this.ser.getSerializerId(), 0, 255, null).to_bytes();
 		assertEquals(50, data.length);
-		data = new Message(1, new byte[0], this.ser.serializer_id, 0, 255, null).to_bytes();
+		data = new Message(1, new byte[0], this.ser.getSerializerId(), 0, 255, null).to_bytes();
 		assertEquals(50, data.length);
-		data = new Message(1, new byte[0], this.ser.serializer_id, 253, 254, null).to_bytes();
+		data = new Message(1, new byte[0], this.ser.getSerializerId(), 253, 254, null).to_bytes();
 		assertEquals(50, data.length);
 
 		// compression is a job of the code supplying the data, so the messagefactory should leave it untouched
 		data = new byte[1000];
-		byte[] msg_bytes1 = new Message(Message.MSG_INVOKE, data, this.ser.serializer_id, 0, 0, null).to_bytes();
-		byte[] msg_bytes2 = new Message(Message.MSG_INVOKE, data, this.ser.serializer_id, Message.FLAGS_COMPRESSED, 0, null).to_bytes();
+		byte[] msg_bytes1 = new Message(Message.MSG_INVOKE, data, this.ser.getSerializerId(), 0, 0, null).to_bytes();
+		byte[] msg_bytes2 = new Message(Message.MSG_INVOKE, data, this.ser.getSerializerId(), Message.FLAGS_COMPRESSED, 0, null).to_bytes();
 		assertEquals(msg_bytes1.length, msg_bytes2.length);
 	}
 	
@@ -140,7 +141,7 @@ public class MessageTests {
 		Map<String, byte[]> annotations = new HashMap<String,byte[]>();
 		annotations.put("TEST", new byte[]{10,20,30,40,50});
 		
-		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, annotations);
+		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, annotations);
 		byte[] data = msg.to_bytes();
 		int annotations_size = 4+2+20 + 4+2+5;
 		assertEquals(Message.HEADER_SIZE + 5 + annotations_size, data.length);
@@ -157,7 +158,7 @@ public class MessageTests {
 		try {
 			Map<String, byte[]> anno = new HashMap<String, byte[]>();
 			anno.put("TOOLONG", new byte[]{10,20,30});
-			Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, anno);
+			Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, anno);
 			msg.to_bytes();
 			fail("should fail, too long");
 		} catch(IllegalArgumentException x) {
@@ -166,7 +167,7 @@ public class MessageTests {
 		try {
 			Map<String, byte[]> anno = new HashMap<String, byte[]>();
 			anno.put("QQ", new byte[]{10,20,30});
-			Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, anno);
+			Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, anno);
 			msg.to_bytes();
 			fail("should fail, too short");
 		} catch (IllegalArgumentException x) {
@@ -179,7 +180,7 @@ public class MessageTests {
 	{
 		Map<String, byte[]> annotations = new HashMap<String, byte[]>();
 		annotations.put("TEST", new byte[]{10, 20,30,40,50});
-		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.serializer_id, 0, 0, annotations);
+		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, annotations);
 		ConnectionMock c = new ConnectionMock();
 		c.send(msg.to_bytes());
 		msg = Message.recv(c, null);
@@ -193,7 +194,7 @@ public class MessageTests {
 	@Test(expected=PyroException.class)
 	public void testProtocolVersion()
 	{
-		byte[] msg = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.serializer_id, 0, 1, null).to_bytes());
+		byte[] msg = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 1, null).to_bytes());
 		msg[4] = 99; // screw up protocol version in message header
 		Message.from_header(msg);
 	}

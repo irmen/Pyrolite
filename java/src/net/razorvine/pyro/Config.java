@@ -18,5 +18,14 @@ public final class Config implements Serializable {
 
     public final static int PROTOCOL_VERSION = 46;    // Pyro 4.22 and newer. Cannot be changed
 
-	public final static String PYROLITE_VERSION = "1.20";
+	public final static String PYROLITE_VERSION = "2.0";
+	
+	public enum SerializerType {
+		pickle,
+		serpent
+	}
+
+	public static boolean SERPENT_INDENT = false;
+	public static boolean SERPENT_SET_LITERALS = false;     // set to true if talking to Python 3.2 or newer
+	public static SerializerType SERIALIZER = SerializerType.serpent;
 }

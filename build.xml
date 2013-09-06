@@ -9,11 +9,17 @@
   <property name="jarfile" location="build/pyrolite.jar" />
   <property name="junitjar" location="java/lib/junit.jar" />
   <property name="junithamcrestjar" location="java/lib/hamcrest.jar" />
+  <property name="serpentjar" location="java/lib/serpent.jar" />
 
   <path id="classpath.test">
     <pathelement location="${build}" />
     <pathelement location="${junitjar}" />
     <pathelement location="${junithamcrestjar}" />
+    <pathelement location="${serpentjar}" />
+  </path>
+
+  <path id="classpath.build">
+    <pathelement location="${serpentjar}" />
   </path>
   
   <target name="all" depends="build-jar,test">
@@ -36,7 +42,9 @@
   	  <fileset dir="${build}" includes="**/*" defaultexcludes="no"/>
   	</delete>
     <javac srcdir="${libsrc}" destdir="${build}" listfiles="false"
-        debug="true" includeantruntime="false" optimize="true" />
+        debug="true" includeantruntime="false" optimize="true">
+      <classpath refid="classpath.test" />
+    </javac>
     <jar jarfile="${jarfile}" basedir="${build}" index="true"
         excludes="**/test/*.class" />
   </target>

@@ -10,11 +10,12 @@ import java.util.Map;
 import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PickleUtils;
-import net.razorvine.pickle.Pickler;
 import net.razorvine.pickle.PythonException;
 import net.razorvine.pickle.Unpickler;
 import net.razorvine.pyro.PyroProxy;
 import net.razorvine.pyro.PyroURI;
+import net.razorvine.pyro.serializer.PickleSerializer;
+import net.razorvine.pyro.serializer.PyroSerializer;
 
 import org.junit.After;
 import org.junit.Before;
@@ -28,11 +29,11 @@ import org.junit.Test;
 @SuppressWarnings({"unchecked", "serial"})
 public class UnpicklerComplexTests {
 
-	Object U(String strdata) throws PickleException, IOException
+	Object xxxU(String strdata) throws PickleException, IOException
 	{
-		return U(PickleUtils.str2bytes(strdata));	
+		return xxxU(PickleUtils.str2bytes(strdata));	
 	}
-	Object U(byte[] data) throws PickleException, IOException
+	Object xxxU(byte[] data) throws PickleException, IOException
 	{
 		Unpickler u=new Unpickler();
 		Object o=u.loads(data);
@@ -52,24 +53,26 @@ public class UnpicklerComplexTests {
 	@Test
 	public void testPickleUnpickleURI() throws IOException {
 		PyroURI uri=new PyroURI("PYRO:test@localhost:9999");
-		Pickler p=new Pickler();
-		byte[] pickled_uri=p.dumps(uri);
-		PyroURI uri2=(PyroURI) U(pickled_uri);
+		PyroSerializer ser = new PickleSerializer();
+		byte[] pickled_uri=ser.serializeData(uri);
+		PyroURI uri2=(PyroURI) ser.deserializeData(pickled_uri);
 		assertEquals(uri,uri2);
 
 		uri=new PyroURI();
-		pickled_uri=p.dumps(uri);
-		uri2=(PyroURI) U(pickled_uri);
+		pickled_uri=ser.serializeData(uri);
+		uri2=(PyroURI) ser.deserializeData(pickled_uri);
 		assertEquals(uri,uri2);
 	}
 
 	@Test
 	public void testPickleUnpickleProxy() throws IOException {
 		PyroProxy proxy=new PyroProxy("hostname",9999,"objectid");
-		Pickler p=new Pickler();
-		byte[] pickled_proxy=p.dumps(proxy);
-		Object result=U(pickled_proxy);
-		assertTrue(result instanceof HashMap); // proxy objects cannot be properly pickled and are pickled as bean, hence HashMap
+		PyroSerializer ser = new PickleSerializer();
+		byte[] pickled_proxy=ser.serializeData(proxy);
+		PyroProxy result = (PyroProxy) ser.deserializeData(pickled_proxy);
+		assertEquals(proxy.hostname, result.hostname);
+		assertEquals(proxy.objectid, result.objectid);
+		assertEquals(proxy.port, result.port);
 	}
 
 	@Test
@@ -84,9 +87,8 @@ public class UnpicklerComplexTests {
 				 117, 116, 105, 108, 10, 83, 101, 114, 105, 97, 108, 105, 122, 101, 114, 10, 113, 12, 41, -127,
 				 113, 13, 125, 113, 14, 98, 71, 0, 0, 0, 0, 0, 0, 0, 0, 116, 113, 15, 98, 46};
 		
-		PyroProxy.RegisterPickleConstructors();
-		
-		PyroProxy proxy=(PyroProxy)U(pickled_proxy);
+		PyroSerializer ser = new PickleSerializer();
+		PyroProxy proxy=(PyroProxy)ser.deserializeData(pickled_proxy);
 		assertEquals("someobject",proxy.objectid);
 		assertEquals("localhost",proxy.hostname);
 		assertEquals(9999,proxy.port);
@@ -99,7 +101,8 @@ public class UnpicklerComplexTests {
 		byte[] pickle = new byte[]
 			{(byte) 128, 2, 93, 113, 0, 40, 75, 65, 85, 5, 104, 101, 108, 108, 111, 113, 1, 104, 1, 125, 113, 2,
 			85, 7, 114, 101, 99, 117, 114, 115, 101, 113, 3, 104, 0, 115, 104, 1, 101, 46};
-		ArrayList<Object> a = (ArrayList<Object>) U(pickle);
+		PyroSerializer ser = new PickleSerializer();
+		ArrayList<Object> a = (ArrayList<Object>) ser.deserializeData(pickle);
 		assertEquals(5, a.size());
 		assertEquals(65, a.get(0));
 		assertEquals("hello", a.get(1));
@@ -118,7 +121,8 @@ public class UnpicklerComplexTests {
 				75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3,
 				101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
 
-		Map<String, Object> o = (Map<String, Object>) U(pickled);
+		PyroSerializer ser = new PickleSerializer();
+		Map<String, Object> o = (Map<String, Object>) ser.deserializeData(pickled);
 		assertEquals(4, o.size());
 		assertEquals("Harry", o.get("name"));
 		assertEquals(34, o.get("age"));
@@ -185,7 +189,8 @@ public class UnpicklerComplexTests {
 				101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
 		
 		Unpickler.registerConstructor("__main__","CustomClazz", new CustomClazzConstructor());
-		CustomClazz o = (CustomClazz) U(pickled);
+		PyroSerializer ser = new PickleSerializer();
+		CustomClazz o = (CustomClazz) ser.deserializeData(pickled);
 		assertEquals("Harry" ,o.name);
 		assertEquals(34 ,o.age);
 		ArrayList<Object> expected = new ArrayList<Object>() {{
@@ -198,22 +203,24 @@ public class UnpicklerComplexTests {
 	
 	@Test
 	public void testUnpickleException() throws IOException {
+		PyroSerializer ser = new PickleSerializer();
+
 		// python 2.x
-		PythonException x = (PythonException) U("cexceptions\nZeroDivisionError\np0\n(S'hello'\np1\ntp2\nRp3\n.");
+		PythonException x = (PythonException) ser.deserializeData("cexceptions\nZeroDivisionError\np0\n(S'hello'\np1\ntp2\nRp3\n.".getBytes());
 		assertEquals("hello", x.getMessage());
 		// python 3.x
-		x = (PythonException) U("c__builtin__\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
+		x = (PythonException) ser.deserializeData("c__builtin__\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.".getBytes());
 		assertEquals("hello", x.getMessage());
-		x = (PythonException) U("cbuiltins\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
+		x = (PythonException) ser.deserializeData("cbuiltins\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.".getBytes());
 		assertEquals("hello", x.getMessage());
 
 		// python 2.x
-		x = (PythonException) U("cexceptions\nGeneratorExit\np0\n(tRp1\n.");
+		x = (PythonException) ser.deserializeData("cexceptions\nGeneratorExit\np0\n(tRp1\n.".getBytes());
 		assertNull(x.getMessage());
 		// python 3.x
-		x = (PythonException) U("c__builtin__\nGeneratorExit\np0\n(tRp1\n.");
+		x = (PythonException) ser.deserializeData("c__builtin__\nGeneratorExit\np0\n(tRp1\n.".getBytes());
 		assertNull(x.getMessage());
-		x = (PythonException) U("cbuiltins\nGeneratorExit\np0\n(tRp1\n.");
+		x = (PythonException) ser.deserializeData("cbuiltins\nGeneratorExit\np0\n(tRp1\n.".getBytes());
 		assertNull(x.getMessage());
 	}
 }

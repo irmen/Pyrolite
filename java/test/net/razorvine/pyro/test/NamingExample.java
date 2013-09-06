@@ -66,6 +66,15 @@ public class NamingExample {
 		if(System.getProperty("PYRO_TRACE_DIR")!=null) {
 			tracedir=System.getProperty("PYRO_TRACE_DIR");
 		}
+
+		String serializer=System.getenv("PYRO_SERIALIZER");
+		if(System.getProperty("PYRO_SERIALIZER")!=null) {
+			serializer=System.getProperty("PYRO_SERIALIZER");
+		}
+		if(serializer!=null) {
+			Config.SERIALIZER = Enum.valueOf(Config.SerializerType.class, serializer);
+		}
+
 		Config.MSG_TRACE_DIR=tracedir;
 	}
 }

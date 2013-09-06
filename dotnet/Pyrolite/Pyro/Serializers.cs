@@ -65,7 +65,7 @@ namespace Razorvine.Pyro
 	{
 		public override ushort serializer_id {
 			get {
-				return 4;  // make sure this matches the id from Pyro
+				return Message.SERIALIZER_PICKLE;
 			}
 		}
 		
@@ -132,7 +132,7 @@ namespace Razorvine.Pyro
 
 		public override ushort serializer_id {
 			get {
-				return 1; // make sure this matches the id from Pyro
+				return Message.SERIALIZER_SERPENT;
 			}
 		}
 		

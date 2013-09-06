@@ -63,5 +63,7 @@ public class FlameExample {
 			tracedir=System.getProperty("PYRO_TRACE_DIR");
 		}
 		Config.MSG_TRACE_DIR=tracedir;
+		
+		Config.SERIALIZER = Config.SerializerType.pickle;   // flame requires the pickle serializer
 	}	
 }
