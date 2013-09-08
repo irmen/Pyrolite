@@ -2,7 +2,6 @@ package net.razorvine.pyro.test;
 
 import static org.junit.Assert.*;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 import net.razorvine.pyro.PyroException;

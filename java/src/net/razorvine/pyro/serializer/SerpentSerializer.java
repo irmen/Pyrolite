@@ -16,9 +16,9 @@ import net.razorvine.serpent.ast.Ast;
 public class SerpentSerializer extends PyroSerializer {
 
 	static {
-		Serializer.registerClass(PyroURI.class, new PyroUriPickler());
-		Serializer.registerClass(PyroException.class, new PyroExceptionPickler());
-		Serializer.registerClass(PyroProxy.class, new PyroProxyPickler());
+		Serializer.registerClass(PyroURI.class, new PyroUriSerpent());
+		Serializer.registerClass(PyroException.class, new PyroExceptionSerpent());
+		Serializer.registerClass(PyroProxy.class, new PyroProxySerpent());
 	}
 
 	@Override
@@ -55,12 +55,12 @@ public class SerpentSerializer extends PyroSerializer {
 			if(isException)
 			{
 				// map all exception types to the PyroException
-				return PyroExceptionPickler.FromSerpentDict(dict);
+				return PyroExceptionSerpent.FromSerpentDict(dict);
 			}
 			if("Pyro4.core.URI".equals(classname))
-				return PyroUriPickler.FromSerpentDict(dict);
+				return PyroUriSerpent.FromSerpentDict(dict);
 			else if("Pyro4.core.Proxy".equals(classname))
-				return PyroProxyPickler.FromSerpentDict(dict);
+				return PyroProxySerpent.FromSerpentDict(dict);
 			else
 				return null;
 		}

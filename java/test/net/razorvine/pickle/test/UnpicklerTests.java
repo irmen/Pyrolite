@@ -15,7 +15,6 @@ import java.util.Set;
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PickleUtils;
 import net.razorvine.pickle.Unpickler;
-import net.razorvine.pickle.objects.AnyClassConstructor;
 import net.razorvine.pickle.objects.ComplexNumber;
 import net.razorvine.pickle.objects.Time;
 import net.razorvine.pickle.objects.TimeDelta;

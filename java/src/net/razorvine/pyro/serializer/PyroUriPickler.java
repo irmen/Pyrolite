@@ -2,22 +2,19 @@ package net.razorvine.pyro.serializer;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import net.razorvine.pickle.IObjectPickler;
 import net.razorvine.pickle.Opcodes;
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.Pickler;
 import net.razorvine.pyro.PyroURI;
-import net.razorvine.serpent.IClassSerializer;
 
 /**
  * Pickler extension to be able to pickle Pyro URI objects.
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */
-public class PyroUriPickler implements IObjectPickler, IClassSerializer {
+public class PyroUriPickler implements IObjectPickler {
 
 	public void pickle(Object o, OutputStream out, Pickler currentPickler) throws PickleException, IOException {
 		PyroURI uri = (PyroURI) o;
@@ -33,18 +30,5 @@ public class PyroUriPickler implements IObjectPickler, IClassSerializer {
 		currentPickler.save(uri.port);
 		out.write(Opcodes.TUPLE);
 		out.write(Opcodes.BUILD);
-	}
-
-	public static Object FromSerpentDict(Map<Object, Object> dict) {
-		Object[] state = (Object[])dict.get("state");  // protocol, objectid, socketname, hostname, port
-		return new PyroURI((String)state[1], (String)state[3], (Integer)state[4]);
-	}
-
-	public Map<String, Object> convert(Object obj) {
-		PyroURI uri = (PyroURI) obj;
-		Map<String, Object> dict = new HashMap<String, Object>();
-		dict.put("state", new Object[]{uri.protocol, uri.objectid, null, uri.host, uri.port});
-		dict.put("__class__", "Pyro4.core.URI");
-		return dict;
 	}
 }
