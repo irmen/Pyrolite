@@ -47,8 +47,6 @@ public class SerializePyroTests {
 		PyroException ex = new PyroException("error");
 		ex._pyroTraceback = "traceback";
 		s = this.ser.serializeData(ex);
-		
-		new FileOutputStream("d:/java.bin").write(s); // TOOD weg
 		x = this.ser.deserializeData(s);
 		PyroException ex2 = (PyroException) x;
 		assertEquals(ex.getMessage(), ex2.getMessage());
