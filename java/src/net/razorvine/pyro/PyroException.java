@@ -27,7 +27,15 @@ public class PyroException extends RuntimeException {
 	public void __setstate__(HashMap<?, ?> args) {
 		Object tb=args.get("_pyroTraceback");
 		// if the traceback is a list of strings, create one string from it
-		if(tb instanceof List) {
+		Class<?> componentType = tb.getClass().getComponentType();
+		if(componentType!=null) {
+			StringBuilder sb=new StringBuilder();
+			for(Object line: (Object[])tb) {
+				sb.append(line);
+			}	
+			_pyroTraceback=sb.toString();
+		}
+		else if(tb instanceof List) {
 			StringBuilder sb=new StringBuilder();
 			for(Object line: (List<?>)tb) {
 				sb.append(line);

@@ -469,8 +469,7 @@ public class UnpicklerTests {
 	public void testBinint2WithObject() throws PickleException, IOException
 	{
 		Unpickler u=new Unpickler();
-		Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(String.class));
-		byte[] data=PickleUtils.str2bytes("\u0080\u0002cPyro4.core\nURI\n)\u0081M\u0082#.");
+		byte[] data=PickleUtils.str2bytes("\u0080\u0002cIgnore.ignore\nignore\n)\u0081M\u0082#.");
 		int result=(Integer) u.loads(data);
 		assertEquals(9090,result);
 	}

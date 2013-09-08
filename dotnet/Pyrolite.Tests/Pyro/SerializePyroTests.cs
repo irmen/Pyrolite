@@ -37,6 +37,7 @@ namespace Pyrolite.Tests.Pyro
 			var ex = new PyroException("error");
 			ex._pyroTraceback = "traceback";
 			s = this.ser.serializeData(ex);
+			File.WriteAllBytes("D:/dotnet.bin", s); // TODO weg
 			x = this.ser.deserializeData(s);
 			PyroException ex2 = (PyroException) x;
 			Assert.AreEqual(ex.Message, ex2.Message);
