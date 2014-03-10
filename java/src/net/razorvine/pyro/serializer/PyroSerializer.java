@@ -56,7 +56,7 @@ public abstract class PyroSerializer
 		}
 	}
 
-	private static int compareLibraryVersions(String actual, String other) {
+	public static int compareLibraryVersions(String actual, String other) {
 		Scanner s1 = new Scanner(actual);
 		Scanner s2 = new Scanner(other);
 		s1.useDelimiter("\\.");
@@ -66,13 +66,20 @@ public abstract class PyroSerializer
 		    int v1 = s1.nextInt();
 		    int v2 = s2.nextInt();
 		    if(v1 < v2) {
+		    	s1.close();
+		    	s2.close();
 		        return -1;
 		    } else if(v1 > v2) {
+		    	s1.close();
+		    	s2.close();
 		        return 1;
 		    }
 		}
 
-		if(s1.hasNextInt()) return 1; //str1 has an additional lower-level version number
-		return 0;	
+		int result = 0;
+		if(s1.hasNextInt()) result=1; //str1 has an additional lower-level version number
+		s1.close();
+		s2.close();
+		return result;
 	}
 }

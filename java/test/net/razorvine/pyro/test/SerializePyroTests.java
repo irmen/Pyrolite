@@ -51,4 +51,14 @@ public class SerializePyroTests {
 		assertEquals(ex.getMessage(), ex2.getMessage());
 		assertEquals("traceback", ex2._pyroTraceback);
 	}
+	
+	@Test
+	public void testCompareLibVersions()
+	{
+		assertEquals(-1, PickleSerializer.compareLibraryVersions("1.2", "2"));
+		assertEquals(-1, PickleSerializer.compareLibraryVersions("1.2", "2.5.6"));
+		assertEquals(0, PickleSerializer.compareLibraryVersions("1.2", "1.2"));
+		assertEquals(1, PickleSerializer.compareLibraryVersions("2", "1.2"));
+		assertEquals(1, PickleSerializer.compareLibraryVersions("2.54.66", "1.2.3.4.99"));
+	}
 }

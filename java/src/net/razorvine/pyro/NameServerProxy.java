@@ -91,6 +91,9 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 			else
 				throw x;
 		}
+		finally {
+			udpsock.close();
+		}
 		String location=new String(response.getData(), 0, response.getLength());
 		return new NameServerProxy(new PyroURI(location));
 	}
