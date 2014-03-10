@@ -480,9 +480,19 @@ public class PicklerTests {
 		assertEquals(1, h2.size());
 		assertSame(h2, h2.get("myself"));
 	}
-	
 
-	public class PersonBean implements java.io.Serializable {
+	public static class PersonBaseBean
+	{
+		public static String getStaticName() {
+			return "static base";
+		}
+		
+		public String getBaseName() {
+			return "basename";
+		}
+	}
+
+	public static class PersonBean extends PersonBaseBean implements java.io.Serializable {
 		private static final long serialVersionUID = 3236709849734459121L;
 		private String name;
 	    private boolean deceased;
@@ -505,6 +515,35 @@ public class PicklerTests {
 	    public int[] getValues() {
 	    	return this.values;
 	    }
+	    
+	    @SuppressWarnings("unused")
+		private String getPrivate() {
+	    	return "nothing";
+	    }
+	    
+	    public String doSomething() {
+	    	return "nothing";
+	    }
+	    
+	    public static String getStaticName() {
+	    	return "static";
+	    }
+	    
+	    public int get_int2() {
+	    	return 42;
+	    }
+	    
+	    public int getint3() {
+	    	return 99;
+	    }
+	    
+	    public int getNUMBER() {
+	    	return 123;
+	    }
+	    
+	    public int getX() {
+	    	return 99;
+	    }
 	}
 
 
@@ -519,7 +558,12 @@ public class PicklerTests {
 		@SuppressWarnings("unchecked")
 		Map<String,Object> map=(Map<String,Object>)pu.loads(o);
 		
-		assertEquals(4, map.size());
+		assertEquals(9, map.size());
+		assertEquals("basename", map.get("baseName"));
+		assertEquals(42, map.get("_int2"));
+		assertEquals(99, map.get("int3"));
+		assertEquals(123, map.get("NUMBER"));
+		assertEquals(99, map.get("x"));
 		assertEquals("Tupac", map.get("name"));
 		assertEquals(true, map.get("deceased"));
 		assertArrayEquals(new int[] {3,4,5}, (int[]) map.get("values"));

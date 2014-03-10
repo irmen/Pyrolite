@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Minimalistic holders for Pyro config items.
  *
  * @author Irmen de Jong (irmen@razorvine.net)
- * @version 1.20
+ * @version 2.1
  */
 public final class Config implements Serializable {
 	private static final long serialVersionUID = 198635706890570066L;
@@ -18,7 +18,7 @@ public final class Config implements Serializable {
 
     public final static int PROTOCOL_VERSION = 46;    // Pyro 4.22 and newer. Cannot be changed
 
-	public final static String PYROLITE_VERSION = "2.0";
+	public final static String PYROLITE_VERSION = "2.1";
 	
 	public enum SerializerType {
 		pickle,

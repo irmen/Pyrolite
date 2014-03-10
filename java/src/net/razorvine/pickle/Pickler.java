@@ -1,14 +1,11 @@
 package net.razorvine.pickle;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Calendar;
@@ -578,20 +575,30 @@ public class Pickler {
 	void put_javabean(Object o) throws PickleException, IOException {
 		Map<String,Object> map=new HashMap<String,Object>();
 		try {
-			BeanInfo info=Introspector.getBeanInfo(o.getClass(), Object.class);
-			for(PropertyDescriptor p: info.getPropertyDescriptors()) {
-				String name=p.getName();
-				Method readmethod=p.getReadMethod();
-				if(readmethod==null) {
-					throw new PickleException("can't find public read method for bean property '"+name+"' in class "+o.getClass());
+			// note: don't use the java.bean api, because that is not available on Android.
+			for(Method m: o.getClass().getMethods()) {
+				int modifiers = m.getModifiers();
+				if((modifiers & Modifier.PUBLIC)!=0 && (modifiers & Modifier.STATIC)==0) {
+					String methodname = m.getName();
+					int prefixlen = 0;
+					if(methodname.equals("getClass")) continue;
+					if(methodname.startsWith("get")) prefixlen=3;
+					else if(methodname.startsWith("is")) prefixlen=2;
+					else continue;
+					Object value = m.invoke(o);
+					String name = methodname.substring(prefixlen);
+					if(name.length()==1) {
+						name = name.toLowerCase();
+					} else {
+						if(!Character.isUpperCase(name.charAt(1))) {
+							name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
+						}
+					}
+					map.put(name, value);
 				}
-				Object value=readmethod.invoke(o);
-				map.put(name, value);
 			}
 			map.put("__class__", o.getClass().getName());
 			save(map);
-		} catch (IntrospectionException e) {
-			throw new PickleException("couldn't introspect javabean: "+e);
 		} catch (IllegalArgumentException e) {
 			throw new PickleException("couldn't introspect javabean: "+e);
 		} catch (IllegalAccessException e) {
