@@ -1,7 +1,6 @@
 package net.razorvine.pickle.test;
 
 import static org.junit.Assert.*;
-import junit.framework.Assert;
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.objects.ArrayConstructor;
 
@@ -15,35 +14,35 @@ public class ArrayConstructorTest {
 		ArrayConstructor ac=new ArrayConstructor();
 		try {
 			ac.construct('b', -1, new byte[]{0});
-			Assert.fail("expected pickleexception");
+			fail("expected pickleexception");
 		} catch (PickleException x) {
 			//ok
 		}
 
 		try {
 			ac.construct('b', 0, new byte[]{0});
-			Assert.fail("expected pickleexception");
+			fail("expected pickleexception");
 		} catch (PickleException x) {
 			//ok
 		}
 
 		try {
 			ac.construct('?', 0, new byte[]{0});
-			Assert.fail("expected pickleexception");
+			fail("expected pickleexception");
 		} catch (PickleException x) {
 			//ok
 		}
 		
 		try {
 			ac.construct('b', 22, new byte[]{0});
-			Assert.fail("expected pickleexception");
+			fail("expected pickleexception");
 		} catch (PickleException x) {
 			//ok
 		}
 
 		try {
 			ac.construct('d', 16, new byte[]{0});
-			Assert.fail("expected pickleexception");
+			fail("expected pickleexception");
 		} catch (PickleException x) {
 			//ok
 		}

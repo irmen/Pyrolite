@@ -258,6 +258,7 @@ public class MessageTests {
 		byte[] data = c.ReceivedData();
 		data[Message.HEADER_SIZE-2] = 0;
 		data[Message.HEADER_SIZE-1] = 0;
+		c.close();
 		c = new ConnectionMock(data);
 		try {
 			Message.recv(c, null);
@@ -266,5 +267,7 @@ public class MessageTests {
 		catch(PyroException x) {
 			assertTrue(x.getMessage().contains("checksum"));
 		}
+		c.close();
+		
 	}
 }
