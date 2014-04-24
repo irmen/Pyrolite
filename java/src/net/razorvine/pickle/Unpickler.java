@@ -32,7 +32,7 @@ public class Unpickler {
 	private final int HIGHEST_PROTOCOL = 3;
 
 	private Map<Integer, Object> memo;
-	private UnpickleStack stack;
+	protected UnpickleStack stack;
 	private InputStream input;
 	private static Map<String, IObjectConstructor> objectConstructors;
 
