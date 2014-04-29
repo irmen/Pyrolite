@@ -23,7 +23,7 @@ public class Unpickler : IDisposable {
 	private const int HIGHEST_PROTOCOL = 3;
 
 	private IDictionary<int, object> memo;
-	private UnpickleStack stack;
+	protected UnpickleStack stack;
 	private Stream input;
 	private static IDictionary<string, IObjectConstructor> objectConstructors;
 
