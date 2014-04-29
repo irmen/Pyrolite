@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Pyrolite")]
-[assembly: AssemblyCopyright("Copyright 2011-2013 Irmen de Jong")]
+[assembly: AssemblyCopyright("Copyright Irmen de Jong")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
