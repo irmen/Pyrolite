@@ -13,14 +13,14 @@ namespace Razorvine.Pickle
 {
 
 /// <summary>
-/// Unpickles an object graph from a pickle data inputstream.
+/// Unpickles an object graph from a pickle data inputstream. Supports all pickle protocol versions.
 /// Maps the python objects on the corresponding java equivalents or similar types.
 /// This class is NOT threadsafe! (Don't use the same unpickler from different threads)
 /// See the README.txt for a table with the type mappings.
 /// </summary>
 public class Unpickler : IDisposable {
 
-	private const int HIGHEST_PROTOCOL = 3;
+	private const int HIGHEST_PROTOCOL = 4;
 
 	private IDictionary<int, object> memo;
 	protected UnpickleStack stack;
@@ -272,6 +272,38 @@ public class Unpickler : IDisposable {
 		case Opcodes.SHORT_BINBYTES:
 			load_short_binbytes();
 			break;
+			
+		// Protocol 4 (Python 3.4+)
+		case Opcodes.BINUNICODE8:
+			load_binunicode8();
+			break;
+		case Opcodes.SHORT_BINUNICODE:
+			load_short_binunicode();
+			break;
+		case Opcodes.BINBYTES8:
+			load_binbytes8();
+			break;
+		case Opcodes.EMPTY_SET:
+			load_empty_set();
+			break;
+		case Opcodes.ADDITEMS:
+			load_additems();
+			break;
+		case Opcodes.FROZENSET:
+			load_frozenset();
+			break;
+		case Opcodes.MEMOIZE:
+			load_memoize();
+			break;
+		case Opcodes.FRAME:
+			load_frame();
+			break;
+		case Opcodes.NEWOBJ_EX:
+			load_newobj_ex();
+			break;
+		case Opcodes.STACK_GLOBAL:
+			load_stack_global();
+			break;
 
 		default:
 			throw new InvalidOpcodeException("invalid pickle opcode: " + key);
@@ -415,6 +447,11 @@ public class Unpickler : IDisposable {
 		stack.add(PickleUtils.readbytes(input, len));
 	}
 
+	void load_binbytes8() {
+		long len = PickleUtils.bytes_to_long(PickleUtils.readbytes(input, 8),0);
+		stack.add(PickleUtils.readbytes(input, len));
+	}
+
 	void load_unicode() {
 		string str=PickleUtils.decode_unicode_escaped(PickleUtils.readline(input));
 		stack.add(str);
@@ -422,6 +459,18 @@ public class Unpickler : IDisposable {
 
 	void load_binunicode() {
 		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+		byte[] data = PickleUtils.readbytes(input, len);
+		stack.add(Encoding.UTF8.GetString(data));
+	}
+
+	void load_binunicode8() {
+		long len = PickleUtils.bytes_to_long(PickleUtils.readbytes(input, 8),0);
+		byte[] data = PickleUtils.readbytes(input, len);
+		stack.add(Encoding.UTF8.GetString(data));
+	}
+
+	void load_short_binunicode() {
+		int len = PickleUtils.readbyte(input);
 		byte[] data = PickleUtils.readbytes(input, len);
 		stack.add(Encoding.UTF8.GetString(data));
 	}
@@ -471,6 +520,10 @@ public class Unpickler : IDisposable {
 		stack.add(new Hashtable(5));
 	}
 
+	void load_empty_set() {
+		stack.add(new HashSet<object>());
+	}
+
 	void load_list() {
 		ArrayList top = stack.pop_all_since_marker();
 		stack.add(top); // simply add the top items as a list to the stack again
@@ -486,11 +539,37 @@ public class Unpickler : IDisposable {
 		}
 		stack.add(map);
 	}
+	
+	void load_frozenset() {
+		ArrayList top = stack.pop_all_since_marker();
+		var set = new HashSet<object>();
+		foreach(var element in top)
+			set.Add(element);
+		stack.add(set);
+	}
+	
+	void load_additems() {
+		ArrayList top = stack.pop_all_since_marker();
+		var set = (HashSet<object>) stack.pop();
+		foreach(object item in top)
+			set.Add(item);
+		stack.add(set);
+	}
 
 	void load_global() {
-		IObjectConstructor constructor;
 		string module = PickleUtils.readline(input);
 		string name = PickleUtils.readline(input);
+		load_global_sub(module, name);
+	}
+	
+	void load_stack_global() {
+		string name = (string) stack.pop();
+		string module = (string) stack.pop();
+		load_global_sub(module, name);
+	}
+	
+	void load_global_sub(string module, string name) {
+		IObjectConstructor constructor;
 		string key=module+"."+name;
 		if(objectConstructors.ContainsKey(key)) {
 			 constructor = objectConstructors[module + "." + name];
@@ -517,7 +596,7 @@ public class Unpickler : IDisposable {
 				constructor=new ClassDictConstructor(module, name);
 			}
 		}
-		stack.add(constructor);
+		stack.add(constructor);		
 	}
 
 	void load_pop() {
@@ -562,6 +641,10 @@ public class Unpickler : IDisposable {
 	void load_binput() {
 		byte i = PickleUtils.readbyte(input);
 		memo[(int)i]=stack.peek();
+	}
+
+	void load_memoize() {
+		memo[memo.Count]=stack.peek();
 	}
 
 	void load_long_binput() {
@@ -615,8 +698,22 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_newobj() {
-		load_reduce(); // for Java we just do the same as class(*args) instead
-						// of class.__new__(class,*args)
+		load_reduce(); // we just do the same as class(*args) instead of class.__new__(class,*args)
+	}
+	
+	void load_newobj_ex() {
+		Hashtable kwargs = (Hashtable) stack.pop();
+		object[] args = (object[]) stack.pop();
+		IObjectConstructor constructor = (IObjectConstructor) stack.pop();
+		if(kwargs.Count==0)
+			stack.add(constructor.construct(args));
+		else
+			throw new PickleException("newobj_ex with keyword arguments not supported");
+	}
+	
+	void load_frame() {
+		// for now we simply skip the frame opcode and its length
+		PickleUtils.readbytes(input, 8);
 	}
 	
 	public void Dispose()

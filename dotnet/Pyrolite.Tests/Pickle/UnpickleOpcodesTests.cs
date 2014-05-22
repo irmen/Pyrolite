@@ -5,8 +5,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+
 using NUnit.Framework;
 using Razorvine.Pickle;
+using Razorvine.Pickle.Objects;
 
 namespace Pyrolite.Tests.Pickle
 {
@@ -34,12 +36,12 @@ public class UnpickleOpcodesTests {
 		return u.loads(PickleUtils.str2bytes(strdata));
 	}
 	
-	[TestFixtureSetUp]
+	[SetUp]
 	public void setUp() {
 		u=new Unpickler();
 	}
 
-	[TestFixtureTearDown]
+	[TearDown]
 	public void tearDown() {
 		u.close();
 	}
@@ -276,6 +278,29 @@ public class UnpickleOpcodesTests {
 	}
 
 	[Test]
+	public void testBINUNICODE8() {
+		//BINUNICODE8 = 0x8d;  // push very long string
+		Assert.AreEqual("", U("\u008d\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000."));
+		Assert.AreEqual("abc", U("\u008d\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000abc."));
+		Assert.AreEqual("\u20ac", u.loads(new byte[]{Opcodes.BINUNICODE8, 0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x00,(byte)0xe2,(byte)0x82,(byte)0xac,Opcodes.STOP}));
+	}
+
+	[Test]
+	public void testSHORTBINUNICODE() {
+		//SHORT_BINUNICODE = 0x8c;  // push short string; UTF-8 length < 256 bytes
+		Assert.AreEqual("", U("\u008c\u0000."));
+		Assert.AreEqual("abc", U("\u008c\u0003abc."));
+		Assert.AreEqual("\u20ac", u.loads(new byte[]{Opcodes.SHORT_BINUNICODE, 0x03,(byte)0xe2,(byte)0x82,(byte)0xac,Opcodes.STOP}));
+
+		try {
+			u.loads(new byte[]{Opcodes.SHORT_BINUNICODE, 0x00, 0x00, Opcodes.STOP});
+			Assert.Fail("expected error");
+		} catch (PickleException) {
+			// ok
+		}
+	}
+
+	[Test]
 	public void testAPPEND() {
 		//APPEND         = b'a'   # append stack top to list below it
 		ArrayList list=new ArrayList();
@@ -450,6 +475,33 @@ public class UnpickleOpcodesTests {
 	}
 
 	[Test]
+	public void testEMPTY_SET() {
+		//EMPTY_SET = 0x8f;  // push empty set on the stack
+		var value = new HashSet<object>();
+		Assert.AreEqual(value, u.loads(new byte[]{ 0x8f, Opcodes.STOP}));
+	}
+
+	[Test]
+	public void testFROZENSET() {
+		//FROZENSET = 0x91;  // build frozenset from topmost stack items
+		var value = new HashSet<object>();
+		Assert.AreEqual(value, u.loads(new byte[]{ Opcodes.MARK, Opcodes.FROZENSET, Opcodes.STOP}));
+		value.Add(42);
+		value.Add("a");
+		Assert.AreEqual(value, u.loads(new byte[]{ Opcodes.MARK, Opcodes.BININT1, 42, Opcodes.SHORT_BINUNICODE, 1, 97, Opcodes.FROZENSET, Opcodes.STOP}));
+	}
+
+	[Test]
+	public void testADDITEMS() {
+		//ADDITEMS = 0x90;  // modify set by adding topmost stack items
+		var value = new HashSet<object>();
+		Assert.AreEqual(value, u.loads(new byte[]{ Opcodes.EMPTY_SET, Opcodes.MARK, Opcodes.ADDITEMS, Opcodes.STOP}));
+		value.Add(42);
+		value.Add("a");
+		Assert.AreEqual(value, u.loads(new byte[]{ Opcodes.EMPTY_SET, Opcodes.MARK, Opcodes.BININT1, 42, Opcodes.SHORT_BINUNICODE, 1, 97, Opcodes.ADDITEMS, Opcodes.STOP}));
+	}
+
+	[Test]
 	public void testSETITEMS() {
 		//SETITEMS       = b'u'   # modify dict by adding topmost key+value pairs
 		var dict=new Hashtable();
@@ -494,8 +546,9 @@ public class UnpickleOpcodesTests {
 		U("\u0080\u0001N.");
 		U("\u0080\u0002N.");
 		U("\u0080\u0003N.");
+		U("\u0080\u0004N.");
 		try {
-			U("\u0080\u0004N."); // unsupported protocol 4.
+			U("\u0080\u0005N."); // unsupported protocol 5.
 			Assert.Fail("expected pickle exception");
 		} catch (PickleException) {
 			// ok
@@ -510,7 +563,22 @@ public class UnpickleOpcodesTests {
 		decimal dec=123.456m;
 		Assert.AreEqual(dec, (decimal)U("cdecimal\nDecimal\n(V123.456\nt\u0081."));
 	}
+	
+	[Test]
+	public void testNEWOBJ_EX() {
+		//NEWOBJ_EX = 0x92;  // like NEWOBJ but work with keyword only arguments
+		decimal dec=123.456m;
+		Assert.AreEqual(dec, (decimal)U("cdecimal\nDecimal\n(V123.456\nt}\u0092."));
+		
+		try {
+			Assert.AreEqual(dec, (decimal)U("cdecimal\nDecimal\n(V123.456\nt}\u008c\u0004testK1s\u0092."));
+			Assert.Fail("expected exception");
+		} catch (PickleException x) {
+			Assert.AreEqual("newobj_ex with keyword arguments not supported", x.Message);
+		}
+	}
 
+	
 	[Test, ExpectedException(typeof(InvalidOpcodeException))]
 	public void testEXT1() {
 		//EXT1           = b'\x82'  # push object from extension registry; 1-byte index
@@ -633,6 +701,24 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(bytes, (byte[]) U("B\u0000\u0002\u0000\u0000"+STRING256+STRING256+"."));
 	}
 
+
+	[Test]
+	public void testBINBYTES8() {
+		//BINBYTES8 = 0x8e;  // push very long bytes string
+		byte[] bytes;
+		bytes=new byte[]{};
+		Assert.AreEqual(bytes, (byte[]) U("\u008e\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000."));
+		bytes=new byte[]{(byte)'a'};
+		Assert.AreEqual(bytes, (byte[]) U("\u008e\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000a."));
+		bytes=new byte[]{(byte)0xa1, (byte)0xa2, (byte)0xa3};
+		Assert.AreEqual(bytes, (byte[]) U("\u008e\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u00a1\u00a2\u00a3."));
+		bytes=new byte[512];
+		for(int i=1; i<512; ++i) {
+			bytes[i]=(byte)(i&0xff);
+		}
+		Assert.AreEqual(bytes, (byte[]) U("\u008e\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000"+STRING256+STRING256+"."));
+	}
+
 	[Test]
 	public void testSHORT_BINBYTES() {
 		//SHORT_BINBYTES = b'C'   #  push bytes; counted binary string argument < 256 bytes
@@ -649,7 +735,38 @@ public class UnpickleOpcodesTests {
 		}
 		Assert.AreEqual(bytes, (byte[]) U("C\u00ff"+STRING255+"."));
 	}
+	
+	[Test]
+	public void testMEMOIZE() {
+		// MEMOIZE = 0x94;  // store top of the stack in memo
+		var value = new object[3] {1,2,2};
+		var result = (object[]) U("K\u0001\u0094K\u0002\u0094h\u0000h\u0001h\u0001\u0087.");
+		Assert.AreEqual(value, result);
+	}
+	
+	[Test]
+	public void testFRAME() {
+		// FRAME = 0x95;  // indicate the beginning of a new frame
+		var result = u.loads(new byte[] { Opcodes.FRAME, 6,0,0,0,0,0,0,0, 
+		                     	Opcodes.BININT1, 42, Opcodes.BININT1, 43, Opcodes.BININT1, 44,
+		                     	Opcodes.FRAME, 2,0,0,0,0,0,0,0, Opcodes.TUPLE3, Opcodes.STOP});
+		var value = new object[3] {42,43,44};
+		Assert.AreEqual(value, result);
+	}
 
+	[Test]
+	public void testGLOBAL() {
+		//GLOBAL = (byte)'c'; // push self.find_class(modname, name); 2 string args
+		var result = U("cdecimal\nDecimal\n.");
+		Assert.IsInstanceOf(typeof(DecimalConstructor), result);
+	}
+
+	[Test]
+	public void testSTACK_GLOBAL() {
+		//STACK_GLOBAL = 0x93;  // same as GLOBAL but using names on the stacks
+		var result = U("\u008c\u0007decimal\u008c\u0007Decimal\u0093.");
+		Assert.IsInstanceOf(typeof(DecimalConstructor), result);
+	}
 }
 
 }

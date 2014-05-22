@@ -60,6 +60,18 @@ public static class PickleUtils {
 	}
 
 	/**
+	 * read a number of signed bytes
+	 */
+	public static byte[] readbytes(Stream input, long n) {
+		try {
+			int small_n = Convert.ToInt32(n);
+			return readbytes(input, small_n);
+		} catch (OverflowException x) {
+			throw new PickleException("pickle too large, can't read more than maxint", x);
+		}
+	}
+
+	/**
 	 * read a number of signed bytes into the specified location in an existing byte array
 	 */
 	public static void readbytes_into(Stream input, byte[] buffer, int offset, int length) {

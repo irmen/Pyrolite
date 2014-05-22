@@ -22,7 +22,7 @@ public static class Config  {
 	public static SerializerType SERIALIZER = SerializerType.serpent;
 
 	public const int PROTOCOL_VERSION = 46;    // Pyro 4.22 and newer, cannot be modified
-	public const string PYROLITE_VERSION="2.1";
+	public const string PYROLITE_VERSION="3.0";
 }
 
 }
