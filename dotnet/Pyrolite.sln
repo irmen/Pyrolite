@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-# SharpDevelop 4.3
+# SharpDevelop 4.4
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite.Tests", "Pyrolite.Tests\Pyrolite.Tests.csproj", "{13104365-F133-41BD-AA6B-FF66501D6510}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite", "Pyrolite\Pyrolite.csproj", "{E6EAC69D-D42A-4A86-AFBE-18A1013BFDAB}"
@@ -13,6 +13,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite.TestPyroEcho", "Pyrolite.TestPyroEcho\Pyrolite.TestPyroEcho.csproj", "{E20B1336-543E-4F3D-8F9F-19723B4346A7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite.TestFlame", "Pyrolite.TestFlame\Pyrolite.TestFlame.csproj", "{5523208F-094F-4CDE-A0D2-5069D7B4ED70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite.PickleExample", "Pyrolite.PickleExample\Pyrolite.PickleExample.csproj", "{840FD314-D643-4CD1-9A18-E1DDDD3B2338}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,6 +72,14 @@ Global
 		{5523208F-094F-4CDE-A0D2-5069D7B4ED70}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5523208F-094F-4CDE-A0D2-5069D7B4ED70}.Release|x86.ActiveCfg = Release|x86
 		{5523208F-094F-4CDE-A0D2-5069D7B4ED70}.Release|x86.Build.0 = Release|x86
+		{840FD314-D643-4CD1-9A18-E1DDDD3B2338}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{840FD314-D643-4CD1-9A18-E1DDDD3B2338}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{840FD314-D643-4CD1-9A18-E1DDDD3B2338}.Debug|x86.Build.0 = Debug|Any CPU
+		{840FD314-D643-4CD1-9A18-E1DDDD3B2338}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{840FD314-D643-4CD1-9A18-E1DDDD3B2338}.Release|Any CPU.Build.0 = Release|Any CPU
+		{840FD314-D643-4CD1-9A18-E1DDDD3B2338}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{840FD314-D643-4CD1-9A18-E1DDDD3B2338}.Release|x86.Build.0 = Release|Any CPU
+		{840FD314-D643-4CD1-9A18-E1DDDD3B2338}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

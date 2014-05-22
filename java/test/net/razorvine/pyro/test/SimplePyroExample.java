@@ -1,3 +1,5 @@
+package net.razorvine.pyro.test;
+
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -5,7 +7,10 @@ import java.util.Map;
 
 import net.razorvine.pyro.*;
 
-public class SimpleExample {
+/**
+ * Simple pyro example
+ */
+public class SimplePyroExample {
 
     @SuppressWarnings("unchecked")
 	public static void main(String[] args) throws IOException
