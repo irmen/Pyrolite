@@ -73,6 +73,13 @@ including memoization. It is fully compatible with pickles from Python 2.x and
 Python 3.x, and you can use it idependently from the rest of the library, to
 read and write Python pickle structures.
 
+Pickle protocol version support:
+Pyrolite can read all pickle protocol versions (1 to 4, so this includes
+the latest additions made in Python 3.4).
+Pyrolite always writes pickles in protocol version 2. There are no plans on 
+including protocol version 1 support. Protocols 3 and 4 contain some nice new
+features which may eventually be utilized, but for now, only version 2 is used.
+
 
 The source archive contains the full source, and also unit test code and a
 couple of example programs in the java/test/ directory.
@@ -250,8 +257,8 @@ implementation in Pyrolite doesn't randomly construct arbitrary objects and is
 safe to use for parsing data from the network.
 
 
-6. RECOMMENDED DEPENDENCY: SERPENT SERIALIZER
----------------------------------------------
+6. RECOMMENDED DEPENDENCY FOR PYRO: SERPENT SERIALIZER
+------------------------------------------------------
 
 The default serializer is set to serpent. Unless you change the configuration
 to use pickle instead, Pyrolite will require the Razorvine.Serpent assembly or

@@ -72,7 +72,7 @@ public class Opcodes {
 	public const byte  LONG1 = 0x8a; // push long from < 256 bytes
 	public const byte  LONG4 = 0x8b; // push really big long
 
-	// Protocol 3 (Python 3.x)
+	// Protocol 3 (Python 3.0-3.3)
 
 	public const byte  BINBYTES = (byte)'B'; // push bytes; counted binary string argument
 	public const byte  SHORT_BINBYTES = (byte)'C'; // "     " ; "      " "      " < 256 bytes
