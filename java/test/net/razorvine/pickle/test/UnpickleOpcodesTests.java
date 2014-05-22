@@ -494,8 +494,9 @@ public class UnpickleOpcodesTests {
 		U("\u0080\u0001N.");
 		U("\u0080\u0002N.");
 		U("\u0080\u0003N.");
+		U("\u0080\u0004N.");
 		try {
-			U("\u0080\u0004N."); // unsupported protocol 4.
+			U("\u0080\u0005N."); // unsupported protocol 5.
 			fail("expected pickle exception");
 		} catch (PickleException x) {
 			// ok

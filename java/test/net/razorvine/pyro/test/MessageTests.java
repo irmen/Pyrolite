@@ -35,7 +35,6 @@ public class MessageTests {
 	public void setUp() {
 		Config.HMAC_KEY = "testsuite".getBytes();
 		this.ser = new PickleSerializer();
-		// this.ser = Pyro4.util.get_serializer(Pyro4.config.SERIALIZER)  @TODO
 	}
 
 	@After

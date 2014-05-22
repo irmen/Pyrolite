@@ -76,4 +76,17 @@ public interface Opcodes {
 
 	static short  BINBYTES = 'B'; // push bytes; counted binary string argument
 	static short  SHORT_BINBYTES = 'C'; // "     " ; "      " "      " < 256 bytes
+
+	// Protocol 4 (Python 3.4+)
+
+	static short SHORT_BINUNICODE = 0x8c;  // push short string; UTF-8 length < 256 bytes
+	static short BINUNICODE8 = 0x8d;  // push very long string
+	static short BINBYTES8 = 0x8e;  // push very long bytes string
+	static short EMPTY_SET = 0x8f;  // push empty set on the stack
+	static short ADDITEMS = 0x90;  // modify set by adding topmost stack items
+	static short FROZENSET = 0x91;  // build frozenset from topmost stack items
+	static short MEMOIZE = 0x94;  // store top of the stack in memo
+	static short FRAME = 0x95;  // indicate the beginning of a new frame
+	static short NEWOBJ_EX = 0x92;  // like NEWOBJ but work with keyword only arguments
+	static short STACK_GLOBAL = 0x93;  // same as GLOBAL but using names on the stacks
 }

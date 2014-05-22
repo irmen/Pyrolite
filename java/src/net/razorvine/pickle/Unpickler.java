@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Map;
 
 import net.razorvine.pickle.objects.AnyClassConstructor;
@@ -19,7 +21,7 @@ import net.razorvine.pickle.objects.DateTimeConstructor;
 import net.razorvine.pickle.objects.SetConstructor;
 
 /**
- * Unpickles an object graph from a pickle data inputstream.
+ * Unpickles an object graph from a pickle data inputstream. Supports all pickle protocol versions.
  * Maps the python objects on the corresponding java equivalents or similar types.
  * This class is NOT threadsafe! (Don't use the same pickler from different threads)
  * 
@@ -29,7 +31,7 @@ import net.razorvine.pickle.objects.SetConstructor;
  */
 public class Unpickler {
 
-	private final int HIGHEST_PROTOCOL = 3;
+	private final int HIGHEST_PROTOCOL = 4;
 
 	private Map<Integer, Object> memo;
 	protected UnpickleStack stack;
@@ -289,6 +291,38 @@ public class Unpickler {
 			load_short_binbytes();
 			break;
 
+		// Protocol 4 (Python 3.4+)
+		case Opcodes.BINUNICODE8:
+			load_binunicode8();
+			break;
+		case Opcodes.SHORT_BINUNICODE:
+			load_short_binunicode();
+			break;
+		case Opcodes.BINBYTES8:
+			load_binbytes8();
+			break;
+		case Opcodes.EMPTY_SET:
+			load_empty_set();
+			break;
+		case Opcodes.ADDITEMS:
+			load_additems();
+			break;
+		case Opcodes.FROZENSET:
+			load_frozenset();
+			break;
+		case Opcodes.MEMOIZE:
+			load_memoize();
+			break;
+		case Opcodes.FRAME:
+			load_frame();
+			break;
+		case Opcodes.NEWOBJ_EX:
+			load_newobj_ex();
+			break;
+		case Opcodes.STACK_GLOBAL:
+			load_stack_global();
+			break;
+				
 		default:
 			throw new InvalidOpcodeException("invalid pickle opcode: " + key);
 		}
@@ -419,6 +453,11 @@ public class Unpickler {
 		stack.add(PickleUtils.readbytes(input, len));
 	}
 
+	void load_binbytes8() throws IOException {
+		long len = PickleUtils.bytes_to_long(PickleUtils.readbytes(input, 8),0);
+		stack.add(PickleUtils.readbytes(input, len));
+	}
+
 	void load_unicode() throws IOException {
 		String str=PickleUtils.decode_unicode_escaped(PickleUtils.readline(input));
 		stack.add(str);
@@ -430,6 +469,18 @@ public class Unpickler {
 		stack.add(new String(data,"UTF-8"));
 	}
 
+	void load_binunicode8() throws IOException {
+		long len = PickleUtils.bytes_to_long(PickleUtils.readbytes(input, 8),0);
+		byte[] data = PickleUtils.readbytes(input, len);
+		stack.add(new String(data,"UTF-8"));
+	}
+
+	void load_short_binunicode() throws IOException {
+		int len = PickleUtils.readbyte(input);
+		byte[] data = PickleUtils.readbytes(input, len);
+		stack.add(new String(data,"UTF-8"));
+	}
+	
 	void load_short_binstring() throws IOException {
 		short len = PickleUtils.readbyte(input);
 		byte[] data = PickleUtils.readbytes(input, len);
@@ -475,6 +526,10 @@ public class Unpickler {
 		stack.add(new HashMap<Object, Object>(0));
 	}
 
+	void load_empty_set() {
+		stack.add(new HashSet<Object>());
+	}
+
 	void load_list() {
 		ArrayList<Object> top = stack.pop_all_since_marker();
 		stack.add(top); // simply add the top items as a list to the stack again
@@ -491,9 +546,34 @@ public class Unpickler {
 		stack.add(map);
 	}
 
+	void load_frozenset() {
+		ArrayList<Object> top = stack.pop_all_since_marker();
+		HashSet<Object> set = new HashSet<Object>();
+		set.addAll(top);
+		stack.add(set);
+	}
+	
+	void load_additems() {
+		ArrayList<Object> top = stack.pop_all_since_marker();
+		@SuppressWarnings("unchecked")
+		HashSet<Object> set = (HashSet<Object>) stack.pop();
+		set.addAll(top);
+		stack.add(set);
+	}
+
 	void load_global() throws IOException {
 		String module = PickleUtils.readline(input);
 		String name = PickleUtils.readline(input);
+		load_global_sub(module, name);
+	}
+
+	void load_stack_global() {
+		String name = (String) stack.pop();
+		String module = (String) stack.pop();
+		load_global_sub(module, name);
+	}
+	
+	void load_global_sub(String module, String name) {
 		IObjectConstructor constructor = objectConstructors.get(module + "." + name);
 		if (constructor == null) {
 			// check if it is an exception
@@ -520,6 +600,7 @@ public class Unpickler {
 		}
 		stack.add(constructor);
 	}
+	
 
 	void load_pop() {
 		stack.pop();
@@ -570,6 +651,10 @@ public class Unpickler {
 		memo.put(i, stack.peek());
 	}
 
+	void load_memoize() {
+		memo.put(memo.size(), stack.peek());
+	}
+
 	void load_append() {
 		Object value = stack.pop();
 		@SuppressWarnings("unchecked")
@@ -618,7 +703,21 @@ public class Unpickler {
 	}
 
 	void load_newobj() {
-		load_reduce(); // for Java we just do the same as class(*args) instead
-						// of class.__new__(class,*args)
+		load_reduce(); // for Java we just do the same as class(*args) instead of class.__new__(class,*args)
+	}
+
+	void load_newobj_ex() {
+		Hashtable<?,?> kwargs = (Hashtable<?,?>) stack.pop();		// @TODO datatype????
+		Object[] args = (Object[]) stack.pop();
+		IObjectConstructor constructor = (IObjectConstructor) stack.pop();
+		if(kwargs.size()==0)
+			stack.add(constructor.construct(args));
+		else
+			throw new PickleException("newobj_ex with keyword arguments not supported");
+	}
+
+	void load_frame() throws IOException {
+		// for now we simply skip the frame opcode and its length
+		PickleUtils.readbytes(input, 8);
 	}
 }
