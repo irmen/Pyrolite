@@ -140,7 +140,7 @@ namespace Razorvine.Pyro
 		{
 			Assembly serpentAssembly = Assembly.Load("Razorvine.Serpent");
 			Version serpentVersion = serpentAssembly.GetName().Version;
-			Version requiredSerpentVersion = new Version(1, 4);
+			Version requiredSerpentVersion = new Version(1, 5);
 			if(serpentVersion<requiredSerpentVersion)
 				throw new NotSupportedException("serpent version "+requiredSerpentVersion+" (or newer) is required");
 
@@ -186,7 +186,7 @@ namespace Razorvine.Pyro
 		public override byte[] serializeData(object obj)
 		{
 			// call the "Serialize" method, using reflection
-			object serializer = Activator.CreateInstance(serpentSerializerType, new object[] {Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS});
+			object serializer = Activator.CreateInstance(serpentSerializerType, new object[] {Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true});
 			return (byte[]) serializeMethod.Invoke(serializer, new object[] {obj});
 		}
 		
@@ -194,7 +194,7 @@ namespace Razorvine.Pyro
 		{
 			object[] invokeparams = new object[] {objectId, method, vargs, kwargs};
 			// call the "Serialize" method, using reflection
-			object serializer = Activator.CreateInstance(serpentSerializerType, new object[] {Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS});
+			object serializer = Activator.CreateInstance(serpentSerializerType, new object[] {Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true});
 			return (byte[]) serializeMethod.Invoke(serializer, new object[] {invokeparams});
 		}
 		
