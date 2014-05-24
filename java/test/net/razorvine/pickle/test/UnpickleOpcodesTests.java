@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,8 @@ import net.razorvine.pickle.Opcodes;
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PickleUtils;
 import net.razorvine.pickle.Unpickler;
+import net.razorvine.pickle.objects.ByteArrayConstructor;
+import net.razorvine.pickle.objects.DateTimeConstructor;
 
 import org.junit.After;
 import org.junit.Before;
@@ -276,6 +279,29 @@ public class UnpickleOpcodesTests {
 	}
 
 	@Test
+	public void testBINUNICODE8() throws IOException {
+		//BINUNICODE8 = 0x8d;  // push very long string
+		assertEquals("", U("\u008d\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000."));
+		assertEquals("abc", U("\u008d\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000abc."));
+		assertEquals("\u20ac", u.loads(new byte[]{(byte)Opcodes.BINUNICODE8, 0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x00,(byte)0xe2,(byte)0x82,(byte)0xac,Opcodes.STOP}));
+	}
+
+	@Test
+	public void testSHORTBINUNICODE() throws IOException {
+		//SHORT_BINUNICODE = 0x8c;  // push short string; UTF-8 length < 256 bytes
+		assertEquals("", U("\u008c\u0000."));
+		assertEquals("abc", U("\u008c\u0003abc."));
+		assertEquals("\u20ac", u.loads(new byte[]{(byte)Opcodes.SHORT_BINUNICODE, 0x03,(byte)0xe2,(byte)0x82,(byte)0xac,Opcodes.STOP}));
+
+		try {
+			u.loads(new byte[]{(byte)Opcodes.SHORT_BINUNICODE, 0x00, 0x00, Opcodes.STOP});
+			fail("expected error");
+		} catch (PickleException x) {
+			// ok
+		}
+	}
+	
+	@Test
 	public void testAPPEND() throws PickleException, IOException {
 		//APPEND         = b'a'   # append stack top to list below it
 		List<Integer> list=new ArrayList<Integer>();
@@ -450,6 +476,33 @@ public class UnpickleOpcodesTests {
 	}
 
 	@Test
+	public void testEMPTY_SET() throws PickleException, IOException {
+		//EMPTY_SET = 0x8f;  // push empty set on the stack
+		HashSet<Object> value = new HashSet<Object>();
+		assertEquals(value, u.loads(new byte[]{ (byte)0x8f, Opcodes.STOP}));
+	}
+
+	@Test
+	public void testFROZENSET() throws PickleException, IOException {
+		//FROZENSET = 0x91;  // build frozenset from topmost stack items
+		HashSet<Object> value = new HashSet<Object>();
+		assertEquals(value, u.loads(new byte[]{ Opcodes.MARK, (byte)Opcodes.FROZENSET, Opcodes.STOP}));
+		value.add(42);
+		value.add("a");
+		assertEquals(value, u.loads(new byte[]{ Opcodes.MARK, Opcodes.BININT1, 42, (byte)Opcodes.SHORT_BINUNICODE, 1, 97, (byte)Opcodes.FROZENSET, Opcodes.STOP}));
+	}
+
+	@Test
+	public void testADDITEMS() throws PickleException, IOException {
+		//ADDITEMS = 0x90;  // modify set by adding topmost stack items
+		HashSet<Object> value = new HashSet<Object>();
+		assertEquals(value, u.loads(new byte[]{ (byte)Opcodes.EMPTY_SET, Opcodes.MARK, (byte)Opcodes.ADDITEMS, Opcodes.STOP}));
+		value.add(42);
+		value.add("a");
+		assertEquals(value, u.loads(new byte[]{ (byte)Opcodes.EMPTY_SET, Opcodes.MARK, Opcodes.BININT1, 42, (byte)Opcodes.SHORT_BINUNICODE, 1, 97, (byte)Opcodes.ADDITEMS, Opcodes.STOP}));
+	}
+
+	@Test
 	public void testSETITEMS() throws PickleException, IOException {
 		//SETITEMS       = b'u'   # modify dict by adding topmost key+value pairs
 		Map<String, Integer> dict=new HashMap<String, Integer>();
@@ -510,6 +563,20 @@ public class UnpickleOpcodesTests {
 		//"cdecimal\nDecimal\n(V123.456\nt\x81."
 		BigDecimal dec=new BigDecimal("123.456");
 		assertEquals(dec, (BigDecimal)U("cdecimal\nDecimal\n(V123.456\nt\u0081."));
+	}
+
+	@Test
+	public void testNEWOBJ_EX() throws PickleException, IOException {
+		//NEWOBJ_EX = 0x92;  // like NEWOBJ but work with keyword only arguments
+		BigDecimal dec=new BigDecimal("123.456");
+		assertEquals(dec, (BigDecimal)U("cdecimal\nDecimal\n(V123.456\nt}\u0092."));
+		
+		try {
+			assertEquals(dec, (BigDecimal)U("cdecimal\nDecimal\n(V123.456\nt}\u008c\u0004testK1s\u0092."));
+			fail("expected exception");
+		} catch (PickleException x) {
+			assertEquals("newobj_ex with keyword arguments not supported", x.getMessage());
+		}
 	}
 
 	@Test(expected=InvalidOpcodeException.class)
@@ -625,6 +692,23 @@ public class UnpickleOpcodesTests {
 	}
 
 	@Test
+	public void testBINBYTES8() throws PickleException, IOException {
+		//BINBYTES8 = 0x8e;  // push very long bytes string
+		byte[] bytes;
+		bytes=new byte[]{};
+		assertArrayEquals(bytes, (byte[]) U("\u008e\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000."));
+		bytes=new byte[]{(byte)'a'};
+		assertArrayEquals(bytes, (byte[]) U("\u008e\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000a."));
+		bytes=new byte[]{(byte)0xa1, (byte)0xa2, (byte)0xa3};
+		assertArrayEquals(bytes, (byte[]) U("\u008e\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u00a1\u00a2\u00a3."));
+		bytes=new byte[512];
+		for(int i=1; i<512; ++i) {
+			bytes[i]=(byte)(i&0xff);
+		}
+		assertArrayEquals(bytes, (byte[]) U("\u008e\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000"+STRING256+STRING256+"."));
+	}
+	
+	@Test
 	public void testSHORT_BINBYTES() throws PickleException, IOException {
 		//SHORT_BINBYTES = b'C'   #  push bytes; counted binary string argument < 256 bytes
 		byte[] bytes;
@@ -641,4 +725,39 @@ public class UnpickleOpcodesTests {
 		assertArrayEquals(bytes, (byte[]) U("C\u00ff"+STRING255+"."));
 	}
 
+	@Test
+	public void testMEMOIZE() throws PickleException, IOException {
+		// MEMOIZE = 0x94;  // store top of the stack in memo
+		Object[] value = new Object[] {1,2,2};
+		Object[] result = (Object[]) U("K\u0001\u0094K\u0002\u0094h\u0000h\u0001h\u0001\u0087.");
+		assertArrayEquals(value, result);
+	}
+	
+	@Test
+	public void testFRAME() throws PickleException, IOException {
+		// FRAME = 0x95;  // indicate the beginning of a new frame
+		Object[] result = (Object[]) u.loads(new byte[] { (byte)Opcodes.FRAME, 6,0,0,0,0,0,0,0, 
+		                     	Opcodes.BININT1, 42, Opcodes.BININT1, 43, Opcodes.BININT1, 44,
+		                     	(byte)Opcodes.FRAME, 2,0,0,0,0,0,0,0, (byte)Opcodes.TUPLE3, Opcodes.STOP});
+		Object[] value = new Object[] {42,43,44};
+		assertArrayEquals(value, result);
+	}
+
+	@Test
+	public void testGLOBAL() throws PickleException, IOException {
+		//GLOBAL = (byte)'c'; // push self.find_class(modname, name); 2 string args
+		Object result = U("cdatetime\ntime\n.");
+		assertEquals(DateTimeConstructor.class,  result.getClass());
+		result = U("cbuiltins\nbytearray\n.");
+		assertEquals(ByteArrayConstructor.class,  result.getClass());
+	}
+
+	@Test
+	public void testSTACK_GLOBAL() throws PickleException, IOException {
+		//STACK_GLOBAL = 0x93;  // same as GLOBAL but using names on the stacks
+		Object result = U("\u008c\u0008datetime\u008c\u0004time\u0093.");
+		assertEquals(DateTimeConstructor.class,  result.getClass());
+		result = U("\u008c\u0008builtins\u008c\u0009bytearray\u0093.");
+		assertEquals(ByteArrayConstructor.class,  result.getClass());
+	}	
 }

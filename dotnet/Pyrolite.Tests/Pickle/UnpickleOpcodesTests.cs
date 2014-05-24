@@ -757,15 +757,19 @@ public class UnpickleOpcodesTests {
 	[Test]
 	public void testGLOBAL() {
 		//GLOBAL = (byte)'c'; // push self.find_class(modname, name); 2 string args
-		var result = U("cdecimal\nDecimal\n.");
-		Assert.IsInstanceOf(typeof(DecimalConstructor), result);
+		var result = U("cdatetime\ntime\n.");
+		Assert.IsInstanceOf(typeof(DateTimeConstructor), result);
+		result = U("cbuiltins\nbytearray\n.");
+		Assert.IsInstanceOf(typeof(ByteArrayConstructor), result);
 	}
 
 	[Test]
 	public void testSTACK_GLOBAL() {
 		//STACK_GLOBAL = 0x93;  // same as GLOBAL but using names on the stacks
-		var result = U("\u008c\u0007decimal\u008c\u0007Decimal\u0093.");
-		Assert.IsInstanceOf(typeof(DecimalConstructor), result);
+		var result = U("\u008c\u0008datetime\u008c\u0004time\u0093.");
+		Assert.IsInstanceOf(typeof(DateTimeConstructor), result);
+		result = U("\u008c\u0008builtins\u008c\u0009bytearray\u0093.");
+		Assert.IsInstanceOf(typeof(ByteArrayConstructor), result);
 	}
 }
 

@@ -707,7 +707,7 @@ public class Unpickler {
 	}
 
 	void load_newobj_ex() {
-		Hashtable<?,?> kwargs = (Hashtable<?,?>) stack.pop();		// @TODO datatype????
+		HashMap<?, ?> kwargs = (HashMap<?, ?>) stack.pop();
 		Object[] args = (Object[]) stack.pop();
 		IObjectConstructor constructor = (IObjectConstructor) stack.pop();
 		if(kwargs.size()==0)

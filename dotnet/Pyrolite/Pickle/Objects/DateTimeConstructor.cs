@@ -8,7 +8,7 @@ namespace Razorvine.Pickle.Objects
 /// <summary>
 /// This constructor can create various datetime related objects.
 /// </summary>
-class DateTimeConstructor : IObjectConstructor {
+public class DateTimeConstructor : IObjectConstructor {
 	
 	public enum PythonType {
 		DATETIME,

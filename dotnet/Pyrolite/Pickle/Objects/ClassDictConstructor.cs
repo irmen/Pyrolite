@@ -9,7 +9,7 @@ namespace Razorvine.Pickle.Objects
 /// <summary>
 /// This object constructor creates ClassDicts (for unsupported classes)
 /// </summary>
-class ClassDictConstructor : IObjectConstructor {
+public class ClassDictConstructor : IObjectConstructor {
 
 	string module;
 	string name;

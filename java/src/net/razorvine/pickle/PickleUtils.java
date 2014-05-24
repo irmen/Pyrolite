@@ -62,8 +62,7 @@ public abstract class PickleUtils {
 	public static byte[] readbytes(InputStream input, long n) throws IOException {
 		if(n>Integer.MAX_VALUE)
 			throw new PickleException("pickle too large, can't read more than maxint");
-		int small_n = (int)n;
-		return readbytes(input, small_n);
+		return readbytes(input, (int)n);
 	}
 	
 	/**

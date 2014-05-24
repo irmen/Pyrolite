@@ -10,7 +10,7 @@ namespace Razorvine.Pickle.Objects
 /// <summary>
 /// Creates byte arrays (byte[]). 
 /// </summary>
-class ByteArrayConstructor : IObjectConstructor {
+public class ByteArrayConstructor : IObjectConstructor {
 
 	public object construct(object[] args) {
 		// args for bytearray constructor: [ String string, String encoding ]

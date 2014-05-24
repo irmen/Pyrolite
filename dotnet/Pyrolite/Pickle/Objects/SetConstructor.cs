@@ -9,7 +9,7 @@ namespace Razorvine.Pickle.Objects
 /// <summary>
 /// This object constructor creates sets. (HashSet<object>)
 /// </summary>
-class SetConstructor : IObjectConstructor {
+public class SetConstructor : IObjectConstructor {
 
 	public SetConstructor() {
 	}
