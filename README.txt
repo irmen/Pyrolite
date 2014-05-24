@@ -267,7 +267,7 @@ will still work but only with the built-in pickle serializer. Serpent is a
 separate project, and the library is not included in the Pyrolite project.
 
 You can find the Serpent project at: https://github.com/irmen/Serpent
-You need version 1.4 of Serpent, or newer.
+You need version 1.5 of Serpent, or newer.
 
 
 7. DOWNLOAD COMPILED BINARIES
