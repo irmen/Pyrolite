@@ -28,14 +28,14 @@ public class SerpentSerializer extends PyroSerializer {
 
 	@Override
 	public byte[] serializeCall(String objectId, String method, Object[] vargs, Map<String, Object> kwargs) throws IOException {
-		Serializer s = new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS);
+		Serializer s = new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true);
 		Object[] invokeparams = new Object[] {objectId, method, vargs, kwargs};
 		return s.serialize(invokeparams);
 	}
 
 	@Override
 	public byte[] serializeData(Object obj) throws IOException {
-		Serializer s = new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS);
+		Serializer s = new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true);
 		return s.serialize(obj);
 	}
 
