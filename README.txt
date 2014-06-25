@@ -84,7 +84,7 @@ features which may eventually be utilized, but for now, only version 2 is used.
 The source archive contains the full source, and also unit test code and a
 couple of example programs in the java/test/ directory.
 
-Pyrolite speaks Pyro4 protocol version 46 only (Pyro 4.22 and newer).
+Pyrolite speaks Pyro4 protocol version 47 only (Pyro 4.26). 
 The java library requires java 1.6 or newer.
 The .net library requires .net runtime 3.5.
 The Java source was developed using Eclipse.

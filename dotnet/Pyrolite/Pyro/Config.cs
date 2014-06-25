@@ -21,8 +21,8 @@ public static class Config  {
 	public static bool SERPENT_SET_LITERALS = false;     // set to true if talking to Python 3.2 or newer
 	public static SerializerType SERIALIZER = SerializerType.serpent;
 
-	public const int PROTOCOL_VERSION = 46;    // Pyro 4.22 and newer, cannot be modified
-	public const string PYROLITE_VERSION="3.0";
+	public const int PROTOCOL_VERSION = 47;		// Pyro 4.26 
+	public const string PYROLITE_VERSION="3.1";
 }
 
 }

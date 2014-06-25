@@ -198,14 +198,35 @@ public class MessageTestsHmac {
 	}
 	
 	[Test]
-	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 25390")]
-	public void testProtocolVersion()
+	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 25455")]
+	public void testProtocolVersionKaputt()
 	{
 		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 99; // screw up protocol version in message header
+		msg[5] = 111; // screw up protocol version in message header
 		Message.from_header(msg);
 	}
 	
+	[Test]
+	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 46")]
+	public void testProtocolVersionsNotSupported1()
+	{
+		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		msg[4] = 0;
+		msg[5] = 46;	
+		Message.from_header(msg);
+	}
+
+	[Test]
+	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 48")]
+	public void testProtocolVersionsNotSupported2()
+	{
+		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		msg[4] = 0;
+		msg[5] = 48;	
+		Message.from_header(msg);
+	}
+
 	[Test]
 	public void testHmac()
 	{

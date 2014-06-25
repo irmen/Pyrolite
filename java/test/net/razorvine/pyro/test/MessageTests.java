@@ -14,8 +14,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 import net.razorvine.pyro.*;
 import net.razorvine.pyro.serializer.*;
-
 import static org.junit.Assert.*;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -190,12 +190,46 @@ public class MessageTests {
 		assertTrue(msg.annotations.containsKey("HMAC"));
 	}
 	
-	@Test(expected=PyroException.class)
-	public void testProtocolVersion()
+	@Test
+	public void testProtocolVersionKaputt()
 	{
 		byte[] msg = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 1, null).to_bytes());
-		msg[4] = 99; // screw up protocol version in message header
-		Message.from_header(msg);
+		msg[4] = 99;   // screw up protocol version in message header
+		msg[5] = 111;  // screw up protocol version in message header
+		try {
+			Message.from_header(msg);
+			fail("should crash");
+		} catch (PyroException x) {
+			assertEquals("invalid protocol version: 25455", x.getMessage());
+		}
+	}
+
+	@Test
+	public void testProtocolVersionsNotSupported1()
+	{
+		byte[] msg = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 1, null).to_bytes());
+		msg[4] = 0;
+		msg[5] = 46;	
+		try {
+			Message.from_header(msg);
+			fail("should crash");
+		} catch (PyroException x) {
+			assertEquals("invalid protocol version: 46", x.getMessage());
+		}
+	}
+
+	@Test
+	public void testProtocolVersionsNotSupported2()
+	{
+		byte[] msg = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 1, null).to_bytes());
+		msg[4] = 0;
+		msg[5] = 48;	
+		try {
+			Message.from_header(msg);
+			fail("should crash");
+		} catch (PyroException x) {
+			assertEquals("invalid protocol version: 48", x.getMessage());
+		}
 	}
 	
 	@Test
