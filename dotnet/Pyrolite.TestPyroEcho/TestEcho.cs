@@ -33,22 +33,37 @@ public class TestEcho {
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
 		NameServerProxy ns = NameServerProxy.locateNS(null);
-		PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
+		dynamic p = new PyroProxy(ns.lookup("test.echoserver"));
 		
 		// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
 
-		Object x=42;
-		Console.WriteLine("echo param:");
-		PrettyPrint.print(x);
-		Object result=p.call("echo", x);
+		Console.WriteLine("echo(), param=42:");
+		Object result=p.echo(42);
 		Console.WriteLine("return value:");
 		PrettyPrint.print(result);
 		
+		Console.WriteLine("oneway_echo(), param=999:");
+		result=p.oneway_echo(999);
+		Console.WriteLine("return value:");
+		PrettyPrint.print(result);
+		
+		// attribute access
+		result = p.verbose;
+		bool verbosity = (bool) result;
+		Console.WriteLine("value of verbose attr: {0}", verbosity);
+		p.verbose = !verbosity;
+		result = p.getattr("verbose");
+		verbosity = (bool) result;
+		Console.WriteLine("value of verbose attr after toggle: {0}", verbosity);
+			
+		
+		// some more examples
+
 		String s="This string is way too long. This string is way too long. This string is way too long. This string is way too long. ";
 		s=s+s+s+s+s;
 		Console.WriteLine("echo param:");
 		PrettyPrint.print(s);
-		result=p.call("echo", s);
+		result=p.echo(s);
 		Console.WriteLine("return value:");
 		PrettyPrint.print(result);
 
@@ -59,14 +74,14 @@ public class TestEcho {
 			{"message", "hello"},
 			{"timestamp", DateTime.Now}
 		};
-		result = p.call("echo", map);
+		result = p.echo(map);
 		Console.WriteLine("return value:");
 		PrettyPrint.print(result);
 		
 		
 		Console.WriteLine("error test.");
 		try {
-			result=p.call("error");
+			result=p.error();
 		} catch (PyroException e) {
 			Console.WriteLine("Pyro Exception (expected)! {0}",e.Message);
 			Console.WriteLine("Pyro Exception cause: {0}",e.InnerException);
@@ -74,7 +89,7 @@ public class TestEcho {
 		}
 
 		Console.WriteLine("shutting down the test echo server.");
-		p.call("shutdown");
+		p.shutdown();
 	}
 
 	static void setConfig()

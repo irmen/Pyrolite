@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Dynamic;
 
 namespace Razorvine.Pyro
 {
@@ -9,9 +10,8 @@ namespace Razorvine.Pyro
 /// <summary>
 /// Flame-Wrapper for a builtin function.
 /// </summary>
-public class FlameBuiltin : IDisposable
+public class FlameBuiltin : DynamicObject, IDisposable
 {
-
 	private PyroProxy flameserver;
 	private string builtin;
 	
@@ -24,9 +24,19 @@ public class FlameBuiltin : IDisposable
 	}
 	
 	public Object call(params object[] arguments) {
-		return flameserver.call("_invokeBuiltin", builtin, arguments, new Hashtable(0));
+		return flameserver.call("invokeBuiltin", builtin, arguments, new Hashtable(0));
 	}
 
+	/// <summary>
+	/// Makes it easier to call this builtin as if it was a normal callable.
+	/// You'll have to use the 'dynamic' type for your FlameBuiltin object though.
+	/// </summary>
+	public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
+	{
+		result = flameserver.call("invokeBuiltin", builtin, args, new Hashtable(0));
+		return true;
+	}
+		
 	public void close()	{
 		if(flameserver!=null)
 			flameserver.close();

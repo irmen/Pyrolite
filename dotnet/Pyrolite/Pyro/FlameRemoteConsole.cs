@@ -6,7 +6,7 @@ using System.Collections;
 namespace Razorvine.Pyro
 {
 
-	/// <summary>
+/// <summary>
 /// Flame remote interactive console client.
 /// </summary>
 public class FlameRemoteConsole : IDisposable
@@ -49,7 +49,7 @@ public class FlameRemoteConsole : IDisposable
 
 	public void close()  {
 		if(remoteconsole!=null) {
-			remoteconsole.call_oneway("terminate");
+			remoteconsole.call("terminate");
 			remoteconsole.close();
 		}
 	}

@@ -2,14 +2,15 @@
 
 using System;
 using System.Collections;
-
+using System.Dynamic;
+	
 namespace Razorvine.Pyro
 {
 
 /// <summary>
 /// Flame-Wrapper for a remote module.
 /// </summary>
-public class FlameModule : IDisposable
+public class FlameModule : DynamicObject, IDisposable
 {
 	private PyroProxy flameserver;
 	private string module;
@@ -22,8 +23,18 @@ public class FlameModule : IDisposable
 		module=(string) values["module"];
 	}
 	
+	/// <summary>
+	/// Makes it easier to call methods on the proxy by intercepting the methods calls.
+	/// You'll have to use the 'dynamic' type for your FlameModule object though.
+	/// </summary>
+	public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
+	{
+		result = call(binder.Name, args);
+		return true;
+	}
+	
 	public Object call(string attribute, params object[] arguments) {
-		return flameserver.call("_invokeModule", module+"."+attribute, arguments, new Hashtable(0));
+		return flameserver.call("invokeModule", module+"."+attribute, arguments, new Hashtable(0));
 	}
 
 	public void close()	{

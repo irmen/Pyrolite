@@ -28,27 +28,27 @@ public class TestFlame {
 
 		setConfig();
 
-		PyroProxy flame=new PyroProxy("localhost",9999,"Pyro.Flame");
+		dynamic flame=new PyroProxy("localhost",9999,"Pyro.Flame");
 
 		Console.WriteLine("builtin:");
-		using(FlameBuiltin r_max=(FlameBuiltin)flame.call("builtin", "max"))
+		using(dynamic r_max=(FlameBuiltin)flame.builtin("max"))
 		{
-			int maximum=(int)r_max.call(new int[]{22,99,1});
+			int maximum=(int)r_max(new int[]{22,99,1});		// invoke remote max() builtin function
 			Console.WriteLine("maximum="+maximum);
 		}
 		
-		using(FlameModule r_module=(FlameModule)flame.call("module","socket"))
+		using(dynamic r_module=(FlameModule)flame.module("socket"))
 		{
-			String hostname=(String)r_module.call("gethostname");
+			String hostname=(String)r_module.gethostname();		// get remote hostname
 			Console.WriteLine("hostname="+hostname);
 		}
 		
-		int sum=(int)flame.call("evaluate", "9+9");
+		int sum=(int)flame.evaluate("9+9");
 		Console.WriteLine("sum="+sum);
 		
-		flame.call("execute", "import sys; sys.stdout.write('HELLO FROM C#\\n')");
+		flame.execute("import sys; sys.stdout.write('HELLO FROM C#\\n')");
 		
-		using(FlameRemoteConsole console=(FlameRemoteConsole)flame.call("console"))
+		using(FlameRemoteConsole console=(FlameRemoteConsole)flame.console())
 		{
 			console.interact();
 		}
