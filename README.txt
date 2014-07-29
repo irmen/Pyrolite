@@ -51,11 +51,24 @@ Same piece of example code in C#:
     
     using( NameServerProxy ns = NameServerProxy.locateNS(null) )
     {
+        // this uses the statically typed proxy class:
         using( PyroProxy something = new PyroProxy(ns.lookup("Your.Pyro.Object")) )
         {
             object result = something.call("pythonmethod", 42, "hello", new int[]{1,2,3});
             string message = (string)result;  // cast to the type that 'pythonmethod' returns
             Console.WriteLine("result message="+message);
+            result = something.getattr("remote_attribute");
+            Console.WriteLine("remote attribute="+result);
+        }
+        
+        // but you can also use it as a dynamic!
+        using( dynamic something = new PyroProxy(ns.lookup("Your.Pyro.Object")) )
+        {
+            object result = something.pythonmethod(42, "hello", new int[]{1,2,3});
+            string message = (string)result;  // cast to the type that 'pythonmethod' returns
+            Console.WriteLine("result message="+message);
+            result = something.remote_attribute;
+            Console.WriteLine("remote attribute="+result);
         }
     }
         
