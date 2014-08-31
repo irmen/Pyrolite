@@ -420,6 +420,13 @@ public class UnpicklerTests {
 		assertArrayEquals(testi, arrayi);
 	}
 	
+	@Test(expected=PickleException.class)
+	public void testArrayPython26NotSupported() throws PickleException, IOException {
+		// python 2.6 array reconstructor not yet supported
+		short[] arrayi=(short[])U("carray\narray\n(S'h'\nS'\\x01\\x00\\x02\\x00\\x03\\x00'\ntR.");
+		fail("should crash with pickle exception because not supported");
+	}
+	
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testSet() throws PickleException, IOException

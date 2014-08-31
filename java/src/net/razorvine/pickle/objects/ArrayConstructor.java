@@ -1,6 +1,8 @@
 package net.razorvine.pickle.objects;
 
 import java.util.ArrayList;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PickleUtils;
@@ -29,6 +31,11 @@ public class ArrayConstructor implements IObjectConstructor {
 		}
 
 		String typecode = (String) args[0];
+		if(args[1] instanceof String) {
+			// python 2.6 encodes the array as a string sequence rather than a list
+			// unpickling this is not supported at this time
+			throw new PickleException("unsupported Python 2.6 array pickle format");		
+		}
 		@SuppressWarnings("unchecked")
 		ArrayList<Object> values = (ArrayList<Object>) args[1];
 
