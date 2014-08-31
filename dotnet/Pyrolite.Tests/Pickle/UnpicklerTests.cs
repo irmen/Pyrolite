@@ -435,6 +435,15 @@ public class UnpicklerTests {
 	}
 	
 	[Test]
+	[ExpectedException(typeof(PickleException))]
+	public void testArrayPython26NotSupported() {
+		// python 2.6 array reconstructor not yet supported
+		short[] testi=new short[]{1,2,3};
+		short[] arrayi=(short[])U("carray\narray\n(S'h'\nS'\\x01\\x00\\x02\\x00\\x03\\x00'\ntR.");
+		Assert.Fail("should crash with pickle exception because not supported");
+	}
+	
+	[Test]
 	public void testSet() 
 	{
 		var set=new HashSet<object>();

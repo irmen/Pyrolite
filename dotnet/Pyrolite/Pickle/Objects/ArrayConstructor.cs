@@ -14,7 +14,7 @@ public class ArrayConstructor : IObjectConstructor {
 
 	public object construct(object[] args) {
 		// args for array constructor: [ string typecode, ArrayList values ]
-		// or: [ constructor_class, typecode, machinecode_type, byte[] ]  (this form is not supported yet)
+		// or: [ constructor_class, typecode, machinecode_type, byte[] ]
 		if (args.Length==4) {
 			ArrayConstructor constructor = (ArrayConstructor) args[0];
 			char arraytype = ((string) args[1])[0];
@@ -27,7 +27,12 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 
 		string typecode = (string) args[0];
-		ArrayList values = (ArrayList)args[1];
+		ArrayList values = args[1] as ArrayList;
+		if(values==null) {
+			// python 2.6 encodes the array as a string sequence rather than a list
+			// unpickling this is not supported at this time
+			throw new PickleException("unsupported Python 2.6 array pickle format");
+		}
 
 		switch (typecode[0]) {
 		case 'c':// character 1 -> char[]
@@ -134,8 +139,6 @@ public class ArrayConstructor : IObjectConstructor {
 			throw new PickleException("invalid array typecode: " + typecode);
 		}
 	}
-    
-    
 
 	/**
 	 * Create an object based on machine code type
