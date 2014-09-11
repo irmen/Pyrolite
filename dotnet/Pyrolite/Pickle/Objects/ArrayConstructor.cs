@@ -394,10 +394,10 @@ public class ArrayConstructor : IObjectConstructor {
 		double[] result = new double[data.Length / 8];
 		byte[] bigendian=new byte[8];
 		for (int i = 0; i < data.Length / 8; ++i) {
-			if(machinecode==16) {
+			if(machinecode==17) {
 				result[i] = PickleUtils.bytes_to_double(data, i * 8);
 			} else {
-				// 17=big endian, flip the bytes
+				// 16=little endian, flip the bytes
 				bigendian[0]=data[7+i*8];
 				bigendian[1]=data[6+i*8];
 				bigendian[2]=data[5+i*8];
@@ -416,10 +416,10 @@ public class ArrayConstructor : IObjectConstructor {
 		float[] result = new float[data.Length / 4];
 		byte[] bigendian=new byte[4];
 		for (int i = 0; i < data.Length / 4; ++i) {
-			if (machinecode == 14) {
+			if (machinecode == 15) {
 				result[i] = PickleUtils.bytes_to_float(data, i * 4);
 			} else {
-				// 15=big endian, flip the bytes
+				// 14=little endian, flip the bytes
 				bigendian[0]=data[3+i*4];
 				bigendian[1]=data[2+i*4];
 				bigendian[2]=data[1+i*4];
