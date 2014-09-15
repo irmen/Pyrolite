@@ -32,30 +32,35 @@ public class TestNaming {
 		if(Config.SERIALIZER==Config.SerializerType.serpent)
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
-		NameServerProxy ns=NameServerProxy.locateNS(null);
-		Console.WriteLine("discovered ns at "+ns.hostname+":"+ns.port);
-		ns.ping();
+		using(NameServerProxy ns=NameServerProxy.locateNS(null)) 
+		{
+			Console.WriteLine("discovered ns at "+ns.hostname+":"+ns.port);
+			ns.ping();
 
-		Console.WriteLine("objects registered in the name server:");
-		IDictionary<string,string> objects = ns.list(null, null);
-		foreach(string key in objects.Keys) {
-			Console.WriteLine(key + " --> " + objects[key]);
-		}
-	
-		ns.register("java.test", new PyroURI("PYRO:JavaTest@localhost:9999"), false);
-		Console.WriteLine("uri=" + ns.lookup("java.test"));
-		Console.WriteLine("using a new proxy to call the nameserver.");
-		PyroProxy p=new PyroProxy(ns.lookup("Pyro.NameServer"));
-		p.call("ping");
-
-		int num_removed=ns.remove(null, "java.", null);
-		Console.WriteLine("number of removed entries: {0}",num_removed);
+			Console.WriteLine("objects registered in the name server:");
+			IDictionary<string,string> objects = ns.list(null, null);
+			foreach(string key in objects.Keys) {
+				Console.WriteLine(key + " --> " + objects[key]);
+			}
 		
-		try {
-			Console.WriteLine("uri=" + ns.lookup("java.test"));	 // should fail....
-		} catch (PyroException x) {
-			// ok
-			Console.WriteLine("got a PyroException (expected): {0}", x.Message);
+			ns.register("java.test", new PyroURI("PYRO:JavaTest@localhost:9999"), false);
+			Console.WriteLine("uri=" + ns.lookup("java.test"));
+			Console.WriteLine("using a new proxy to call the nameserver.");
+			
+			using(PyroProxy p=new PyroProxy(ns.lookup("Pyro.NameServer")))
+			{
+				p.call("ping");
+			}
+	
+			int num_removed=ns.remove(null, "java.", null);
+			Console.WriteLine("number of removed entries: {0}",num_removed);
+			
+			try {
+				Console.WriteLine("uri=" + ns.lookup("java.test"));	 // should fail....
+			} catch (PyroException x) {
+				// ok
+				Console.WriteLine("got a PyroException (expected): {0}", x.Message);
+			}
 		}
 
 	}

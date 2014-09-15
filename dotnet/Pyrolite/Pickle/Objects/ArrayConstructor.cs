@@ -395,7 +395,7 @@ public class ArrayConstructor : IObjectConstructor {
 		byte[] bigendian=new byte[8];
 		for (int i = 0; i < data.Length / 8; ++i) {
 			if(machinecode==17) {
-				result[i] = PickleUtils.bytes_to_double(data, i * 8);
+				result[i] = PickleUtils.bytes_bigendian_to_double(data, i * 8);
 			} else {
 				// 16=little endian, flip the bytes
 				bigendian[0]=data[7+i*8];
@@ -406,7 +406,7 @@ public class ArrayConstructor : IObjectConstructor {
 				bigendian[5]=data[2+i*8];
 				bigendian[6]=data[1+i*8];
 				bigendian[7]=data[0+i*8];
-				result[i] = PickleUtils.bytes_to_double(bigendian, 0);
+				result[i] = PickleUtils.bytes_bigendian_to_double(bigendian, 0);
 			}
 		}
 		return result;
@@ -417,14 +417,14 @@ public class ArrayConstructor : IObjectConstructor {
 		byte[] bigendian=new byte[4];
 		for (int i = 0; i < data.Length / 4; ++i) {
 			if (machinecode == 15) {
-				result[i] = PickleUtils.bytes_to_float(data, i * 4);
+				result[i] = PickleUtils.bytes_bigendian_to_float(data, i * 4);
 			} else {
 				// 14=little endian, flip the bytes
 				bigendian[0]=data[3+i*4];
 				bigendian[1]=data[2+i*4];
 				bigendian[2]=data[1+i*4];
 				bigendian[3]=data[0+i*4];
-				result[i] = PickleUtils.bytes_to_float(bigendian, 0);
+				result[i] = PickleUtils.bytes_bigendian_to_float(bigendian, 0);
 			}
 		}
 		return result;

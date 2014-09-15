@@ -2,7 +2,6 @@
 
 using System;
 using System.Text;
-using Razorvine.Pickle;
 using Razorvine.Pyro;
 
 namespace Pyrolite.TestPyroFlame
@@ -27,30 +26,30 @@ public class TestFlame {
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
 		setConfig();
-
-		dynamic flame=new PyroProxy("localhost",9999,"Pyro.Flame");
-
-		Console.WriteLine("builtin:");
-		using(dynamic r_max=(FlameBuiltin)flame.builtin("max"))
+		using(dynamic flame=new PyroProxy("localhost",9999,"Pyro.Flame"))
 		{
-			int maximum=(int)r_max(new int[]{22,99,1});		// invoke remote max() builtin function
-			Console.WriteLine("maximum="+maximum);
-		}
-		
-		using(dynamic r_module=(FlameModule)flame.module("socket"))
-		{
-			String hostname=(String)r_module.gethostname();		// get remote hostname
-			Console.WriteLine("hostname="+hostname);
-		}
-		
-		int sum=(int)flame.evaluate("9+9");
-		Console.WriteLine("sum="+sum);
-		
-		flame.execute("import sys; sys.stdout.write('HELLO FROM C#\\n')");
-		
-		using(FlameRemoteConsole console=(FlameRemoteConsole)flame.console())
-		{
-			console.interact();
+			Console.WriteLine("builtin:");
+			using(dynamic r_max=(FlameBuiltin)flame.builtin("max"))
+			{
+				int maximum=(int)r_max(new int[]{22,99,1});		// invoke remote max() builtin function
+				Console.WriteLine("maximum="+maximum);
+			}
+			
+			using(dynamic r_module=(FlameModule)flame.module("socket"))
+			{
+				String hostname=(String)r_module.gethostname();		// get remote hostname
+				Console.WriteLine("hostname="+hostname);
+			}
+			
+			int sum=(int)flame.evaluate("9+9");
+			Console.WriteLine("sum="+sum);
+			
+			flame.execute("import sys; sys.stdout.write('HELLO FROM C#\\n')");
+			
+			using(FlameRemoteConsole console=(FlameRemoteConsole)flame.console())
+			{
+				console.interact();
+			}
 		}
 	}
 

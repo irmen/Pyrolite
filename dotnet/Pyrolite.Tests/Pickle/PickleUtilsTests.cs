@@ -162,67 +162,67 @@ public class PickleUtilsTest {
 	[Test]
 	public void testBytes_to_double() {
 		try {
-			PickleUtils.bytes_to_double(new byte[] {} ,0);
+			PickleUtils.bytes_bigendian_to_double(new byte[] {} ,0);
 			Assert.Fail("expected PickleException");
 		} catch (PickleException) {}
 		try {
-			PickleUtils.bytes_to_double(new byte[] {0} ,0);
+			PickleUtils.bytes_bigendian_to_double(new byte[] {0} ,0);
 			Assert.Fail("expected PickleException");
 		} catch (PickleException) {}
-		Assert.AreEqual(0.0d, PickleUtils.bytes_to_double(new byte[] {0,0,0,0,0,0,0,0} ,0));
-		Assert.AreEqual(1.0d, PickleUtils.bytes_to_double(new byte[] {0x3f,0xf0,0,0,0,0,0,0} ,0));
-		Assert.AreEqual(1.1d, PickleUtils.bytes_to_double(new byte[] {0x3f,0xf1,0x99,0x99,0x99,0x99,0x99,0x9a} ,0));
-		Assert.AreEqual(1234.5678d, PickleUtils.bytes_to_double(new byte[] {0x40,0x93,0x4a,0x45,0x6d,0x5c,0xfa,0xad} ,0));
-		Assert.AreEqual(2.17e123d, PickleUtils.bytes_to_double(new byte[] {0x59,0x8a,0x42,0xd1,0xce,0xf5,0x3f,0x46} ,0));
-		Assert.AreEqual(1.23456789e300d, PickleUtils.bytes_to_double(new byte[] {0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a} ,0));
-		Assert.AreEqual(double.PositiveInfinity, PickleUtils.bytes_to_double(new byte[] {0x7f,0xf0,0,0,0,0,0,0} ,0));
-		Assert.AreEqual(double.NegativeInfinity, PickleUtils.bytes_to_double(new byte[] {0xff,0xf0,0,0,0,0,0,0} ,0));
+		Assert.AreEqual(0.0d, PickleUtils.bytes_bigendian_to_double(new byte[] {0,0,0,0,0,0,0,0} ,0));
+		Assert.AreEqual(1.0d, PickleUtils.bytes_bigendian_to_double(new byte[] {0x3f,0xf0,0,0,0,0,0,0} ,0));
+		Assert.AreEqual(1.1d, PickleUtils.bytes_bigendian_to_double(new byte[] {0x3f,0xf1,0x99,0x99,0x99,0x99,0x99,0x9a} ,0));
+		Assert.AreEqual(1234.5678d, PickleUtils.bytes_bigendian_to_double(new byte[] {0x40,0x93,0x4a,0x45,0x6d,0x5c,0xfa,0xad} ,0));
+		Assert.AreEqual(2.17e123d, PickleUtils.bytes_bigendian_to_double(new byte[] {0x59,0x8a,0x42,0xd1,0xce,0xf5,0x3f,0x46} ,0));
+		Assert.AreEqual(1.23456789e300d, PickleUtils.bytes_bigendian_to_double(new byte[] {0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a} ,0));
+		Assert.AreEqual(double.PositiveInfinity, PickleUtils.bytes_bigendian_to_double(new byte[] {0x7f,0xf0,0,0,0,0,0,0} ,0));
+		Assert.AreEqual(double.NegativeInfinity, PickleUtils.bytes_bigendian_to_double(new byte[] {0xff,0xf0,0,0,0,0,0,0} ,0));
 		try
 		{
-			PickleUtils.bytes_to_double(new byte[] { 200,50,25,100} ,0);
+			PickleUtils.bytes_bigendian_to_double(new byte[] { 200,50,25,100} ,0);
 			Assert.Fail("expected PickleException");
 		} catch (PickleException) {}
 
 		// test offset
-		Assert.AreEqual(1.23456789e300d, PickleUtils.bytes_to_double(new byte[] {0,0,0,0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a} ,3));
-		Assert.AreEqual(1.23456789e300d, PickleUtils.bytes_to_double(new byte[] {0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a,0,0,0} ,0));
+		Assert.AreEqual(1.23456789e300d, PickleUtils.bytes_bigendian_to_double(new byte[] {0,0,0,0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a} ,3));
+		Assert.AreEqual(1.23456789e300d, PickleUtils.bytes_bigendian_to_double(new byte[] {0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a,0,0,0} ,0));
 	}
 	
 	[Test]
 	public void testBytes_to_float() {
 		try {
-			PickleUtils.bytes_to_float(new byte[] {}, 0);
+			PickleUtils.bytes_bigendian_to_float(new byte[] {}, 0);
 			Assert.Fail("expected PickleException");
 		} catch (PickleException) {}
 		try {
-			PickleUtils.bytes_to_float(new byte[] {0}, 0);
+			PickleUtils.bytes_bigendian_to_float(new byte[] {0}, 0);
 			Assert.Fail("expected PickleException");
 		} catch (PickleException) {}
-		Assert.IsTrue(0.0f == PickleUtils.bytes_to_float(new byte[] {0,0,0,0}, 0));
-		Assert.IsTrue(1.0f == PickleUtils.bytes_to_float(new byte[] {0x3f,0x80,0,0} ,0));
-		Assert.IsTrue(1.1f == PickleUtils.bytes_to_float(new byte[] {0x3f,0x8c,0xcc,0xcd} ,0));
-		Assert.IsTrue(1234.5678f == PickleUtils.bytes_to_float(new byte[] {0x44,0x9a,0x52,0x2b} ,0));
-		Assert.IsTrue(float.PositiveInfinity == PickleUtils.bytes_to_float(new byte[] {0x7f,0x80,0,0} ,0));
-		Assert.IsTrue(float.NegativeInfinity == PickleUtils.bytes_to_float(new byte[] {0xff,0x80,0,0} ,0));
+		Assert.IsTrue(0.0f == PickleUtils.bytes_bigendian_to_float(new byte[] {0,0,0,0}, 0));
+		Assert.IsTrue(1.0f == PickleUtils.bytes_bigendian_to_float(new byte[] {0x3f,0x80,0,0} ,0));
+		Assert.IsTrue(1.1f == PickleUtils.bytes_bigendian_to_float(new byte[] {0x3f,0x8c,0xcc,0xcd} ,0));
+		Assert.IsTrue(1234.5678f == PickleUtils.bytes_bigendian_to_float(new byte[] {0x44,0x9a,0x52,0x2b} ,0));
+		Assert.IsTrue(float.PositiveInfinity == PickleUtils.bytes_bigendian_to_float(new byte[] {0x7f,0x80,0,0} ,0));
+		Assert.IsTrue(float.NegativeInfinity == PickleUtils.bytes_bigendian_to_float(new byte[] {0xff,0x80,0,0} ,0));
 
 		// test offset
-		Assert.IsTrue(1234.5678f == PickleUtils.bytes_to_float(new byte[] {0,0,0, 0x44,0x9a,0x52,0x2b} ,3));
-		Assert.IsTrue(1234.5678f == PickleUtils.bytes_to_float(new byte[] {0x44,0x9a,0x52,0x2b,0,0,0} ,0));
+		Assert.IsTrue(1234.5678f == PickleUtils.bytes_bigendian_to_float(new byte[] {0,0,0, 0x44,0x9a,0x52,0x2b} ,3));
+		Assert.IsTrue(1234.5678f == PickleUtils.bytes_bigendian_to_float(new byte[] {0x44,0x9a,0x52,0x2b,0,0,0} ,0));
 	}
 	
 	[Test]
 	public void testDouble_to_bytes()
 	{
-		Assert.AreEqual(new byte[]{0,0,0,0,0,0,0,0}, PickleUtils.double_to_bytes(0.0d));
-		Assert.AreEqual(new byte[]{0x3f,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes(1.0d));
-		Assert.AreEqual(new byte[]{0x3f,0xf1,0x99,0x99,0x99,0x99,0x99,0x9a}, PickleUtils.double_to_bytes(1.1d));
-		Assert.AreEqual(new byte[]{0x40,0x93,0x4a,0x45,0x6d,0x5c,0xfa,0xad}, PickleUtils.double_to_bytes(1234.5678d));
-		Assert.AreEqual(new byte[]{0x59,0x8a,0x42,0xd1,0xce,0xf5,0x3f,0x46}, PickleUtils.double_to_bytes(2.17e123d));
-		Assert.AreEqual(new byte[]{0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a}, PickleUtils.double_to_bytes(1.23456789e300d));
+		Assert.AreEqual(new byte[]{0,0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(0.0d));
+		Assert.AreEqual(new byte[]{0x3f,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(1.0d));
+		Assert.AreEqual(new byte[]{0x3f,0xf1,0x99,0x99,0x99,0x99,0x99,0x9a}, PickleUtils.double_to_bytes_bigendian(1.1d));
+		Assert.AreEqual(new byte[]{0x40,0x93,0x4a,0x45,0x6d,0x5c,0xfa,0xad}, PickleUtils.double_to_bytes_bigendian(1234.5678d));
+		Assert.AreEqual(new byte[]{0x59,0x8a,0x42,0xd1,0xce,0xf5,0x3f,0x46}, PickleUtils.double_to_bytes_bigendian(2.17e123d));
+		Assert.AreEqual(new byte[]{0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a}, PickleUtils.double_to_bytes_bigendian(1.23456789e300d));
 		// cannot test NaN because it's not always the same byte representation...
 		// Assert.AreEqual(new byte[]{0xff,0xf8,0,0,0,0,0,0}, p.double_to_bytes(Double.NaN));
-		Assert.AreEqual(new byte[]{0x7f,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes(Double.PositiveInfinity));
-		Assert.AreEqual(new byte[]{0xff,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes(Double.NegativeInfinity));
+		Assert.AreEqual(new byte[]{0x7f,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(Double.PositiveInfinity));
+		Assert.AreEqual(new byte[]{0xff,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(Double.NegativeInfinity));
 	}
 
 	[Test]

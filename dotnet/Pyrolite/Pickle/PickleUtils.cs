@@ -157,7 +157,7 @@ public static class PickleUtils {
 	/**
 	 * Convert a double to its 8-byte representation (big endian).
 	 */
-	public static byte[] double_to_bytes(double d) {
+	public static byte[] double_to_bytes_bigendian(double d) {
 		byte[] bytes=BitConverter.GetBytes(d);
 		if(BitConverter.IsLittleEndian) {
 			// reverse the bytes to make them big endian for the output
@@ -169,7 +169,7 @@ public static class PickleUtils {
 	/**
 	 * Convert a big endian 8-byte to a double. 
 	 */
-	public static double bytes_to_double(byte[] bytes, int offset) {
+	public static double bytes_bigendian_to_double(byte[] bytes, int offset) {
 		if (bytes.Length-offset<8) {
 			throw new PickleException("decoding double: too few bytes");
 	    }
@@ -184,7 +184,7 @@ public static class PickleUtils {
 	/**
 	 * Convert a big endian 4-byte to a float. 
 	 */
-	public static float bytes_to_float(byte[] bytes, int offset) {
+	public static float bytes_bigendian_to_float(byte[] bytes, int offset) {
 		if (bytes.Length-offset<4) {
 			throw new PickleException("decoding float: too few bytes");
 	    }

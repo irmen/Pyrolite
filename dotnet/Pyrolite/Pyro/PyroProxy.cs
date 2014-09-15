@@ -109,23 +109,23 @@ public class PyroProxy : DynamicObject, IDisposable {
 			return;
 		
 		// the collections in the result can be either an object[] or a HashSet<object>, depending on the serializer that is used
-		if((result["methods"] as object[])!=null)
-		{
-			// assume object[]
-			object[] methods = (result["methods"] as object[]) ;
-			object[] attrs = (result["attrs"] as object[]);
-			object[] oneway = (result["oneway"] as object[]);
-			this.pyroMethods = new HashSet<string>(methods.Select(o=>o as string));
-			this.pyroAttrs = new HashSet<string>(attrs.Select(o=>o as string));
-			this.pyroOneway = new HashSet<string>(oneway.Select(o=>o as string));
-		}
-		else 
-		{
-			// assume hashset
+		object[] methods_array = result["methods"] as object[];
+		object[] attrs_array = result["attrs"] as object[];
+		object[] oneway_array = result["oneway"] as object[];
+		if(methods_array!=null)
+			this.pyroMethods = new HashSet<string>(methods_array.Select(o=>o as string));
+		else
 			this.pyroMethods = new HashSet<string>((result["methods"] as HashSet<object>).Select(o=>o.ToString()));
+		
+		if(attrs_array!=null)
+			this.pyroAttrs = new HashSet<string>(attrs_array.Select(o=>o as string));
+		else
 			this.pyroAttrs = new HashSet<string>((result["attrs"] as HashSet<object>).Select(o=>o.ToString()));
+
+		if(oneway_array!=null)
+			this.pyroOneway = new HashSet<string>(oneway_array.Select(o=>o as string));
+		else
 			this.pyroOneway =new HashSet<string> ((result["oneway"] as HashSet<object>).Select(o=>o.ToString()));
-		}
 		
 		if(pyroMethods.Count()==0 && pyroAttrs.Count()==0) {
 			throw new PyroException("remote object doesn't expose any methods or attributes");

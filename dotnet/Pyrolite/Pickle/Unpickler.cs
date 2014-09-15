@@ -411,7 +411,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_binfloat() {
-		double val = PickleUtils.bytes_to_double(PickleUtils.readbytes(input, 8),0);
+		double val = PickleUtils.bytes_bigendian_to_double(PickleUtils.readbytes(input, 8),0);
 		stack.add(val);
 	}
 

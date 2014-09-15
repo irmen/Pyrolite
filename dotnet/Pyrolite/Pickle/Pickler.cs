@@ -533,7 +533,7 @@ public class Pickler : IDisposable {
 
 	void put_float(double d) {
 		outs.WriteByte(Opcodes.BINFLOAT);
-		byte[] output=PickleUtils.double_to_bytes(d);
+		byte[] output=PickleUtils.double_to_bytes_bigendian(d);
 		outs.Write(output,0,output.Length);
 	}	
 
