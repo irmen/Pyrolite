@@ -24,7 +24,7 @@ public class FlameBuiltin {
 	}
 	
 	public Object call(Object... arguments) throws PickleException, PyroException, IOException {
-		return flameserver.call("_invokeBuiltin", builtin, arguments, new HashMap<Object, Object>(0));
+		return flameserver.call("invokeBuiltin", builtin, arguments, new HashMap<Object, Object>(0));
 	}
 
 	public void close()	{

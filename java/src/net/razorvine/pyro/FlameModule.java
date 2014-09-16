@@ -24,7 +24,7 @@ public class FlameModule {
 	}
 	
 	public Object call(String attribute, Object... arguments) throws PickleException, PyroException, IOException {
-		return flameserver.call("_invokeModule", module+"."+attribute, arguments, new HashMap<Object, Object>(0));
+		return flameserver.call("invokeModule", module+"."+attribute, arguments, new HashMap<Object, Object>(0));
 	}
 	
 	public void close()	{
