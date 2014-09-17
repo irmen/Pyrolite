@@ -81,7 +81,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 
 			if (Config.METADATA) {
 				// obtain metadata if this feature is enabled, and the metadata is not known yet
-				if (pyroMethods.Count>0 || pyroAttrs.Count>0) {
+				if (pyroMethods.Any() || pyroAttrs.Any()) {
 					// not checking _pyroOneway because that feature already existed and people are already modifying it on the proxy
 					// log.debug("reusing existing metadata")
 				} else {
@@ -99,12 +99,12 @@ public class PyroProxy : DynamicObject, IDisposable {
 		objectId = objectId ?? this.objectid;
 		if(sock==null) {
 			connect();
-			if(pyroMethods.Count>0 || pyroAttrs.Count>0)
+			if(pyroMethods.Any() || pyroAttrs.Any())
 				return;    // metadata has already been retrieved as part of creating the connection
 		}
 	
 		//  invoke the get_metadata method on the daemon
-		Hashtable result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new string[] {objectId}) as Hashtable;
+		Hashtable result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new [] {objectId}) as Hashtable;
 		if(result==null)
 			return;
 		
@@ -127,7 +127,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		else
 			this.pyroOneway =new HashSet<string> ((result["oneway"] as HashSet<object>).Select(o=>o.ToString()));
 		
-		if(pyroMethods.Count()==0 && pyroAttrs.Count()==0) {
+		if(!pyroMethods.Any() && !pyroAttrs.Any()) {
 			throw new PyroException("remote object doesn't expose any methods or attributes");
 		}
 	}
