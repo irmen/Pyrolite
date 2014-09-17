@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @version 4.2
  */
 public final class Config implements Serializable {
-	private static final long serialVersionUID = 198635706890570066L;
+	private static final long serialVersionUID = 198635706890570067L;
 
 	public static byte[] HMAC_KEY = null;
 	public static String MSG_TRACE_DIR = null;
@@ -28,4 +28,7 @@ public final class Config implements Serializable {
 	public static boolean SERPENT_INDENT = false;
 	public static boolean SERPENT_SET_LITERALS = false;     // set to true if talking to Python 3.2 or newer
 	public static SerializerType SERIALIZER = SerializerType.serpent;
+	public static boolean METADATA = true;		// get metadata from server?
+
+	public static String DAEMON_NAME = "Pyro.Daemon";
 }

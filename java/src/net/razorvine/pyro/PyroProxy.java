@@ -9,6 +9,9 @@ import java.lang.reflect.Field;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -31,6 +34,11 @@ public class PyroProxy implements Serializable {
 	private transient Socket sock;
 	private transient OutputStream sock_out;
 	private transient InputStream sock_in;
+	
+	protected Set<String> pyroMethods = new HashSet<String>();	// remote methods
+	protected Set<String> pyroAttrs = new HashSet<String>();	// remote attributes
+	protected Set<String> pyroOneway = new HashSet<String>();	// oneway methods
+	
 
 	/**
 	 * No-args constructor for (un)pickling support
@@ -66,6 +74,78 @@ public class PyroProxy implements Serializable {
 			sock_in = sock.getInputStream();
 			sequenceNr = 0;
 			handshake();
+			
+			if(Config.METADATA) {
+				// obtain metadata if this feature is enabled, and the metadata is not known yet
+				if(!pyroMethods.isEmpty() || !pyroAttrs.isEmpty()) {
+					// not checking _pyroONeway because that feature already existed and it is not yet deprecated
+					// log.debug("reusing existing metadata")
+				} else {
+					getMetadata(this.objectid);
+				}
+			}
+		}
+	}
+
+	/**
+	 * get metadata from server (methods, attrs, oneway, ...) and remember them in some attributes of the proxy
+	 */
+	protected void getMetadata(String objectId) throws PickleException, PyroException, IOException {
+		// get metadata from server (methods, attrs, oneway, ...) and remember them in some attributes of the proxy
+		if(objectId==null) objectId=this.objectid;
+		if(sock==null) {
+			connect();
+			if(!pyroMethods.isEmpty() || !pyroAttrs.isEmpty())
+				return;    // metadata has already been retrieved as part of creating the connection
+		}
+	
+		//  invoke the get_metadata method on the daemon
+		@SuppressWarnings("unchecked")
+		HashMap<String, Object> result = (HashMap<String, Object>) this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new Object[] {objectId});
+		if(result==null)
+			return;
+		
+		// the collections in the result can be either an object[] or a HashSet<object>, depending on the serializer that is used
+		Object methods = result.get("methods");
+		Object attrs = result.get("attrs");
+		Object oneways = result.get("oneways");
+		
+		if(methods instanceof Object[]) {
+			Object[] methods_array = (Object[]) methods;
+			this.pyroMethods = new HashSet<String>();
+			for(int i=0; i<methods_array.length; ++i) {
+				this.pyroMethods.add((String) methods_array[i]);
+			}
+		} else if(methods!=null) {
+			@SuppressWarnings("unchecked")
+			HashSet<String> methods_set = (HashSet<String>) methods;
+			this.pyroMethods = methods_set;
+		}
+		if(attrs instanceof Object[]) {
+			Object[] attrs_array = (Object[]) attrs;
+			this.pyroAttrs = new HashSet<String>();
+			for(int i=0; i<attrs_array.length; ++i) {
+				this.pyroAttrs.add((String) attrs_array[i]);
+			}
+		} else if(attrs!=null) {
+			@SuppressWarnings("unchecked")
+			HashSet<String> attrs_set = (HashSet<String>) attrs;
+			this.pyroAttrs = attrs_set;
+		}
+		if(oneways instanceof Object[]) {
+			Object[] oneways_array = (Object[]) oneways;
+			this.pyroOneway = new HashSet<String>();
+			for(int i=0; i<oneways_array.length; ++i) {
+				this.pyroOneway.add((String) oneways_array[i]);
+			}
+		} else if(oneways!=null) {
+			@SuppressWarnings("unchecked")
+			HashSet<String> oneways_set = (HashSet<String>) oneways;
+			this.pyroOneway = oneways_set;
+		}
+		
+		if(pyroMethods.isEmpty() && pyroAttrs.isEmpty()) {
+			throw new PyroException("remote object doesn't expose any methods or attributes");
 		}
 	}
 
@@ -76,7 +156,7 @@ public class PyroProxy implements Serializable {
 	 * @return the result Object from the remote method call (can be anything, you need to typecast/introspect yourself).
 	 */
 	public Object call(String method, Object... arguments) throws PickleException, PyroException, IOException {
-		return call(method, 0, arguments);
+		return internal_call(method, null, 0, true, arguments);
 	}
 
 	/**
@@ -85,21 +165,48 @@ public class PyroProxy implements Serializable {
 	 * @param arguments zero or more arguments for the remote method
 	 */
 	public void call_oneway(String method, Object... arguments) throws PickleException, PyroException, IOException {
-		call(method, Message.FLAGS_ONEWAY, arguments);
+		internal_call(method, null, Message.FLAGS_ONEWAY, true, arguments);
+	}
+
+	/**
+	 * Get the value of a remote attribute.
+	 * @param attr the attribute name
+	 */
+	public Object getattr(String attr) throws PickleException, PyroException, IOException {
+		return this.internal_call("__getattr__", null, 0, false, new Object[]{attr});
+	}
+	
+	/**
+	 * Set a new value on a remote attribute.
+	 * @param attr the attribute name
+	 * @param value the new value for the attribute
+	 */
+	public void setattr(String attr, Object value) throws PickleException, PyroException, IOException {
+		this.internal_call("__setattr__", null, 0, false, new Object[] {attr, value});
 	}
 
 	/**
 	 * Internal call method to actually perform the Pyro method call and process the result.
 	 */
-	private Object call(String method, int flags, Object... parameters) throws PickleException, PyroException, IOException {
+	private Object internal_call(String method, String actual_objectId, int flags, boolean checkMethodName, Object... parameters) throws PickleException, PyroException, IOException {
+		if(actual_objectId==null) actual_objectId=this.objectid;
 		synchronized (this) {
 			connect();
 			sequenceNr=(sequenceNr+1)&0xffff;		// stay within an unsigned short 0-65535
 		}
+		if(pyroAttrs.contains(method)) {
+			throw new PyroException("cannot call an attribute");
+		}
+		if(pyroOneway.contains(method)) {
+			flags |= Message.FLAGS_ONEWAY;
+		}
+		if(checkMethodName && Config.METADATA && !pyroMethods.contains(method)) {
+			throw new PyroException(String.format("remote object '%s' has no exposed attribute or method '%s'", actual_objectId, method));
+		}
 		if (parameters == null)
 			parameters = new Object[] {};
 		PyroSerializer ser = PyroSerializer.getFor(Config.SERIALIZER);
-		byte[] pickle = ser.serializeCall(objectid, method, parameters, Collections.<String, Object> emptyMap());
+		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, Collections.<String, Object> emptyMap());
 		Message msg = new Message(Message.MSG_INVOKE, pickle, ser.getSerializerId(), flags, sequenceNr, null);
 		Message resultmsg;
 		synchronized (this.sock) {

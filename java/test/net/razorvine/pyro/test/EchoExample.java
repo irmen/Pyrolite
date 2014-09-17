@@ -25,6 +25,7 @@ public class EchoExample {
 
 		NameServerProxy ns = NameServerProxy.locateNS(null);
 		PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
+		ns.close();
 		
 		// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
 
@@ -54,6 +55,9 @@ public class EchoExample {
 
 		System.out.println("shutting down the test echo server.");
 		p.call("shutdown");
+		
+		// tidy up:
+		p.close();
 	}
 	
 	static void setConfig() {

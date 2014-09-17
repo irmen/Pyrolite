@@ -46,7 +46,9 @@ public class NamingExample {
 			// ok
 			System.out.println("got a Pyro Exception (expected): "+x);
 		}
-
+		
+		p.close();
+		ns.close();
 	}
 
 	static void setConfig() {
