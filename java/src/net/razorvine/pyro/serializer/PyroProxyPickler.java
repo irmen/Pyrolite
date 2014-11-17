@@ -2,7 +2,6 @@ package net.razorvine.pyro.serializer;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
 
 import net.razorvine.pickle.IObjectPickler;
 import net.razorvine.pickle.Opcodes;
@@ -26,11 +25,14 @@ public class PyroProxyPickler implements IObjectPickler {
 		out.write(Opcodes.EMPTY_TUPLE);
 		out.write(Opcodes.NEWOBJ);
 		
-		// parameters are: pyroUri, pyroOneway(hashset), pyroTimeout
+		// args(6): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey
 		Object[] args = new Object[] {   
 			new PyroURI(proxy.objectid, proxy.hostname, proxy.port),
-			Collections.EMPTY_SET,
-			0.0
+			proxy.pyroOneway,
+			proxy.pyroMethods,
+			proxy.pyroAttrs,
+			0.0,
+			proxy.pyroHmacKey
 		};
 		currentPickler.save(args);
 		out.write(Opcodes.BUILD);

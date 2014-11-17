@@ -62,7 +62,7 @@ public class Message
 	/**
 	 * construct a full wire message including data and annotations payloads.
 	 */
-	public Message(int msgType, byte[] databytes, int serializer_id, int flags, int seq, Map<String, byte[]> annotations)
+	public Message(int msgType, byte[] databytes, int serializer_id, int flags, int seq, Map<String, byte[]> annotations, byte[] hmac)
 	{
 		this(msgType, serializer_id, flags, seq);
 		this.data = databytes;
@@ -71,8 +71,8 @@ public class Message
 		if(null==annotations)
 			this.annotations = new HashMap<String, byte[]>(0);
 		
-		if(Config.HMAC_KEY!=null)
-			this.annotations.put("HMAC", this.hmac());
+		if(hmac!=null)
+			this.annotations.put("HMAC", this.hmac(hmac));
 		
 		this.annotations_size = 0;
 		for(Entry<String, byte[]> a: this.annotations.entrySet())
@@ -82,12 +82,12 @@ public class Message
 	/**
 	 * returns the hmac of the data and the annotation chunk values (except HMAC chunk itself)
 	 */
-	protected byte[] hmac()
+	protected byte[] hmac(byte[] key)
 	{
 		try {
-			Key key = new SecretKeySpec(Config.HMAC_KEY, "HmacSHA1");
+			Key secretKey = new SecretKeySpec(key, "HmacSHA1");
 			Mac hmac_algo = Mac.getInstance("HmacSHA1");
-			hmac_algo.init(key);
+			hmac_algo.init(secretKey);
 			hmac_algo.update(this.data);
 			for(Entry<String, byte[]> a: this.annotations.entrySet())
 			{
@@ -261,7 +261,7 @@ public class Message
 	 * Also reads annotation chunks and the actual payload data.
 	 * Validates a HMAC chunk if present.
 	 */
-	public static Message recv(InputStream connection, int[] requiredMsgTypes) throws IOException
+	public static Message recv(InputStream connection, int[] requiredMsgTypes, byte[] hmac) throws IOException
 	{
 		byte[] header_data = IOUtil.recv(connection, HEADER_SIZE);
 		Message msg = from_header(header_data);
@@ -305,12 +305,12 @@ public class Message
 			TraceMessageRecv(msg.seq, header_data, annotations_data, msg.data);
 		}
 		
-		if(msg.annotations.containsKey("HMAC") && Config.HMAC_KEY!=null)
+		if(msg.annotations.containsKey("HMAC") && hmac!=null)
 		{
-			if(!Arrays.equals(msg.annotations.get("HMAC"), msg.hmac()))
+			if(!Arrays.equals(msg.annotations.get("HMAC"), msg.hmac(hmac)))
 				throw new PyroException("message hmac mismatch");
 		}
-		else if (msg.annotations.containsKey("HMAC") != (Config.HMAC_KEY!=null))
+		else if (msg.annotations.containsKey("HMAC") != (hmac!=null))
 		{
 			// Message contains hmac and local HMAC_KEY not set, or vice versa. This is not allowed.
 			throw new PyroException("hmac key config not symmetric");

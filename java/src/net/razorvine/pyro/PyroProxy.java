@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,19 +26,20 @@ import net.razorvine.pyro.serializer.PyroSerializer;
  */
 public class PyroProxy implements Serializable {
 
-	private static final long serialVersionUID = -5675423476693913030L;
+	private static final long serialVersionUID = -5564313476693913031L;
 	public String hostname;
 	public int port;
 	public String objectid;
+	public byte[] pyroHmacKey = null;		// per-proxy hmac key, used to be HMAC_KEY config item
 
 	private transient int sequenceNr = 0;
 	private transient Socket sock;
 	private transient OutputStream sock_out;
 	private transient InputStream sock_in;
 	
-	protected Set<String> pyroMethods = new HashSet<String>();	// remote methods
-	protected Set<String> pyroAttrs = new HashSet<String>();	// remote attributes
-	protected Set<String> pyroOneway = new HashSet<String>();	// oneway methods
+	public Set<String> pyroMethods = new HashSet<String>();	// remote methods
+	public Set<String> pyroAttrs = new HashSet<String>();	// remote attributes
+	public Set<String> pyroOneway = new HashSet<String>();	// oneway methods
 	
 
 	/**
@@ -207,7 +209,7 @@ public class PyroProxy implements Serializable {
 			parameters = new Object[] {};
 		PyroSerializer ser = PyroSerializer.getFor(Config.SERIALIZER);
 		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, Collections.<String, Object> emptyMap());
-		Message msg = new Message(Message.MSG_INVOKE, pickle, ser.getSerializerId(), flags, sequenceNr, null);
+		Message msg = new Message(Message.MSG_INVOKE, pickle, ser.getSerializerId(), flags, sequenceNr, null, pyroHmacKey);
 		Message resultmsg;
 		synchronized (this.sock) {
 			IOUtil.send(sock_out, msg.to_bytes());
@@ -219,7 +221,7 @@ public class PyroProxy implements Serializable {
 			if ((flags & Message.FLAGS_ONEWAY) != 0)
 				return null;
 
-			resultmsg = Message.recv(sock_in, new int[]{Message.MSG_RESULT});
+			resultmsg = Message.recv(sock_in, new int[]{Message.MSG_RESULT}, pyroHmacKey);
 		}
 		if (resultmsg.seq != sequenceNr) {
 			throw new PyroException("result msg out of sync");
@@ -278,6 +280,7 @@ public class PyroProxy implements Serializable {
 
 	public void finalize() {
 		close();
+		pyroHmacKey = null;
 	}
 
 	/**
@@ -285,23 +288,38 @@ public class PyroProxy implements Serializable {
 	 */
 	protected void handshake() throws IOException {
 		// do connection handshake
-		Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK});
+		Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK}, pyroHmacKey);
 		// message data is ignored for now, should be 'ok' :)
 	}
 
 	/**
 	 * called by the Unpickler to restore state
-	 * args: pyroUri, pyroOneway(hashset), pyroSerializer, pyroTimeout
+	 * args(6): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey
 	 */
+	@SuppressWarnings("unchecked")
 	public void __setstate__(Object[] args) throws IOException {
+		if(args.length != 6) {
+			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
+		}
 		PyroURI uri=(PyroURI)args[0];
-		// ignore the oneway hashset, the serializer object and the timeout 
-		// the only thing we need here is the uri.
 		this.hostname=uri.host;
 		this.port=uri.port;
 		this.objectid=uri.objectid;
 		this.sock=null;
 		this.sock_in=null;
 		this.sock_out=null;
+		if(args[1] instanceof Set)
+			this.pyroOneway = (Set<String>) args[1];
+		else
+			this.pyroOneway = new HashSet<String>( (Collection<String>)args[1] );
+		if(args[2] instanceof Set)
+			this.pyroMethods = (Set<String>) args[2];
+		else
+			this.pyroMethods = new HashSet<String>( (Collection<String>)args[2] );
+		if(args[3] instanceof Set)
+			this.pyroAttrs = (Set<String>) args[3];
+		else
+			this.pyroAttrs = new HashSet<String>( (Collection<String>)args[3] );
+		this.pyroHmacKey = (byte[]) args[5];
 	}	
 }

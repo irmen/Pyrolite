@@ -14,6 +14,8 @@ import net.razorvine.pyro.*;
  */
 public class NamingExample {
 
+	static protected byte[] hmacKey;	// just ignore this if you don't specify a PYRO_HMAC_KEY environment var
+
 	public static void main(String[] args) throws IOException {
 
 		System.out.println("Testing Pyro nameserver connection (make sure it's running with a broadcast server)...");
@@ -35,6 +37,7 @@ public class NamingExample {
 		System.out.println("uri=" + ns.lookup("java.test"));
 		System.out.println("using a new proxy to call the nameserver.");
 		PyroProxy p=new PyroProxy(ns.lookup("Pyro.NameServer"));
+		p.pyroHmacKey = hmacKey;
 		p.call("ping");
 
 		int num_removed=ns.remove(null, "java.", null);
@@ -59,9 +62,9 @@ public class NamingExample {
 		}
 		if(hmackey!=null && hmackey.length()>0) {
 			try {
-				Config.HMAC_KEY=hmackey.getBytes("UTF-8");
+				hmacKey=hmackey.getBytes("UTF-8");
 			} catch (UnsupportedEncodingException e) {
-				Config.HMAC_KEY=null;
+				hmacKey=null;
 			}
 		}
 		String tracedir=System.getenv("PYRO_TRACE_DIR");

@@ -5,11 +5,12 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
-import net.razorvine.pickle.PickleUtils;
 import net.razorvine.pickle.PythonException;
 import net.razorvine.pickle.Unpickler;
 import net.razorvine.pyro.PyroProxy;
@@ -29,18 +30,6 @@ import org.junit.Test;
 @SuppressWarnings({"unchecked", "serial"})
 public class UnpicklerComplexTests {
 
-	Object xxxU(String strdata) throws PickleException, IOException
-	{
-		return xxxU(PickleUtils.str2bytes(strdata));	
-	}
-	Object xxxU(byte[] data) throws PickleException, IOException
-	{
-		Unpickler u=new Unpickler();
-		Object o=u.loads(data);
-		u.close();
-		return o;		
-	}
-	
 	@Before
 	public void setUp() throws Exception {
 	}
@@ -67,33 +56,52 @@ public class UnpicklerComplexTests {
 	@Test
 	public void testPickleUnpickleProxy() throws IOException {
 		PyroProxy proxy=new PyroProxy("hostname",9999,"objectid");
+		proxy.pyroHmacKey = "secret".getBytes();
 		PyroSerializer ser = new PickleSerializer();
 		byte[] pickled_proxy=ser.serializeData(proxy);
 		PyroProxy result = (PyroProxy) ser.deserializeData(pickled_proxy);
 		assertEquals(proxy.hostname, result.hostname);
 		assertEquals(proxy.objectid, result.objectid);
 		assertEquals(proxy.port, result.port);
+		assertArrayEquals("secret".getBytes(), result.pyroHmacKey);
 	}
 
 	@Test
 	public void testUnpickleRealProxy() throws IOException {
 		byte[] pickled_proxy=new byte[]
-				{-128, 2, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 80, 114, 111,
-	  			120, 121, 10, 113, 1, 41, -127, 113, 2, 99, 80, 121, 114, 111, 52, 46, 99, 
-	  			111, 114, 101, 10, 85, 82, 73, 10, 113, 3, 41, -127, 113, 4, 40, 85, 4, 80,
-	  			89, 82, 79, 113, 5, 85, 10, 115, 111, 109, 101, 111, 98, 106, 101, 99,
-	  			116, 113, 6, 78, 85, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 113, 7,
-	  			77, 15, 39, 116, 98, 99, 95, 95, 98, 117, 105, 108, 116, 105, 110, 95, 95,
-	  			10, 115, 101, 116, 10, 113, 8, 93, -123, 82, 113, 9, 71, 0, 0, 0, 0, 0, 0, 0, 0,
-	  			-121, 98, 46};
+				{-128, 3, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 80, 114, 111, 120, 121, 10, 113, 0, 41, -127, 113, 1, 40, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 85, 82, 73, 10, 113, 2, 41, -127, 113, 3, 40, 88, 4, 0, 0, 0, 80, 89, 82, 79, 113, 4, 88, 15, 0, 0, 0, 80, 121, 114, 111, 46, 78, 97, 109, 101, 83, 101, 114,
+				 118, 101, 114, 113, 5, 78, 88, 9, 0, 0, 0, 108, 111, 99, 97, 108, 104, 111, 115, 116, 113, 6, 77, -126, 35, 116, 113, 7, 98, 99, 98, 117, 105, 108, 116, 105, 110, 115, 10, 115, 101, 116, 10, 113, 8, 93, 113, 9, 40, 88, 2,
+				 0, 0, 0, 111, 49, 113, 10, 88, 2, 0, 0, 0, 111, 50, 113, 11, 101, -123, 113, 12, 82, 113, 13, 104, 8, 93, 113,
+				 14, 40, 88, 6, 0, 0, 0, 108, 111, 111, 107, 117, 112, 113, 15, 88, 8, 0, 0, 0, 114, 101, 103, 105, 115, 116, 101, 114, 113, 16, 88, 6, 0, 0, 0, 114, 101, 109, 111, 118, 101, 113, 17, 88, 4, 0, 0, 0, 108, 105, 115, 116, 113, 18, 88, 4, 0, 0, 0, 112, 105, 110, 103, 113, 19, 88, 5, 0, 0, 0, 99, 111, 117, 110, 116, 113, 20, 101, -123,
+				 113, 21, 82, 113, 22, 104, 8, 93, 113, 23, 40, 88, 5, 0, 0, 0, 97, 116, 116, 114, 49, 113, 24, 88, 5, 0, 0, 0,
+				 97, 116, 116, 114, 50, 113, 25, 101, -123, 113, 26, 82, 113, 27, 71, 0, 0, 0, 0, 0, 0, 0, 0, 67, 6, 115, 101, 99, 114, 101, 116, 113, 28, 116, 113, 29, 98, 46};
 		
 		PyroSerializer ser = new PickleSerializer();
 		PyroProxy proxy=(PyroProxy)ser.deserializeData(pickled_proxy);
-		assertEquals("someobject",proxy.objectid);
+		assertEquals("Pyro.NameServer",proxy.objectid);
 		assertEquals("localhost",proxy.hostname);
-		assertEquals(9999,proxy.port);
+		assertEquals(9090,proxy.port);
+		assertArrayEquals("secret".getBytes(), proxy.pyroHmacKey);
+		
+		Set<String> expectedSet = new HashSet<String>();
+		expectedSet.add("attr1");
+		expectedSet.add("attr2");
+		assertEquals(expectedSet, proxy.pyroAttrs);
+		expectedSet.clear();
+		expectedSet.add("lookup");
+		expectedSet.add("ping");
+		expectedSet.add("register");
+		expectedSet.add("remove");
+		expectedSet.add("list");
+		expectedSet.add("count");
+		assertEquals(expectedSet, proxy.pyroMethods);
+		expectedSet.clear();
+		expectedSet.add("o1");
+		expectedSet.add("o2");
+		assertEquals(expectedSet, proxy.pyroOneway);
 	}
-
+	
+			 
 	@Test
 	public void testUnpickleMemo() throws PickleException, IOException {
 		// the pickle is of the following list: [65, 'hello', 'hello', {'recurse': [...]}, 'hello']

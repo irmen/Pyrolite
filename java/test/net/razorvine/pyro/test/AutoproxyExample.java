@@ -15,6 +15,8 @@ import net.razorvine.pyro.PyroProxy;
  */
 public class AutoproxyExample {
 
+	static protected byte[] hmacKey;	// just ignore this if you don't specify a PYRO_HMAC_KEY environment var
+	
 	public static void main(String[] args) throws IOException {
 
 		System.out.println("Testing Pyro autoproxy server (make sure it's running on localhost 9999)...");
@@ -23,12 +25,15 @@ public class AutoproxyExample {
 		setConfig();
 		
 		PyroProxy p=new PyroProxy("localhost",51004,"example.autoproxy");
+		p.pyroHmacKey = hmacKey;
 
 		Object result=p.call("createSomething", 42);
 		System.out.println("return value:");
 		PrettyPrint.print(result);
 		PyroProxy resultproxy=(PyroProxy)result;
 		resultproxy.call("speak", "hello from java");
+		
+		p.close();
 	}
 	
 	static void setConfig() {
@@ -39,9 +44,9 @@ public class AutoproxyExample {
 		}
 		if(hmackey!=null && hmackey.length()>0) {
 			try {
-				Config.HMAC_KEY=hmackey.getBytes("UTF-8");
+				hmacKey=hmackey.getBytes("UTF-8");
 			} catch (UnsupportedEncodingException e) {
-				Config.HMAC_KEY=null;
+				hmacKey=null;
 			}
 		}
 		String tracedir=System.getenv("PYRO_TRACE_DIR");

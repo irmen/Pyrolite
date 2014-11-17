@@ -16,6 +16,8 @@ import net.razorvine.pyro.PyroProxy;
  */
 public class EchoExample {
 
+	static protected byte[] hmacKey;	// just ignore this if you don't specify a PYRO_HMAC_KEY environment var
+
 	public static void main(String[] args) throws IOException {
 
 		System.out.println("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
@@ -25,6 +27,7 @@ public class EchoExample {
 
 		NameServerProxy ns = NameServerProxy.locateNS(null);
 		PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
+		p.pyroHmacKey = hmacKey;
 		ns.close();
 		
 		// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
@@ -68,9 +71,9 @@ public class EchoExample {
 		}
 		if(hmackey!=null && hmackey.length()>0) {
 			try {
-				Config.HMAC_KEY=hmackey.getBytes("UTF-8");
+				hmacKey=hmackey.getBytes("UTF-8");
 			} catch (UnsupportedEncodingException e) {
-				Config.HMAC_KEY=null;
+				hmacKey=null;
 			}
 		}
 		String tracedir=System.getenv("PYRO_TRACE_DIR");
