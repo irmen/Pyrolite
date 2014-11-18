@@ -24,11 +24,14 @@ public class PyroProxyPickler : IObjectPickler {
 		outs.WriteByte(Opcodes.EMPTY_TUPLE);
 		outs.WriteByte(Opcodes.NEWOBJ);
 		
-		// parameters are: pyroUri, pyroOneway(hashset), pyroTimeout
+		// args(6): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey
 		object[] args = new object[] {   
 			new PyroURI(proxy.objectid, proxy.hostname, proxy.port),
-			new HashSet<object>(),
-			0.0
+			proxy.pyroOneway,
+			proxy.pyroMethods,
+			proxy.pyroAttrs,
+			0.0,
+			proxy.pyroHmacKey
 		};
 		currentPickler.save(args);
 		outs.WriteByte(Opcodes.BUILD);

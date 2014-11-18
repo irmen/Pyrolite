@@ -56,7 +56,7 @@ public class Message
 	/// <summary>
 	/// construct a full wire message including data and annotations payloads.
 	/// </summary>
-	public Message(ushort msgType, byte[] databytes, ushort serializer_id, ushort flags, ushort seq, IDictionary<string, byte[]> annotations)
+	public Message(ushort msgType, byte[] databytes, ushort serializer_id, ushort flags, ushort seq, IDictionary<string, byte[]> annotations, byte[] hmac)
 		:this(msgType, serializer_id, flags, seq)
 	{
 		this.data = databytes;
@@ -65,8 +65,8 @@ public class Message
 		if(null==annotations)
 			this.annotations = new Dictionary<string, byte[]>(0);
 		
-		if(Config.HMAC_KEY!=null)
-			this.annotations["HMAC"] = this.hmac();
+		if(hmac!=null)
+			this.annotations["HMAC"] = this.hmac(hmac);
 		
 		this.annotations_size = (ushort) this.annotations.Sum(a=>a.Value.Length+6);
 	}
@@ -74,9 +74,9 @@ public class Message
 	/// <summary>
 	/// returns the hmac of the data and the annotation chunk values (except HMAC chunk itself)
 	/// </summary>
-	protected byte[] hmac()
+	protected byte[] hmac(byte[] key)
 	{
-		using(HMACSHA1 hmac=new HMACSHA1(Config.HMAC_KEY)) {
+		using(HMACSHA1 hmac=new HMACSHA1(key)) {
 			hmac.TransformBlock(this.data, 0, this.data.Length, this.data, 0);
 			foreach(var e in this.annotations)
 			{
@@ -227,7 +227,7 @@ public class Message
 	/// Also reads annotation chunks and the actual payload data.
 	/// Validates a HMAC chunk if present.
 	/// </summary>
-	public static Message recv(Stream connection, ushort[] requiredMsgTypes)
+	public static Message recv(Stream connection, ushort[] requiredMsgTypes, byte[] hmac)
 	{
 		byte[] header_data = IOUtil.recv(connection, HEADER_SIZE);
 		var msg = from_header(header_data);
@@ -259,12 +259,12 @@ public class Message
 			TraceMessageRecv(msg.seq, header_data, annotations_data, msg.data);
 		}
 		
-		if(msg.annotations.ContainsKey("HMAC") && Config.HMAC_KEY!=null)
+		if(msg.annotations.ContainsKey("HMAC") && hmac!=null)
 		{
-			if(!msg.annotations["HMAC"].SequenceEqual<byte>(msg.hmac()))
+			if(!msg.annotations["HMAC"].SequenceEqual<byte>(msg.hmac(hmac)))
 				throw new PyroException("message hmac mismatch");
 		}
-		else if (msg.annotations.ContainsKey("HMAC") != (Config.HMAC_KEY!=null))
+		else if (msg.annotations.ContainsKey("HMAC") != (hmac!=null))
 		{
 			// Message contains hmac and local HMAC_KEY not set, or vice versa. This is not allowed.
 			throw new PyroException("hmac key config not symmetric");

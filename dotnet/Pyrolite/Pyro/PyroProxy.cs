@@ -26,14 +26,15 @@ public class PyroProxy : DynamicObject, IDisposable {
 	public string hostname {get;set;}
 	public int port {get;set;}
 	public string objectid {get;set;}
+	public byte[] pyroHmacKey = null;		// per-proxy hmac key, used to be HMAC_KEY config item
 
 	private ushort sequenceNr = 0;
 	private TcpClient sock;
 	private NetworkStream sock_stream;
 	
-	protected ISet<string> pyroMethods = new HashSet<string>();	// remote methods
-	protected ISet<string> pyroAttrs = new HashSet<string>();	// remote attributes
-	protected ISet<string> pyroOneway = new HashSet<string>();	// oneway methods
+	public ISet<string> pyroMethods = new HashSet<string>();	// remote methods
+	public ISet<string> pyroAttrs = new HashSet<string>();	// remote attributes
+	public ISet<string> pyroOneway = new HashSet<string>();	// oneway methods
 
 	/// <summary>
 	/// No-args constructor for (un)pickling support
@@ -223,7 +224,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		PyroSerializer ser = PyroSerializer.GetFor(Config.SERIALIZER);
 		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
-		var msg = new Message(Message.MSG_INVOKE, pickle, ser.serializer_id, flags, sequenceNr, null);
+		var msg = new Message(Message.MSG_INVOKE, pickle, ser.serializer_id, flags, sequenceNr, null, pyroHmacKey);
 		Message resultmsg;
 		lock (this.sock) {
 			IOUtil.send(sock_stream, msg.to_bytes());
@@ -235,7 +236,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 			if ((flags & Message.FLAGS_ONEWAY) != 0)
 				return null;
 
-			resultmsg = Message.recv(sock_stream, new ushort[]{Message.MSG_RESULT});
+			resultmsg = Message.recv(sock_stream, new ushort[]{Message.MSG_RESULT}, pyroHmacKey);
 		}
 		if (resultmsg.seq != sequenceNr) {
 			throw new PyroException("result msg out of sync");
@@ -294,22 +295,36 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// </summary>
 	protected void handshake() {
 		// do connection handshake
-		Message.recv(sock_stream, new ushort[]{Message.MSG_CONNECTOK});
+		Message.recv(sock_stream, new ushort[]{Message.MSG_CONNECTOK}, pyroHmacKey);
 		// message data is ignored for now, should be 'ok' :)
 	}
 
 	/// <summary>
 	/// called by the Unpickler to restore state.
 	/// </summary>
-	/// <param name="args">pyroUri, pyroOneway(hashset), pyroTimeout</param>
+	/// <param name="args">args(6): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey</param>
 	public void __setstate__(object[] args) {
+		if(args.Length != 6) {
+			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
+		}
 		PyroURI uri=(PyroURI)args[0];
-		// the only thing we need here is the uri.
 		this.hostname=uri.host;
 		this.port=uri.port;
 		this.objectid=uri.objectid;
 		this.sock=null;
 		this.sock_stream=null;
+		
+		this.pyroOneway.Clear();
+		foreach(object o in (HashSet<object>) args[1])
+			this.pyroOneway.Add(o as string);
+		this.pyroMethods.Clear();
+		foreach(object o in (HashSet<object>) args[2])
+			this.pyroMethods.Add(o as string);
+		this.pyroAttrs.Clear();
+		foreach(object o in (HashSet<object>) args[3])
+			this.pyroAttrs.Add(o as string);
+
+		this.pyroHmacKey = (byte[])args[5];
 	}	
 }
 

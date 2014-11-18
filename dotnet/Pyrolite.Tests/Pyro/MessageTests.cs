@@ -13,57 +13,14 @@ using Razorvine.Pyro;
 namespace Pyrolite.Tests.Pyro
 {
 
-/// <summary>
-/// A mock class that can be used in place of a socket connection, for test purposes
-/// </summary>
-class ConnectionMock : MemoryStream
-{
-	
-	public long RemainingLength {
-		get {
-			return base.Length - base.Position;
-		}
-	}
-	
-	public byte[] ReceivedData {
-		get {
-			return base.ToArray();
-		}
-	}
-
-	public ConnectionMock() : base()
-	{
-	}
-
-	public ConnectionMock(byte[] initialData) : base(initialData)
-	{
-	}
-
-	public void send(byte[] data)
-	{
-		base.Write(data, 0, data.Length);
-		base.Seek(0, SeekOrigin.Begin);
-	}
-}
-	
 [TestFixture]
 public class MessageTestsHmac {
 	
 	ushort serializer_id = new PickleSerializer().serializer_id;
 	
-	[TestFixtureSetUp]
-	public void setUp() {
-		Config.HMAC_KEY = Encoding.ASCII.GetBytes("testsuite");
-	}
-
-	[TestFixtureTearDown]
-	public void tearDown() {
-		Config.HMAC_KEY = null;
-	}
-
-	public byte[] pyrohmac(byte[] data, IDictionary<string, byte[]> annotations)
+	public byte[] pyrohmac(byte[] data, IDictionary<string, byte[]> annotations, byte[] hmacKey)
 	{
-		using(HMACSHA1 hmac=new HMACSHA1(Config.HMAC_KEY)) {
+		using(HMACSHA1 hmac=new HMACSHA1(hmacKey)) {
 			hmac.TransformBlock(data, 0, data.Length, data, 0);
 			if(annotations!=null)
 			{
@@ -81,14 +38,16 @@ public class MessageTestsHmac {
 	[Test]
 	public void TestMessage()
 	{
-		new Message(99, new byte[0], this.serializer_id, 0, 0, null);  // doesn't check msg type here
+		byte[] hmac = Encoding.UTF8.GetBytes("secret");
+		
+		new Message(99, new byte[0], this.serializer_id, 0, 0, null, hmac);  // doesn't check msg type here
 		Assert.Throws(typeof(PyroException), ()=>Message.from_header(Encoding.ASCII.GetBytes("FOOBAR")));
-		var msg = new Message(Message.MSG_CONNECT, Encoding.ASCII.GetBytes("hello"), this.serializer_id, 0, 0, null);
+		var msg = new Message(Message.MSG_CONNECT, Encoding.ASCII.GetBytes("hello"), this.serializer_id, 0, 0, null, hmac);
 		Assert.AreEqual(Message.MSG_CONNECT, msg.type);
 		Assert.AreEqual(5, msg.data_size);
 		Assert.AreEqual(new byte[]{(byte)'h',(byte)'e',(byte)'l',(byte)'l',(byte)'o'}, msg.data);
 		Assert.AreEqual(4+2+20, msg.annotations_size);
-		byte[] mac = pyrohmac(Encoding.ASCII.GetBytes("hello"), msg.annotations);
+		byte[] mac = pyrohmac(Encoding.ASCII.GetBytes("hello"), msg.annotations, hmac);
 		var expected = new Dictionary<string, byte[]>();
 		expected["HMAC"] = mac;
 		CollectionAssert.AreEqual(expected, msg.annotations);
@@ -99,13 +58,13 @@ public class MessageTestsHmac {
 		Assert.AreEqual(4+2+20, msg.annotations_size);
 		Assert.AreEqual(5, msg.data_size);
 
-		hdr = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 0, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		hdr = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 0, null, hmac).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg = Message.from_header(hdr);
 		Assert.AreEqual(Message.MSG_RESULT, msg.type);
 		Assert.AreEqual(4+2+20, msg.annotations_size);
 		Assert.AreEqual(0, msg.data_size);
 
-		hdr = new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 12345, 60006, 30003, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		hdr = new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 12345, 60006, 30003, null, hmac).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg = Message.from_header(hdr);
 		Assert.AreEqual(Message.MSG_RESULT, msg.type);
 		Assert.AreEqual(60006, msg.flags);
@@ -113,24 +72,24 @@ public class MessageTestsHmac {
 		Assert.AreEqual(12345, msg.serializer_id);
 		Assert.AreEqual(30003, msg.seq);
 
-		byte[] data = new Message(255, new byte[0], this.serializer_id, 0, 255, null).to_bytes();
+		byte[] data = new Message(255, new byte[0], this.serializer_id, 0, 255, null, hmac).to_bytes();
 		Assert.AreEqual(50, data.Length);
-		data = new Message(1, new byte[0], this.serializer_id, 0, 255, null).to_bytes();
+		data = new Message(1, new byte[0], this.serializer_id, 0, 255, null, hmac).to_bytes();
 		Assert.AreEqual(50, data.Length);
-		data = new Message(1, new byte[0], this.serializer_id, 253, 254, null).to_bytes();
+		data = new Message(1, new byte[0], this.serializer_id, 253, 254, null, hmac).to_bytes();
 		Assert.AreEqual(50, data.Length);
 
 		// compression is a job of the code supplying the data, so the messagefactory should leave it untouched
 		data = new byte[1000];
-		byte[] msg_bytes1 = new Message(Message.MSG_INVOKE, data, this.serializer_id, 0, 0, null).to_bytes();
-		byte[] msg_bytes2 = new Message(Message.MSG_INVOKE, data, this.serializer_id, Message.FLAGS_COMPRESSED, 0, null).to_bytes();
+		byte[] msg_bytes1 = new Message(Message.MSG_INVOKE, data, this.serializer_id, 0, 0, null, hmac).to_bytes();
+		byte[] msg_bytes2 = new Message(Message.MSG_INVOKE, data, this.serializer_id, Message.FLAGS_COMPRESSED, 0, null, hmac).to_bytes();
 		Assert.AreEqual(msg_bytes1.Length, msg_bytes2.Length);
 	}
 	
 	[Test]
 	public void testMessageHeaderDatasize()
 	{
-		var msg = new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 12345, 60006, 30003, null);
+		var msg = new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 12345, 60006, 30003, null, null);
 		msg.data_size = 0x12345678;   // hack it to a large value to see if it comes back ok
 		byte[] hdr = msg.to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg = Message.from_header(hdr);
@@ -144,17 +103,19 @@ public class MessageTestsHmac {
 	[Test]
 	public void TestAnnotations()
 	{
+		byte[] hmac=Encoding.UTF8.GetBytes("secret");
+		
 		var annotations = new Dictionary<string,byte[]>();
 		annotations["TEST"]=new byte[]{10,20,30,40,50};
 		
-		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, annotations);
+		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, annotations, hmac);
 		byte[] data = msg.to_bytes();
 		int annotations_size = 4+2+20 + 4+2+5;
 		Assert.AreEqual(Message.HEADER_SIZE + 5 + annotations_size, data.Length);
 		Assert.AreEqual(annotations_size, msg.annotations_size);
 		Assert.AreEqual(2, msg.annotations.Count);
 		Assert.AreEqual(new byte[]{10,20,30,40,50}, msg.annotations["TEST"]);
-		byte[] mac = pyrohmac(new byte[]{1,2,3,4,5}, annotations);
+		byte[] mac = pyrohmac(new byte[]{1,2,3,4,5}, annotations, hmac);
 		Assert.AreEqual(mac, msg.annotations["HMAC"]);
 	}
 	
@@ -164,7 +125,7 @@ public class MessageTestsHmac {
 		try {
 			var anno = new Dictionary<string, byte[]>();
 			anno["TOOLONG"] = new byte[]{10,20,30};
-			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, anno);
+			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, anno, null);
 			byte[]data = msg.to_bytes();
 			Assert.Fail("should fail, too long");
 		} catch(ArgumentException) {
@@ -173,7 +134,7 @@ public class MessageTestsHmac {
 		try {
 			var anno = new Dictionary<string, byte[]>();
 			anno["QQ"] = new byte[]{10,20,30};
-			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, anno);
+			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, anno, null);
 			byte[] data = msg.to_bytes();
 			Assert.Fail("should fail, too short");
 		} catch (ArgumentException) {
@@ -186,11 +147,11 @@ public class MessageTestsHmac {
 	{
 		var annotations = new Dictionary<string, byte[]>();
 		annotations["TEST"] = new byte[]{10, 20,30,40,50};
-		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, annotations);
-		var c = new ConnectionMock();
-		c.send(msg.to_bytes());
-		msg = Message.recv(c, null);
-		Assert.AreEqual(0, c.RemainingLength);
+		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, annotations, Encoding.UTF8.GetBytes("secret"));
+		
+		var ms = new MemoryStream(msg.to_bytes());
+		msg = Message.recv(ms, null, Encoding.UTF8.GetBytes("secret"));
+		Assert.AreEqual(-1, ms.ReadByte());
 		Assert.AreEqual(5, msg.data_size);
 		Assert.AreEqual(new byte[]{1,2,3,4,5}, msg.data);
 		Assert.AreEqual(new byte[]{10,20,30,40,50}, msg.annotations["TEST"]);
@@ -201,7 +162,7 @@ public class MessageTestsHmac {
 	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 25455")]
 	public void testProtocolVersionKaputt()
 	{
-		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 99; // screw up protocol version in message header
 		msg[5] = 111; // screw up protocol version in message header
 		Message.from_header(msg);
@@ -211,7 +172,7 @@ public class MessageTestsHmac {
 	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 46")]
 	public void testProtocolVersionsNotSupported1()
 	{
-		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 0;
 		msg[5] = 46;	
 		Message.from_header(msg);
@@ -221,7 +182,7 @@ public class MessageTestsHmac {
 	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 48")]
 	public void testProtocolVersionsNotSupported2()
 	{
-		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 0;
 		msg[5] = 48;	
 		Message.from_header(msg);
@@ -230,65 +191,46 @@ public class MessageTestsHmac {
 	[Test]
 	public void testHmac()
 	{
-		byte[] hk=Config.HMAC_KEY;
 		Stream c;
 		byte[] data;
 		
-		try {
-			Config.HMAC_KEY = Encoding.ASCII.GetBytes("test key");
-			data = new Message(Message.MSG_RESULT, new byte[]{1,2,3,4,5}, 42, 0, 1, null).to_bytes();
-			c = new ConnectionMock(data);
-		}
-		finally {
-			Config.HMAC_KEY = hk;
-		}
+		data = new Message(Message.MSG_RESULT, new byte[]{1,2,3,4,5}, 42, 0, 1, null, Encoding.UTF8.GetBytes("secret")).to_bytes();
+		c = new MemoryStream(data);
+
 		// test checking of different hmacs
 		try {
-			Message.recv(c, null);
+			Message.recv(c, null, Encoding.UTF8.GetBytes("wrong"));
 			Assert.Fail("crash expected");
 		}
 		catch(PyroException x) {
 			Assert.IsTrue(x.Message.Contains("hmac"));
 		}
-		c = new ConnectionMock(data);
+		c = new MemoryStream(data);
 		// test that it works again when resetting the key
-		try {
-			hk = Config.HMAC_KEY;
-			Config.HMAC_KEY = Encoding.ASCII.GetBytes("test key");
-			Message.recv(c, null);
-		}
-		finally {
-			Config.HMAC_KEY = hk;
-		}
-		c = new ConnectionMock(data);
+		Message.recv(c, null, Encoding.UTF8.GetBytes("secret"));
+
+		c = new MemoryStream(data);
 		// test that it doesn't work when no key is set
 		try {
-			hk = Config.HMAC_KEY;
-			Config.HMAC_KEY = null;
-			Message.recv(c, null);
+			Message.recv(c, null, null);
 			Assert.Fail("crash expected");
 		}
 		catch(PyroException x) {
 			Assert.IsTrue(x.Message.Contains("hmac key config"));
-		}
-		finally {
-			Config.HMAC_KEY = hk;
 		}
 	}
 	
 	[Test]
 	public void testChecksum()
 	{
-		var msg = new Message(Message.MSG_RESULT, new byte[]{1,2,3,4}, 42, 0, 1, null);
-		var c = new ConnectionMock();
-		c.send(msg.to_bytes());
+		var msg = new Message(Message.MSG_RESULT, new byte[]{1,2,3,4}, 42, 0, 1, null, null);
+		byte[] data = msg.to_bytes();
 		// corrupt the checksum bytes
-		byte[] data = c.ReceivedData;
 		data[Message.HEADER_SIZE-2] = 0;
 		data[Message.HEADER_SIZE-1] = 0;
-		c = new ConnectionMock(data);
+		Stream ms = new MemoryStream(data);
 		try {
-			Message.recv(c, null);
+			Message.recv(ms, null, null);
 			Assert.Fail("crash expected");
 		}
 		catch(PyroException x) {
@@ -304,11 +246,11 @@ public class MessageTestsNoHmac {
 	[Test]
 	public void testRecvNoAnnotations()
 	{
-		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, 42, 0, 0, null);
-		var c = new ConnectionMock();
-		c.send(msg.to_bytes());
-		msg = Message.recv(c, null);
-		Assert.AreEqual(0, c.RemainingLength);
+		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, 42, 0, 0, null, null);
+		byte[] data = msg.to_bytes();
+		var ms = new MemoryStream(data);
+		msg = Message.recv(ms, null, null);
+		Assert.AreEqual(-1, ms.ReadByte());
 		Assert.AreEqual(5, msg.data_size);
 		Assert.AreEqual(new byte[]{1,2,3,4,5}, msg.data);
 		Assert.AreEqual(0, msg.annotations_size);

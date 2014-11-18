@@ -14,6 +14,8 @@ namespace Pyrolite.TestPyroNaming
 /// </summary>
 public class TestNaming {
 
+	static protected byte[] hmacKey; // just ignore this if you don't specify a PYRO_HMAC_KEY environment var
+
 	public static void Main(String[] args)  {
 		try {
 			Test();
@@ -49,6 +51,7 @@ public class TestNaming {
 			
 			using(PyroProxy p=new PyroProxy(ns.lookup("Pyro.NameServer")))
 			{
+				p.pyroHmacKey = hmacKey;
 				p.call("ping");
 			}
 	
@@ -67,9 +70,9 @@ public class TestNaming {
 	
 	static void setConfig()
 	{
-		string hmackey=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
-		if(hmackey!=null) {
-			Config.HMAC_KEY=Encoding.UTF8.GetBytes(hmackey);
+		string hmackeyEnv=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
+		if(hmackeyEnv!=null) {
+			hmacKey=Encoding.UTF8.GetBytes(hmackeyEnv);
 		}
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {

@@ -13,8 +13,8 @@ public final class Config implements Serializable {
 	private static final long serialVersionUID = 197645607890570066L;
 
 	public static String MSG_TRACE_DIR = null;
-    public static int NS_PORT = 9090;
-    public static int NS_BCPORT = 9091;
+	public static int NS_PORT = 9090;
+	public static int NS_BCPORT = 9091;
 
 	public final static int PROTOCOL_VERSION = 47;	// Pyro 4.26 
 	public final static String PYROLITE_VERSION = "4.3";

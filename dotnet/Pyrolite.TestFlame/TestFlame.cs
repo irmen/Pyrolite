@@ -57,10 +57,6 @@ public class TestFlame {
 	{
 		Config.SERIALIZER = Config.SerializerType.pickle;		// flame requires pickle
 		
-		string hmackey=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
-		if(hmackey!=null) {
-			Config.HMAC_KEY=Encoding.UTF8.GetBytes(hmackey);
-		}
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {
 			Config.MSG_TRACE_DIR=tracedir;

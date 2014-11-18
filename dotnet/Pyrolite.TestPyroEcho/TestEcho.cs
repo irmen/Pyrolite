@@ -14,6 +14,8 @@ namespace Pyrolite.TestPyroEcho
 /// </summary>
 public class TestEcho {
 
+	static protected byte[] hmacKey; // just ignore this if you don't specify a PYRO_HMAC_KEY environment var
+	
 	public static void Main(String[] args) {
 		try {
 			Test();
@@ -35,6 +37,8 @@ public class TestEcho {
 		NameServerProxy ns = NameServerProxy.locateNS(null);
 		using(dynamic p = new PyroProxy(ns.lookup("test.echoserver")))
 		{
+			p.pyroHmacKey=hmacKey;
+			
 			// non-dynamic way of constructing a proxy is:
 			// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
 	
@@ -96,9 +100,9 @@ public class TestEcho {
 
 	static void setConfig()
 	{
-		string hmackey=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
-		if(hmackey!=null) {
-			Config.HMAC_KEY=Encoding.UTF8.GetBytes(hmackey);
+		string hmackeyEnv=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
+		if(hmackeyEnv!=null) {
+			hmacKey=Encoding.UTF8.GetBytes(hmackeyEnv);
 		}
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {

@@ -13,7 +13,6 @@ public static class Config  {
 		serpent
 	};
 	
-	public static byte[] HMAC_KEY=null;
 	public static string MSG_TRACE_DIR=null;
 	public static int NS_PORT = 9090;
 	public static int NS_BCPORT = 9091;
@@ -23,7 +22,7 @@ public static class Config  {
 	public static bool METADATA = true;
 	
 	public const int PROTOCOL_VERSION = 47;		// Pyro 4.26+ 
-	public const string PYROLITE_VERSION="4.2";
+	public const string PYROLITE_VERSION="4.3";
 	
 	public const string DAEMON_NAME = "Pyro.Daemon";
 }

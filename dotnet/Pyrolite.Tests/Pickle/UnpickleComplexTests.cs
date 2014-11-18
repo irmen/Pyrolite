@@ -56,30 +56,55 @@ public class UnpickleComplexTests
 	[Test]
 	public void testPickleUnpickleProxy() {
 		PyroProxy proxy=new PyroProxy("hostname",9999,"objectid");
+		proxy.pyroHmacKey = Encoding.UTF8.GetBytes("secret");
 		PyroSerializer ser = new PickleSerializer();
 		byte[] pickled_proxy=ser.serializeData(proxy);
 		PyroProxy result = (PyroProxy) ser.deserializeData(pickled_proxy);
 		Assert.AreEqual(proxy.hostname, result.hostname);
 		Assert.AreEqual(proxy.objectid, result.objectid);
 		Assert.AreEqual(proxy.port, result.port);
+		Assert.AreEqual(Encoding.UTF8.GetBytes("secret"), result.pyroHmacKey);
 	}
 
 	[Test]
 	public void testUnpickleRealProxy() {
 		byte[] pickled_proxy=new byte[]
-				{128, 2, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 80, 114, 111,
-	  			120, 121, 10, 113, 1, 41, 129, 113, 2, 99, 80, 121, 114, 111, 52, 46, 99, 
-	  			111, 114, 101, 10, 85, 82, 73, 10, 113, 3, 41, 129, 113, 4, 40, 85, 4, 80,
-	  			89, 82, 79, 113, 5, 85, 10, 115, 111, 109, 101, 111, 98, 106, 101, 99,
-	  			116, 113, 6, 78, 85, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 113, 7,
-	  			77, 15, 39, 116, 98, 99, 95, 95, 98, 117, 105, 108, 116, 105, 110, 95, 95,
-	  			10, 115, 101, 116, 10, 113, 8, 93, 133, 82, 113, 9, 71, 0, 0, 0, 0, 0, 0, 0, 0,
-	  			135, 98, 46};
+				{128, 3, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 80, 114, 111, 120, 121, 10, 113,
+				 0, 41, 129, 113, 1, 40, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 85, 82, 73, 10,
+				 113, 2, 41, 129, 113, 3, 40, 88, 4, 0, 0, 0, 80, 89, 82, 79, 113, 4, 88, 15, 0, 0, 0, 80, 121,
+				 114, 111, 46, 78, 97, 109, 101, 83, 101, 114, 118, 101, 114, 113, 5, 78, 88, 9, 0, 0, 0, 108,
+				 111, 99, 97, 108, 104, 111, 115, 116, 113, 6, 77, 130, 35, 116, 113, 7, 98, 99, 98, 117, 105,
+				 108, 116, 105, 110, 115, 10, 115, 101, 116, 10, 113, 8, 93, 113, 9, 40, 88, 2, 0, 0, 0, 111, 49,
+				 113, 10, 88, 2, 0, 0, 0, 111, 50, 113, 11, 101, 133, 113, 12, 82, 113, 13, 104, 8, 93, 113, 14,
+				 40, 88, 4, 0, 0, 0, 108, 105, 115, 116, 113, 15, 88, 8, 0, 0, 0, 114, 101, 103, 105, 115, 116,
+				 101, 114, 113, 16, 88, 5, 0, 0, 0, 99, 111, 117, 110, 116, 113, 17, 88, 6, 0, 0, 0, 108, 111,
+				 111, 107, 117, 112, 113, 18, 88, 6, 0, 0, 0, 114, 101, 109, 111, 118, 101, 113, 19, 88, 4, 0,
+				 0, 0, 112, 105, 110, 103, 113, 20, 101, 133, 113, 21, 82, 113, 22, 104, 8, 93, 113, 23, 40, 88,
+				 5, 0, 0, 0, 97, 116, 116, 114, 50, 113, 24, 88, 5, 0, 0, 0, 97, 116, 116, 114, 49, 113, 25, 101,
+				 133, 113, 26, 82, 113, 27, 71, 0, 0, 0, 0, 0, 0, 0, 0, 67, 6, 115, 101, 99, 114, 101, 116, 113,
+				 28, 116, 113, 29, 98, 46};
 		PyroSerializer ser = new PickleSerializer();
 		PyroProxy proxy=(PyroProxy)ser.deserializeData(pickled_proxy);
-		Assert.AreEqual("someobject",proxy.objectid);
+		Assert.AreEqual("Pyro.NameServer",proxy.objectid);
 		Assert.AreEqual("localhost",proxy.hostname);
-		Assert.AreEqual(9999,proxy.port);
+		Assert.AreEqual(9090,proxy.port);
+		CollectionAssert.AreEqual(Encoding.UTF8.GetBytes("secret"), proxy.pyroHmacKey);
+		ISet<string> expectedSet = new HashSet<string>();
+		expectedSet.Add("attr1");
+		expectedSet.Add("attr2");
+		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroAttrs);
+		expectedSet.Clear();
+		expectedSet.Add("lookup");
+		expectedSet.Add("ping");
+		expectedSet.Add("register");
+		expectedSet.Add("remove");
+		expectedSet.Add("list");
+		expectedSet.Add("count");
+		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroMethods);
+		expectedSet.Clear();
+		expectedSet.Add("o1");
+		expectedSet.Add("o2");
+		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroOneway);
 	}
 
 	[Test]
