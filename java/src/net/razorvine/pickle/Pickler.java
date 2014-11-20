@@ -328,7 +328,6 @@ public class Pickler {
 		out.write(Opcodes.GLOBAL);
 		out.write("__builtin__\nset\n".getBytes());
 		out.write(Opcodes.EMPTY_LIST);
-		writeMemo(o);
 		out.write(Opcodes.MARK);
 		for(Object x: o) {
 			save(x);
@@ -336,6 +335,7 @@ public class Pickler {
 		out.write(Opcodes.APPENDS);
 		out.write(Opcodes.TUPLE1);
 		out.write(Opcodes.REDUCE);
+		writeMemo(o);	// sets cannot contain self-reference (they are not hashable) so it's fine to put this at the end
 	}
 
 	void put_calendar(Calendar cal) throws IOException {
@@ -518,6 +518,7 @@ public class Pickler {
 			out.write(PickleUtils.integer_to_bytes(b.length));
 			out.write(b);
 		}
+		writeMemo(i);
 	}
 
 	void put_string(String string) throws IOException {

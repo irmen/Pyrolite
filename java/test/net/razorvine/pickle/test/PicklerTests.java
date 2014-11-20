@@ -11,6 +11,7 @@ import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -375,7 +376,194 @@ public class PicklerTests {
 	
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testMemoization() throws PickleException, IOException  
+	public void testMemoizationSet() throws PickleException, IOException
+	{
+		Set<String> set = new HashSet<String>();
+		set.add("a");
+		Object[] array = new Object[] {set, set};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		Object[] result = (Object[]) u.loads(data);
+		assertEquals(2, result.length);
+		Object first = result[0];
+		Object second = result[1];
+		assertTrue(first instanceof HashSet);
+		assertTrue(second instanceof HashSet);
+		assertSame(first, second);				// both objects should be the same memoized object
+
+		set = (Set<String>) first;
+		assertEquals(1, set.size());
+		assertTrue(set.contains("a"));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMemoizationMap() throws PickleException, IOException
+	{
+		HashMap<String,String> map = new HashMap<String,String>();
+		map.put("key", "value");
+		Object[] array = new Object[] {map, map};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		Object[] result = (Object[]) u.loads(data);
+		assertEquals(2, result.length);
+		Object first = result[0];
+		Object second = result[1];
+		assertTrue(first instanceof HashMap);
+		assertTrue(second instanceof HashMap);
+		assertSame(first, second);				// both objects should be the same memoized object
+
+		map = (HashMap<String, String>) first;
+		assertEquals(1, map.size());
+		assertEquals("value", map.get("key"));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMemoizationCollection() throws PickleException, IOException
+	{
+		Collection<String> list = new ArrayList<String>();
+		list.add("a");
+		Object[] array = new Object[] {list, list};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		Object[] result = (Object[]) u.loads(data);
+		assertEquals(2, result.length);
+		Object first = result[0];
+		Object second = result[1];
+		assertTrue(first instanceof ArrayList);
+		assertTrue(second instanceof ArrayList);
+		assertSame(first, second);				// both objects should be the same memoized object
+
+		list = (Collection<String>) first;
+		assertEquals(1, list.size());
+		assertTrue(list.contains("a"));
+	}
+	
+	@Test
+	public void testMemoizationTimeStuff() throws PickleException, IOException
+	{
+		TimeDelta delta = new TimeDelta(1, 2, 3);
+		Time time = new Time(1,2,3,4);
+		Calendar now = Calendar.getInstance();
+		Calendar cal = now;
+	
+		Object[] array = new Object[] {delta, delta, time, time, cal, cal};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		Object[] result = (Object[]) u.loads(data);
+		assertEquals(6, result.length);
+		assertTrue(result[0] instanceof TimeDelta);
+		assertTrue(result[1] instanceof TimeDelta);
+		assertTrue(result[2] instanceof Time);
+		assertTrue(result[3] instanceof Time);
+		assertTrue(result[4] instanceof Calendar);
+		assertTrue(result[5] instanceof Calendar);
+		assertSame(result[0], result[1]);				// both objects should be the same memoized object
+		assertSame(result[2], result[3]);				// both objects should be the same memoized object
+		assertSame(result[4], result[5]);				// both objects should be the same memoized object
+
+		delta = (TimeDelta) result[0];
+		time = (Time) result[2];
+		cal = (Calendar) result[4];
+		assertEquals(new TimeDelta(1,2,3), delta);
+		assertEquals(new Time(1,2,3,4), time);
+		assertEquals(now, cal);
+}
+	
+	@Test
+	public void testMemoizationBigNums() throws PickleException, IOException
+	{
+		BigDecimal bigd = new BigDecimal("12345678901234567890.99887766");
+		BigInteger bigi = new BigInteger("12345678901234567890");
+		
+		Object[] array = new Object[] {bigd, bigd, bigi, bigi};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		Object[] result = (Object[]) u.loads(data);
+		assertEquals(4, result.length);
+		assertTrue(result[0] instanceof BigDecimal);
+		assertTrue(result[1] instanceof BigDecimal);
+		assertTrue(result[2] instanceof BigInteger);
+		assertTrue(result[3] instanceof BigInteger);
+		assertSame(result[0], result[1]);				// both objects should be the same memoized object
+		assertSame(result[2], result[3]);				// both objects should be the same memoized object
+
+		bigd = (BigDecimal) result[0];
+		bigi = (BigInteger) result[2];
+		assertEquals(new BigDecimal("12345678901234567890.99887766"), bigd);
+		assertEquals(new BigInteger("12345678901234567890"), bigi);
+}
+
+	@Test
+	public void testMemoizationString() throws PickleException, IOException
+	{
+		String str = "a";
+		Object[] array = new Object[] {str, str};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		Object[] result = (Object[]) u.loads(data);
+		assertEquals(2, result.length);
+		Object first = result[0];
+		Object second = result[1];
+		assertTrue(first instanceof String);
+		assertTrue(second instanceof String);
+		assertSame(first, second);				// both objects should be the same memoized object
+		
+		str = (String) first;
+		assertEquals("a", str);
+	}
+	
+	@Test
+	public void testMemoizationArray() throws PickleException, IOException
+	{
+		int[] arr = new int[] { 1, 2, 3};
+		Object array = new Object[] {arr, arr};
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		Object[] result = (Object[]) u.loads(data);
+		assertEquals(2, result.length);
+		Object first = result[0];
+		Object second = result[1];
+		assertTrue(first instanceof int[]);
+		assertTrue(second instanceof int[]);
+		assertSame(first, second);				// both objects should be the same memoized object
+		
+		arr = (int[]) first;
+		assertEquals(3, arr.length);
+		assertArrayEquals(new int[] {1, 2, 3}, arr)	;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMemoizationList() throws PickleException, IOException  
 	{
 		byte[] o;
 		Pickler p=new Pickler();
