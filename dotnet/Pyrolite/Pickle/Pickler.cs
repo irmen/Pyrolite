@@ -352,7 +352,6 @@ public class Pickler : IDisposable {
 		byte[] output=Encoding.ASCII.GetBytes("__builtin__\nset\n");
 		outs.Write(output,0,output.Length);
 		outs.WriteByte(Opcodes.EMPTY_LIST);
-		WriteMemo(o);
 		outs.WriteByte(Opcodes.MARK);
 		foreach(object x in o) {
 			save(x);
@@ -360,6 +359,7 @@ public class Pickler : IDisposable {
 		outs.WriteByte(Opcodes.APPENDS);
 		outs.WriteByte(Opcodes.TUPLE1);
 		outs.WriteByte(Opcodes.REDUCE);
+		WriteMemo(o);   // sets cannot contain self-references (because not hashable) so it is fine to put this at the end
 	}
 
 	void put_arrayOfObjects(object[] array) {

@@ -4,8 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
-using System.Text;
+using System.Linq;
 using NUnit.Framework;
 using Razorvine.Pickle;
 
@@ -152,7 +151,7 @@ public class PicklerTests {
 			
 		DateTime date=new DateTime(2011,12,31,14,33,59);
 		byte[] o = p.dumps(date);
-		Object unpickled=u.loads(o);
+		object unpickled=u.loads(o);
 		Assert.AreEqual(date, unpickled);
 
 		date=new DateTime(2011,12,31,14,33,59,456);
@@ -265,7 +264,178 @@ public class PicklerTests {
  	}
 
 	[Test]
-	public void testMemoization()  
+	public void testMemoizationSet()
+	{
+		var set = new HashSet<string>();
+		set.Add("a");
+		object[] array = new object[] {set, set};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		Assert.Contains(Opcodes.BINPUT, data); // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		object[] result = (object[]) u.loads(data);
+		Assert.AreEqual(2, result.Length);
+		object first = result[0];
+		object second = result[1];
+		Assert.IsInstanceOf(typeof(HashSet<object>), first);
+		Assert.IsInstanceOf(typeof(HashSet<object>), second);
+		Assert.AreSame(first, second);				// both objects should be the same memoized object
+
+		HashSet<object> theSet = (HashSet<object>)second;
+		Assert.AreEqual(1, theSet.Count);
+		Assert.IsTrue(theSet.Contains("a"));
+	}
+	
+	[Test]
+	public void testMemoizationMap()
+	{
+		var map = new Dictionary<string,string>();
+		map.Add("key", "value");
+		object[] array = new object[] {map, map};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		Assert.Contains(Opcodes.BINPUT, data); // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		object[] result = (object[]) u.loads(data);
+		Assert.AreEqual(2, result.Length);
+		object first = result[0];
+		object second = result[1];
+		Assert.IsInstanceOf(typeof(Hashtable), first);
+		Assert.IsInstanceOf(typeof(Hashtable), second);
+		Assert.AreSame(first, second);				// both objects should be the same memoized object
+
+		Hashtable theMap = (Hashtable) second;
+		Assert.AreEqual(1, theMap.Count);
+		Assert.AreEqual("value", theMap["key"]);
+	}
+
+	[Test]
+	public void testMemoizationCollection()
+	{
+		ICollection<string> list = new List<string>();
+		list.Add("a");
+		object[] array = new object[] {list, list};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		Assert.Contains(Opcodes.BINPUT, data); // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		object[] result = (object[]) u.loads(data);
+		Assert.AreEqual(2, result.Length);
+		object first = result[0];
+		object second = result[1];
+		Assert.IsInstanceOf(typeof(ArrayList), first);
+		Assert.IsInstanceOf(typeof(ArrayList), second);
+		Assert.AreSame(first, second);				// both objects should be the same memoized object
+
+		ArrayList theList = (ArrayList) second;
+		Assert.AreEqual(1, theList.Count);
+		Assert.IsTrue(theList.Contains("a"));
+	}
+	
+	[Test]
+	public void testMemoizationTimeStuff()
+	{
+		TimeSpan delta = new TimeSpan(1,2,3);
+		DateTime time = new DateTime(2014,11,20,1,2,3);
+	
+		object[] array = new object[] {delta, delta, time, time};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		Assert.Contains(Opcodes.BINPUT, data); // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		object[] result = (object[]) u.loads(data);
+		Assert.AreEqual(4, result.Length);
+		Assert.IsInstanceOf(typeof(TimeSpan), result[0]);
+		Assert.IsInstanceOf(typeof(TimeSpan), result[1]);
+		Assert.IsInstanceOf(typeof(DateTime), result[2]);
+		Assert.IsInstanceOf(typeof(DateTime), result[3]);
+		Assert.AreSame(result[0], result[1]);				// both objects should be the same memoized object
+		Assert.AreSame(result[2], result[3]);				// both objects should be the same memoized object
+
+		delta = (TimeSpan) result[1];
+		time = (DateTime) result[3];
+		Assert.AreEqual(new TimeSpan(1,2,3), delta);
+		Assert.AreEqual(new DateTime(2014,11,20,1,2,3), time);
+}
+	
+	[Test]
+	public void testMemoizationDecimal()
+	{
+		decimal bigd = 12345678901234567890.99887766m;
+		
+		object[] array = new object[] {bigd, bigd};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		Assert.Contains(Opcodes.BINPUT, data); // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		object[] result = (object[]) u.loads(data);
+		Assert.AreEqual(2, result.Length);
+		Assert.IsInstanceOf(typeof(decimal), result[0]);
+		Assert.IsInstanceOf(typeof(decimal), result[1]);
+		Assert.AreSame(result[0], result[1]);				// both objects should be the same memoized object
+
+		bigd = (decimal) result[1];
+		Assert.AreEqual(12345678901234567890.99887766m, bigd);
+	}
+
+	[Test]
+	public void testMemoizationString()
+	{
+		string str = "a";
+		object[] array = new object[] {str, str};
+		
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		Assert.Contains(Opcodes.BINPUT, data); // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		object[] result = (object[]) u.loads(data);
+		Assert.AreEqual(2, result.Length);
+		object first = result[0];
+		object second = result[1];
+		Assert.IsInstanceOf(typeof(string), first);
+		Assert.IsInstanceOf(typeof(string), second);
+		Assert.AreSame(first, second);				// both objects should be the same memoized object
+		
+		str = (string) second;
+		Assert.AreEqual("a", str);
+	}
+	
+	[Test]
+	public void testMemoizationArray()
+	{
+		int[] arr = new int[] { 1, 2, 3};
+		object array = new object[] {arr, arr};
+		Pickler p = new Pickler(true);
+		byte[] data = p.dumps(array);
+		Assert.Contains(Opcodes.BINPUT, data); // check that memoization was done
+		
+		Unpickler u = new Unpickler();
+		object[] result = (object[]) u.loads(data);
+		Assert.AreEqual(2, result.Length);
+		object first = result[0];
+		object second = result[1];
+		Assert.IsInstanceOf(typeof(int[]), first);
+		Assert.IsInstanceOf(typeof(int[]), second);
+		Assert.AreSame(first, second);				// both objects should be the same memoized object
+		
+		arr = (int[]) second;
+		Assert.AreEqual(3, arr.Length);
+		CollectionAssert.AreEqual(new int[] {1, 2, 3}, arr)	;
+	}
+		
+	[Test]
+	public void testMemoizationList()  
 	{
 		byte[] o;
 		Pickler p=new Pickler();
