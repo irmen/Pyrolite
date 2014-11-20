@@ -395,7 +395,7 @@ public class PicklerTests {
 		assertTrue(second instanceof HashSet);
 		assertSame(first, second);				// both objects should be the same memoized object
 
-		set = (Set<String>) first;
+		set = (Set<String>) second;
 		assertEquals(1, set.size());
 		assertTrue(set.contains("a"));
 	}
@@ -421,7 +421,7 @@ public class PicklerTests {
 		assertTrue(second instanceof HashMap);
 		assertSame(first, second);				// both objects should be the same memoized object
 
-		map = (HashMap<String, String>) first;
+		map = (HashMap<String, String>) second;
 		assertEquals(1, map.size());
 		assertEquals("value", map.get("key"));
 	}
@@ -447,7 +447,7 @@ public class PicklerTests {
 		assertTrue(second instanceof ArrayList);
 		assertSame(first, second);				// both objects should be the same memoized object
 
-		list = (Collection<String>) first;
+		list = (Collection<String>) second;
 		assertEquals(1, list.size());
 		assertTrue(list.contains("a"));
 	}
@@ -479,9 +479,9 @@ public class PicklerTests {
 		assertSame(result[2], result[3]);				// both objects should be the same memoized object
 		assertSame(result[4], result[5]);				// both objects should be the same memoized object
 
-		delta = (TimeDelta) result[0];
-		time = (Time) result[2];
-		cal = (Calendar) result[4];
+		delta = (TimeDelta) result[1];
+		time = (Time) result[3];
+		cal = (Calendar) result[5];
 		assertEquals(new TimeDelta(1,2,3), delta);
 		assertEquals(new Time(1,2,3,4), time);
 		assertEquals(now, cal);
@@ -509,8 +509,8 @@ public class PicklerTests {
 		assertSame(result[0], result[1]);				// both objects should be the same memoized object
 		assertSame(result[2], result[3]);				// both objects should be the same memoized object
 
-		bigd = (BigDecimal) result[0];
-		bigi = (BigInteger) result[2];
+		bigd = (BigDecimal) result[1];
+		bigi = (BigInteger) result[3];
 		assertEquals(new BigDecimal("12345678901234567890.99887766"), bigd);
 		assertEquals(new BigInteger("12345678901234567890"), bigi);
 }
@@ -534,7 +534,7 @@ public class PicklerTests {
 		assertTrue(second instanceof String);
 		assertSame(first, second);				// both objects should be the same memoized object
 		
-		str = (String) first;
+		str = (String) second;
 		assertEquals("a", str);
 	}
 	
@@ -556,7 +556,7 @@ public class PicklerTests {
 		assertTrue(second instanceof int[]);
 		assertSame(first, second);				// both objects should be the same memoized object
 		
-		arr = (int[]) first;
+		arr = (int[]) second;
 		assertEquals(3, arr.length);
 		assertArrayEquals(new int[] {1, 2, 3}, arr)	;
 	}
