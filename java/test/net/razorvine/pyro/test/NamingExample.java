@@ -23,7 +23,7 @@ public class NamingExample {
 
 		setConfig();
 
-		NameServerProxy ns=NameServerProxy.locateNS(null);
+		NameServerProxy ns=NameServerProxy.locateNS(null, hmacKey);
 		System.out.println("discovered ns at "+ns.hostname+":"+ns.port);
 		ns.ping();
 

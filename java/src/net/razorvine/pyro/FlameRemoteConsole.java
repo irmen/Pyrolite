@@ -43,19 +43,31 @@ public class FlameRemoteConsole {
 				System.out.println("");
 				break;
 			}
-			Object[] result=(Object[])remoteconsole.call("push_and_get_output", line);
-			if(result[0]!=null) {
-				System.out.print(result[0]);
+			try {
+				Object[] result=(Object[])remoteconsole.call("push_and_get_output", line);
+				if(result[0]!=null) {
+					System.out.print(result[0]);
+				}
+				more=(Boolean)result[1];
+			} catch(IOException x) {
+				break;
 			}
-			more=(Boolean)result[1];
 		}
 		System.out.println("(Remote session ended)");
 	}
 
 	public void close() throws PickleException, PyroException, IOException {
 		if(remoteconsole!=null) {
-			remoteconsole.call("terminate");
+			try {
+				remoteconsole.call("terminate");
+			} catch (IOException x) {
+				// 
+			}
 			remoteconsole.close();
 		}
 	}
+	
+	public void setHmacKey(byte[] hmac) {
+		remoteconsole.pyroHmacKey = hmac;
+	}	
 }

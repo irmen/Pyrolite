@@ -31,4 +31,8 @@ public class FlameBuiltin {
 		if(flameserver!=null)
 			flameserver.close();
 	}
+	
+	public void setHmacKey(byte[] hmac) {
+		flameserver.pyroHmacKey = hmac;
+	}
 }

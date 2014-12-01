@@ -40,7 +40,7 @@ public class SimplePyroExample {
         Map<String, Object> result = (Map<String, Object>) obj;
         System.out.println("value="+result.get("value"));
         System.out.println("message="+result.get("messge"));
-        System.out.println("timestamp=" + ((Calendar)result.get("timestamp")).getTime());
+        System.out.println("timestamp=" +result.get("timestamp"));
 
         
         // error

@@ -55,14 +55,19 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 	}
 	
 	public static NameServerProxy locateNS(String host) throws IOException {
-		return locateNS(host,0);
+		return locateNS(host,0,null);
+	}
+
+	public static NameServerProxy locateNS(String host, byte[] hmacKey) throws IOException {
+		return locateNS(host,0,hmacKey);
 	}
 	
-	public static NameServerProxy locateNS(String host, int port) throws IOException {
+	public static NameServerProxy locateNS(String host, int port, byte[] hmacKey) throws IOException {
 		if(host!=null) {
 			if(port==0)
 				port=Config.NS_PORT;
 			NameServerProxy proxy=new NameServerProxy(host, port);
+			proxy.pyroHmacKey = hmacKey;
 			proxy.ping();
 			return proxy;
 		}
@@ -87,7 +92,7 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		{
 			// try localhost explicitly (if host wasn't localhost already)
 			if(!host.startsWith("127.0") && !host.equals("localhost"))
-				return locateNS("localhost", Config.NS_PORT);
+				return locateNS("localhost", Config.NS_PORT, hmacKey);
 			else
 				throw x;
 		}
@@ -95,6 +100,8 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 			udpsock.close();
 		}
 		String location=new String(response.getData(), 0, response.getLength());
-		return new NameServerProxy(new PyroURI(location));
+		NameServerProxy nsp = new NameServerProxy(new PyroURI(location));
+		nsp.pyroHmacKey = hmacKey;
+		return nsp;
 	}
 }
