@@ -12,6 +12,8 @@ namespace Pyrolite.TestPyroFlame
 /// </summary>
 public class TestFlame {
 
+	static protected byte[] hmacKey; // just ignore this if you don't specify a PYRO_HMAC_KEY environment var
+
 	public static void Main(String[] args) {
 		try {
 			Test();
@@ -28,15 +30,21 @@ public class TestFlame {
 		setConfig();
 		using(dynamic flame=new PyroProxy("localhost",9999,"Pyro.Flame"))
 		{
+			if(hmacKey!=null) flame.pyroHmacKey = hmacKey;
+			
 			Console.WriteLine("builtin:");
 			using(dynamic r_max=(FlameBuiltin)flame.builtin("max"))
 			{
+				if(hmacKey!=null) r_max.pyroHmacKey = hmacKey;
+				
 				int maximum=(int)r_max(new int[]{22,99,1});		// invoke remote max() builtin function
 				Console.WriteLine("maximum="+maximum);
 			}
 			
 			using(dynamic r_module=(FlameModule)flame.module("socket"))
 			{
+				if(hmacKey!=null) r_module.pyroHmacKey = hmacKey;
+
 				String hostname=(String)r_module.gethostname();		// get remote hostname
 				Console.WriteLine("hostname="+hostname);
 			}
@@ -50,17 +58,22 @@ public class TestFlame {
 			{
 				console.interact();
 			}
+
+			Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
 		}
 	}
 
 	static void setConfig()
 	{
-		Config.SERIALIZER = Config.SerializerType.pickle;		// flame requires pickle
-		
+		string hmackeyEnv=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
+		if(hmackeyEnv!=null) {
+			hmacKey=Encoding.UTF8.GetBytes(hmackeyEnv);
+		}
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {
 			Config.MSG_TRACE_DIR=tracedir;
 		}
+		Config.SERIALIZER = Config.SerializerType.pickle;   // flame requires the pickle serializer
 	}
 }
 

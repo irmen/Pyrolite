@@ -54,6 +54,8 @@ namespace Pyrolite.PickleExample
 			Console.WriteLine("1-3: integers: {0}, {1}, {2}", integer1, integer2, integer3);
 			Console.WriteLine("4: tuple: ({0}, {1}, {2})", tuple[0], tuple[1], tuple[2]);
 			Console.WriteLine("5: set: {0}", string.Join(",", set));
+			
+			Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
 		}
 	}
 }

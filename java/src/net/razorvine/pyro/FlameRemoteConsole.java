@@ -58,11 +58,7 @@ public class FlameRemoteConsole {
 
 	public void close() throws PickleException, PyroException, IOException {
 		if(remoteconsole!=null) {
-			try {
-				remoteconsole.call("terminate");
-			} catch (IOException x) {
-				// 
-			}
+			remoteconsole.call("terminate");
 			remoteconsole.close();
 		}
 	}

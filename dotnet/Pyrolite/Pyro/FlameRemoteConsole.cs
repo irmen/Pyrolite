@@ -51,6 +51,7 @@ public class FlameRemoteConsole : IDisposable
 		if(remoteconsole!=null) {
 			remoteconsole.call("terminate");
 			remoteconsole.close();
+			remoteconsole = null;
 		}
 	}
 	

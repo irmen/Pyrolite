@@ -50,15 +50,12 @@ public class NameServerProxy : PyroProxy {
 		return typed;
 	}
 	
-	public static NameServerProxy locateNS(string host) {
-		return locateNS(host,0);
-	}
-	
-	public static NameServerProxy locateNS(string host, int port) {
+	public static NameServerProxy locateNS(string host, int port=0, byte[] hmacKey=null) {
 		if(host!=null) {
 			if(port==0)
 				port=Config.NS_PORT;
 			NameServerProxy proxy=new NameServerProxy(host, port);
+			proxy.pyroHmacKey=hmacKey;
 			proxy.ping();
 			return proxy;
 		}
@@ -77,12 +74,14 @@ public class NameServerProxy : PyroProxy {
 			} catch (SocketException) {
 				// try localhost explicitly (if host wasn't localhost already)
 				if(host==null || (!host.StartsWith("127.0") && host!="localhost"))
-					return locateNS("localhost", Config.NS_PORT);
+					return locateNS("localhost", Config.NS_PORT, hmacKey);
 				else
 					throw;
 			}
 			string location=Encoding.ASCII.GetString(buf);
-			return new NameServerProxy(new PyroURI(location));
+			var nsp = new NameServerProxy(new PyroURI(location));
+			nsp.pyroHmacKey = hmacKey;
+			return nsp;
 		}
 	}
 }

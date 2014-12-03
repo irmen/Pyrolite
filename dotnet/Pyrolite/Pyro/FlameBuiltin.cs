@@ -15,6 +15,15 @@ public class FlameBuiltin : DynamicObject, IDisposable
 	private PyroProxy flameserver;
 	private string builtin;
 	
+	public byte[] pyroHmacKey {
+		get {
+			return flameserver.pyroHmacKey;
+		}
+		set {
+			flameserver.pyroHmacKey = value;
+		}
+	}
+	
 	/// <summary>
 	/// for the unpickler to restore state
 	/// </summary>

@@ -34,7 +34,7 @@ public class TestNaming {
 		if(Config.SERIALIZER==Config.SerializerType.serpent)
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
-		using(NameServerProxy ns=NameServerProxy.locateNS(null)) 
+		using(NameServerProxy ns=NameServerProxy.locateNS(null, hmacKey: hmacKey))
 		{
 			Console.WriteLine("discovered ns at "+ns.hostname+":"+ns.port);
 			ns.ping();
@@ -64,6 +64,8 @@ public class TestNaming {
 				// ok
 				Console.WriteLine("got a PyroException (expected): {0}", x.Message);
 			}
+			
+			Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
 		}
 
 	}

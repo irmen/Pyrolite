@@ -95,12 +95,15 @@ public class TestEcho {
 	
 			Console.WriteLine("shutting down the test echo server.");
 			p.shutdown();
+
+			Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
 		}
 	}
 
 	static void setConfig()
 	{
 		string hmackeyEnv=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
+		
 		if(hmackeyEnv!=null) {
 			hmacKey=Encoding.UTF8.GetBytes(hmackeyEnv);
 		}
