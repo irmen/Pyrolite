@@ -4,7 +4,10 @@ echo "Building"
 
 echo "Running tests"
 
-# note: nunit-2.6.2 crashes on Mono. Stick with 2.6.1 for the time being.
-NUNIT="mono ${MONO_OPTIONS} ${HOME}/Projects/NUnit-2.6.1/bin/nunit-console.exe"
+# we need to use the runtime 4.x version of nunit.
+# the default nunit-console command uses the framework 2.x version.
 
-${NUNIT} -framework:4.0 -noshadow -nothread dotnet/Pyrolite.Tests/bin/Debug/Pyrolite.Tests.exe
+NUNIT_CONSOLE=/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/4.5/nunit-console.exe
+NUNIT="mono ${MONO_OPTIONS} ${NUNIT_CONSOLE}"
+
+${NUNIT} -noshadow dotnet/Pyrolite.Tests/bin/Debug/Pyrolite.Tests.exe
