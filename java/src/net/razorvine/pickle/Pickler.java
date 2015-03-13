@@ -30,24 +30,25 @@ import net.razorvine.pickle.objects.TimeDelta;
  */
 public class Pickler {
 
-  public static int HIGHEST_PROTOCOL = 2;
+	public static int HIGHEST_PROTOCOL = 2;
 
-  private static class Memo {
-    public Object obj;
-    public int index;
-    public Memo(Object obj, int index) {
-      this.obj = obj;
-      this.index = index;
-    }
-  }
+	private static class Memo {
+		public Object obj;
+		public int index;
 
-  private static int MAX_RECURSE_DEPTH = 1000;
+		public Memo(Object obj, int index) {
+			this.obj = obj;
+			this.index = index;
+		}
+	}
+
+	private static int MAX_RECURSE_DEPTH = 1000;
 	private int recurse = 0;  // recursion level
 	private OutputStream out;
 	private int PROTOCOL = 2;
 	private static Map<Class<?>, IObjectPickler> customPicklers=new HashMap<Class<?>, IObjectPickler>();
 	private boolean useMemo=true;
-	private HashMap<Integer, Memo> memo;    // maps objects to memo index
+	private HashMap<Integer, Memo> memo;  // maps object's identity hash to (object, memo index)
 	
 	/**
 	 * Create a Pickler.
@@ -146,7 +147,7 @@ public class Pickler {
 	private void writeMemo(Object obj) throws IOException {
 		if(!this.useMemo)
 			return;
-    int idHash = System.identityHashCode(obj);
+		int idHash = System.identityHashCode(obj);
 		if(!memo.containsKey(idHash))
 		{
 			int memo_index = memo.size();
@@ -171,21 +172,20 @@ public class Pickler {
 	private boolean lookupMemo(Class<?> objectType, Object obj) throws IOException {
 		if(!this.useMemo)
 			return false;
-    int idHash = System.identityHashCode(obj);
-		if(!objectType.isPrimitive())
-		{
+		int idHash = System.identityHashCode(obj);
+		if(!objectType.isPrimitive()) {
 			if(memo.containsKey(idHash) && memo.get(idHash).obj == obj) { // same object
-        int memo_index = memo.get(idHash).index;
-        if (memo_index <= 0xff) {
-          out.write(Opcodes.BINGET);
-          out.write((byte) memo_index);
-        } else {
-          out.write(Opcodes.LONG_BINGET);
-          byte[] index_bytes = PickleUtils.integer_to_bytes(memo_index);
-          out.write(index_bytes, 0, 4);
-        }
-        return true;
-      }
+				int memo_index = memo.get(idHash).index;
+				if(memo_index <= 0xff) {
+					out.write(Opcodes.BINGET);
+					out.write((byte) memo_index);
+				} else {
+					out.write(Opcodes.LONG_BINGET);
+					byte[] index_bytes = PickleUtils.integer_to_bytes(memo_index);
+					out.write(index_bytes, 0, 4);
+				}
+				return true;
+			}
 		}
 		return false;
 	}
