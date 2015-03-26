@@ -291,7 +291,6 @@ public class UnpicklerTests {
 		byte[] pickle = p.dumps(c);
 		Unpickler u = new Unpickler();
 		Calendar c2 = (Calendar) u.loads(pickle);
-		System.out.println(c2.getTime().toString());
 		assertEquals(c, c2);
 		
 		c=new GregorianCalendar(2011, Calendar.OCTOBER, 9);
