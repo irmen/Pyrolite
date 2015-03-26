@@ -276,6 +276,15 @@ public static class PickleUtils {
 						c2=(char)Convert.ToInt32(""+h1+h2, 16);
 						sb.Append(c2);
 						break;
+					case 'n':
+						sb.Append('\n');
+						break;
+					case 'r':
+						sb.Append('\r');
+						break;
+					case 't':
+						sb.Append('\t');
+						break;
 					default:
 						throw new PickleException("invalid escape sequence in string");
 				}
@@ -311,6 +320,15 @@ public static class PickleUtils {
 						char h4=str[++i];
 						c2=(char)Convert.ToInt32(""+h1+h2+h3+h4, 16);
 						sb.Append(c2);
+						break;
+					case 'n':
+						sb.Append('\n');
+						break;
+					case 'r':
+						sb.Append('\r');
+						break;
+					case 't':
+						sb.Append('\t');
 						break;
 					default:
 						throw new PickleException("invalid escape sequence in string");

@@ -248,6 +248,28 @@ public class PickleUtilsTest {
 		Assert.AreEqual(-231451016L, PickleUtils.decode_long(new byte[]{0x78,0x56,0x34,0xf2}));
 		Assert.AreEqual(0xf2345678L, PickleUtils.decode_long(new byte[]{0x78,0x56,0x34,0xf2,0x00}));
 	}
+
+	[Test]
+	public void testDecode_escaped()
+	{
+		Assert.AreEqual("abc", PickleUtils.decode_escaped("abc"));
+		Assert.AreEqual("a\\c", PickleUtils.decode_escaped("a\\\\c"));
+		Assert.AreEqual("a\u0042c", PickleUtils.decode_escaped("a\\x42c"));
+		Assert.AreEqual("a\nc", PickleUtils.decode_escaped("a\\nc"));
+		Assert.AreEqual("a\tc", PickleUtils.decode_escaped("a\\tc"));
+		Assert.AreEqual("a\rc", PickleUtils.decode_escaped("a\\rc"));
+	}
+	
+	[Test]
+	public void testDecode_unicode_escaped()
+	{
+		Assert.AreEqual("abc", PickleUtils.decode_unicode_escaped("abc"));
+		Assert.AreEqual("a\\c", PickleUtils.decode_unicode_escaped("a\\\\c"));
+		Assert.AreEqual("a\u0042c", PickleUtils.decode_unicode_escaped("a\\u0042c"));
+		Assert.AreEqual("a\nc", PickleUtils.decode_unicode_escaped("a\\nc"));
+		Assert.AreEqual("a\tc", PickleUtils.decode_unicode_escaped("a\\tc"));
+		Assert.AreEqual("a\rc", PickleUtils.decode_unicode_escaped("a\\rc"));
+	}
 }
 
 

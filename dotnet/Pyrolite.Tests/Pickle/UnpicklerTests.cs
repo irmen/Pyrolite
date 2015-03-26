@@ -279,6 +279,9 @@ public class UnpicklerTests {
 		
 		ts = (TimeSpan)U("cdatetime\ntime\n(K\x17K\x0dK\x36J@\xe2\x01\x00tR.");
 		Assert.AreEqual(new TimeSpan(0, 23, 13, 54, 123), ts);
+
+		dt = (DateTime) U("cdatetime\ndatetime\np0\n(S'\\x07\\xde\\x07\\x08\\n\\n\\x01\\x00\\x03\\xe8'\np1\ntp2\nRp3\n."); // has escaped newline characters encoding decimal 10
+		Assert.AreEqual(new DateTime(2014, 7, 8, 10, 10, 1, 1), dt);
 	}
 	
 	[Test]
@@ -298,6 +301,25 @@ public class UnpicklerTests {
 		
 		ts=(TimeSpan)U("cdatetime\ntimedelta\nM\u00d9\u0002M\u00d5\u00d2JU\u00f8\u0006\u0000\u0087R.");
 		Assert.AreEqual(new TimeSpan(729, 0, 0, 53973, 456), ts);
+	}
+	
+	[Test]
+	public void testDateTimeStringEscaping()
+	{
+		DateTime dt=new DateTime(2011, 10, 10, 9, 13, 10, 10);
+		Pickler p = new Pickler();
+		byte[] pickle = p.dumps(dt);
+		Unpickler u = new Unpickler();
+		DateTime dt2 = (DateTime) u.loads(pickle);
+		Assert.AreEqual(dt, dt2);
+		
+		dt = new DateTime(2011, 10, 9, 13, 10, 9, 10);
+		dt2 = (DateTime) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00db\n\t\r\n\t\u0000'\u0010q\u0001\u0085q\u0002Rq\u0003.");	// protocol 2
+		Assert.AreEqual(dt, dt2);
+		dt2 = (DateTime) U("cdatetime\ndatetime\nq\u0000(U\n\u0007\u00db\n\t\r\n\t\u0000'\u0010q\u0001tq\u0002Rq\u0003.");	// protocol 1
+		Assert.AreEqual(dt, dt2);
+		dt2 = (DateTime) U("cdatetime\ndatetime\np0\n(S'\\x07\\xdb\\n\\t\\r\\n\\t\\x00'\\x10'\np1\ntp2\nRp3\n.");	// protocol 0
+		Assert.AreEqual(dt, dt2);
 	}
 	
 	[Test]

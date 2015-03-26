@@ -22,7 +22,7 @@ public static class Config  {
 	public static bool METADATA = true;
 	
 	public const int PROTOCOL_VERSION = 47;		// Pyro 4.26+ 
-	public const string PYROLITE_VERSION="4.4";
+	public const string PYROLITE_VERSION="4.5";
 	
 	public const string DAEMON_NAME = "Pyro.Daemon";
 }
