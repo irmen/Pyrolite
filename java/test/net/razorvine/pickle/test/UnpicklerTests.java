@@ -323,6 +323,13 @@ public class UnpicklerTests {
 		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
 		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00de\u0007\u0008\n\n\u0000\u0000\u0000\u0000q\u0001cpytz\n_UTC\nq\u0002)Rq\u0003\u0086q\u0004Rq\u0005.");
 		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+
+		// dateutil tzutcs
+		pc=(Calendar) U("cdatetime\ndatetime\np0\n(S\'\\x07\\xde\\x07\\x08\\n\\n\\x00\\x00\\x00\\x00\'\np1\nccopy_reg\n_reconstructor\np2\n(cdateutil.tz\ntzutc\np3\ncdatetime\ntzinfo\np4\ng4\n(tRp5\ntp6\nRp7\ntp8\nRp9\n.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00de\u0007\u0008\n\n\u0000\u0000\u0000\u0000q\u0001cdateutil.tz\ntzutc\nq\u0002)\u0081q\u0003}q\u0004b\u0086q\u0005Rq\u0006.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+
 		tz = TimeZone.getTimeZone("America/New_York");
 		c=new GregorianCalendar(2014, Calendar.JULY, 8);
 		c.set(Calendar.HOUR_OF_DAY, 10);
