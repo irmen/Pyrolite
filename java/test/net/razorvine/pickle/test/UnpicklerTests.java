@@ -14,6 +14,7 @@ import java.util.Set;
 
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PickleUtils;
+import net.razorvine.pickle.Pickler;
 import net.razorvine.pickle.Unpickler;
 import net.razorvine.pickle.objects.ComplexNumber;
 import net.razorvine.pickle.objects.Time;
@@ -276,6 +277,34 @@ public class UnpicklerTests {
 		c.set(Calendar.MILLISECOND,456);
 		pc=(Calendar) U("cdatetime\ndatetime\nC\n\u0007\u00db\u000c\u001f\u000e!;\u0006\u00f5@\u0085R.");
 		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+	}
+
+	@Test
+	public void testDateTimeStringEscaping() throws PickleException, IOException
+	{
+		Calendar c=new GregorianCalendar(2011, Calendar.OCTOBER, 10);
+		c.set(Calendar.HOUR_OF_DAY, 9);
+		c.set(Calendar.MINUTE, 13);
+		c.set(Calendar.SECOND, 10);
+		c.set(Calendar.MILLISECOND,	10);
+		Pickler p = new Pickler();
+		byte[] pickle = p.dumps(c);
+		Unpickler u = new Unpickler();
+		Calendar c2 = (Calendar) u.loads(pickle);
+		System.out.println(c2.getTime().toString());
+		assertEquals(c, c2);
+		
+		c=new GregorianCalendar(2011, Calendar.OCTOBER, 9);
+		c.set(Calendar.HOUR_OF_DAY, 13);
+		c.set(Calendar.MINUTE, 10);
+		c.set(Calendar.SECOND, 9);
+		c.set(Calendar.MILLISECOND,	10);
+		c2 = (Calendar) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00db\n\t\r\n\t\u0000'\u0010q\u0001\u0085q\u0002Rq\u0003.");	// protocol 2
+		assertEquals(c, c2);
+		c2 = (Calendar) U("cdatetime\ndatetime\nq\u0000(U\n\u0007\u00db\n\t\r\n\t\u0000'\u0010q\u0001tq\u0002Rq\u0003.");	// protocol 1
+		assertEquals(c, c2);
+		c2 = (Calendar) U("cdatetime\ndatetime\np0\n(S\"\\x07\\xdb\\n\\t\\r\\n\\t\\x00\'\\x10\"\np1\ntp2\nRp3\n.");	// protocol 0
+		assertEquals(c, c2);
 	}
 	
 	@Test
