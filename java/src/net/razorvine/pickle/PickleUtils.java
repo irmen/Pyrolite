@@ -331,6 +331,15 @@ public abstract class PickleUtils {
 						c2=(char)Integer.parseInt(""+h1+h2, 16);
 						sb.append(c2);
 						break;
+					case 'n':
+						sb.append('\n');
+						break;
+					case 'r':
+						sb.append('\r');
+						break;
+					case 't':
+						sb.append('\t');
+						break;
 					default:
 						throw new PickleException("invalid escape sequence in string");
 				}
@@ -366,6 +375,15 @@ public abstract class PickleUtils {
 						char h4=str.charAt(++i);
 						c2=(char)Integer.parseInt(""+h1+h2+h3+h4, 16);
 						sb.append(c2);
+						break;
+					case 'n':
+						sb.append('\n');
+						break;
+					case 'r':
+						sb.append('\r');
+						break;
+					case 't':
+						sb.append('\t');
 						break;
 					default:
 						throw new PickleException("invalid escape sequence in string");

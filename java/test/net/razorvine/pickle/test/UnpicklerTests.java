@@ -235,6 +235,14 @@ public class UnpicklerTests {
 		pc=(Calendar) U("cdatetime\ndatetime\np0\n(S'\\x07\\xdb\\x0c\\x1f\\x0e!;\\x06\\xf5@'\np1\ntp2\nRp3\n.");
 		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
 		
+		c=new GregorianCalendar(2014, Calendar.JULY, 8);
+		c.set(Calendar.HOUR_OF_DAY, 10);
+		c.set(Calendar.MINUTE, 10);
+		c.set(Calendar.SECOND, 1);
+		c.set(Calendar.MILLISECOND, 1);
+		pc=(Calendar) U("cdatetime\ndatetime\np0\n(S\'\\x07\\xde\\x07\\x08\\n\\n\\x01\\x00\\x03\\xe8\'\np1\ntp2\nRp3\n."); // has escaped newline characters encoding decimal 10
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+
 		TimeDelta td=(TimeDelta) U("cdatetime\ntimedelta\nM\u00d9\u0002M\u00d5\u00d2JU\u00f8\u0006\u0000\u0087R.");
 		assertEquals(729,td.days);
 		assertEquals(53973, td.seconds);

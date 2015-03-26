@@ -265,4 +265,26 @@ public class PickleUtilsTest {
 		assertArrayEquals(new byte[]{0x78,0x56,0x34,(byte)0xf2}, PickleUtils.encode_long(BigInteger.valueOf(-231451016L)));	
 		assertArrayEquals(new byte[]{0x78,0x56,0x34,(byte)0xf2,0x00}, PickleUtils.encode_long(BigInteger.valueOf(0xf2345678L)));
 	}
+	
+	@Test
+	public void testDecode_escaped()
+	{
+		assertEquals("abc", PickleUtils.decode_escaped("abc"));
+		assertEquals("a\\c", PickleUtils.decode_escaped("a\\\\c"));
+		assertEquals("a\u0042c", PickleUtils.decode_escaped("a\\x42c"));
+		assertEquals("a\nc", PickleUtils.decode_escaped("a\\nc"));
+		assertEquals("a\tc", PickleUtils.decode_escaped("a\\tc"));
+		assertEquals("a\rc", PickleUtils.decode_escaped("a\\rc"));
+	}
+	
+	@Test
+	public void testDecode_unicode_escaped()
+	{
+		assertEquals("abc", PickleUtils.decode_unicode_escaped("abc"));
+		assertEquals("a\\c", PickleUtils.decode_unicode_escaped("a\\\\c"));
+		assertEquals("a\u0042c", PickleUtils.decode_unicode_escaped("a\\u0042c"));
+		assertEquals("a\nc", PickleUtils.decode_unicode_escaped("a\\nc"));
+		assertEquals("a\tc", PickleUtils.decode_unicode_escaped("a\\tc"));
+		assertEquals("a\rc", PickleUtils.decode_unicode_escaped("a\\rc"));
+	}
 }
