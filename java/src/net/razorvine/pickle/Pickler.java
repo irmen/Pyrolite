@@ -349,15 +349,10 @@ public class Pickler {
 	void put_calendar(Calendar cal) throws IOException {
 		out.write(Opcodes.GLOBAL);
 		out.write("datetime\ndatetime\n".getBytes());
-		out.write(Opcodes.MARK);
-		save(cal.get(Calendar.YEAR));
-		save(cal.get(Calendar.MONTH)+1);    // months start at 0 in java
-		save(cal.get(Calendar.DAY_OF_MONTH));
-		save(cal.get(Calendar.HOUR_OF_DAY));
-		save(cal.get(Calendar.MINUTE));
-		save(cal.get(Calendar.SECOND));
-		save(cal.get(Calendar.MILLISECOND)*1000);
-		out.write(Opcodes.TUPLE);
+		out.write(Opcodes.SHORT_BINSTRING);
+		out.write(10); // data bytes are 10 chars
+		out.write(this.datetimeDataBytes(cal));
+		out.write(Opcodes.TUPLE1);
 		out.write(Opcodes.REDUCE);
 		writeMemo(cal);
 	}
@@ -615,5 +610,22 @@ public class Pickler {
 		} catch (InvocationTargetException e) {
 			throw new PickleException("couldn't introspect javabean: "+e);
 		}
+	}
+
+	private byte[] datetimeDataBytes(Calendar cal) {
+		int microseconds = cal.get(Calendar.MILLISECOND) * 1000;
+		byte[] data = {
+				((byte) ((cal.get(Calendar.YEAR) & 0xff00) >> 8)),
+				((byte) (cal.get(Calendar.YEAR) & 0x00ff)),
+				((byte) (cal.get(Calendar.MONTH)+1)),
+				((byte) cal.get(Calendar.DAY_OF_MONTH)),
+				((byte) cal.get(Calendar.HOUR_OF_DAY)),
+				((byte) cal.get(Calendar.MINUTE)),
+				((byte) cal.get(Calendar.SECOND)),
+				((byte) ((microseconds & 0xff0000) >> 16)),
+				((byte) ((microseconds & 0x00ff00) >> 8)),
+				((byte) (microseconds & 0x0000ff)),
+		};
+		return data;
 	}
 }
