@@ -86,7 +86,7 @@ public class UnpicklerTests {
 		assertEquals(new ArrayList<Object>(),U("]."));
 		assertArrayEquals(new Object[0], (Object[]) U(")."));
 		assertEquals(1234.5678d, U("G@\u0093JEm\\\u00fa\u00ad."));  // 8-byte binary coded float
-		// protocol level2
+		// protocol level 2
 		assertEquals(Boolean.TRUE,U("\u0088."));	// True
 		assertEquals(Boolean.FALSE,U("\u0089."));	// False
 		assertEquals(12345678987654321L, U("\u008a\u0007\u00b1\u00f4\u0091\u0062\u0054\u00dc\u002b."));

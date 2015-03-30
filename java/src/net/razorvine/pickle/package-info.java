@@ -1,7 +1,7 @@
 /**
  * Java implementation of Python's pickle serialization protocol.
  * 
- * The {@link net.razorvine.pickle.Unpickler} supports the full pickle protocol (level 0,1,2,3).
+ * The {@link net.razorvine.pickle.Unpickler} supports the all pickle protocols.
  * The {@link net.razorvine.pickle.Pickler} supports most of the protocol (level 2 only though).
  * 
  * Python's data types are mapped on their Java equivalents and vice versa.

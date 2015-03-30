@@ -26,7 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Unit tests for Unpickling every pickle opcode (protocol 0,1,2,3).
+ * Unit tests for Unpickling every pickle opcode (all protocols).
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */

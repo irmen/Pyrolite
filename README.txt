@@ -19,8 +19,9 @@ Contents:
 
 This library allows your Java or .NET program to interface very easily with
 the Python world. It uses the Pyro protocol to call methods on remote objects.
-(See https://github.com/irmen/Pyro4). Pyrolite contains and uses a feature
-complete pickle protocol implementation to exchange data with Pyro/Python.
+(See https://github.com/irmen/Pyro4). To that end, it contains and uses a
+feature complete pickle protocol implementation -read and write- to exchange
+data with Pyro/Python.
 
 Pyrolite only implements part of the client side Pyro library, hence its name
 'lite'...  But because Pyrolite has no dependencies, it is a much lighter way
@@ -86,8 +87,8 @@ including memoization. It is fully compatible with pickles from Python 2.x and
 Python 3.x, and you can use it idependently from the rest of the library, to
 read and write Python pickle structures.
 
-Pickle protocol version support:
-Pyrolite can read all pickle protocol versions (1 to 4, so this includes
+Pickle protocol version support: reading: 0,1,2,3,4; writing: 2.
+Pyrolite can read all pickle protocol versions  (0 to 4, so this includes
 the latest additions made in Python 3.4).
 Pyrolite always writes pickles in protocol version 2. There are no plans on 
 including protocol version 1 support. Protocols 3 and 4 contain some nice new
@@ -97,10 +98,10 @@ features which may eventually be utilized, but for now, only version 2 is used.
 The source archive contains the full source, and also unit test code and a
 couple of example programs in the java/test/ directory.
 
-Pyrolite speaks Pyro4 protocol version 47 only (Pyro 4.26). 
+Pyrolite speaks Pyro4 protocol version 47 only (Pyro 4.26 and later). 
 The java library requires java 1.6 or newer.
-The .net library requires .net runtime 3.5.
-The Java source was developed using Eclipse.
+The .net library requires .net framework 4.0 or newer.
+The Java code was developed using Eclipse.
 The C#/.NET source was developed using mono, monodevelop and sharpdevelop.
 
 
