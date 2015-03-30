@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import net.razorvine.pickle.objects.Time;
 import net.razorvine.pickle.objects.TimeDelta;
@@ -282,6 +283,10 @@ public class Pickler {
 			put_calendar(cal);
 			return true;
 		}
+		if(o instanceof java.util.TimeZone) {
+			put_timezone((TimeZone)o);
+			return true;
+		}
 		if(o instanceof Enum) {
 			put_string(o.toString());
 			return true;
@@ -352,7 +357,12 @@ public class Pickler {
 		out.write(Opcodes.SHORT_BINSTRING);
 		out.write(10); // data bytes are 10 chars
 		out.write(this.datetimeDataBytes(cal));
-		out.write(Opcodes.TUPLE1);
+		if(cal.getTimeZone() != null) {
+			save(cal.getTimeZone());
+			out.write(Opcodes.TUPLE2);
+		} else {
+			out.write(Opcodes.TUPLE1);
+		}
 		out.write(Opcodes.REDUCE);
 		writeMemo(cal);
 	}
@@ -379,6 +389,19 @@ public class Pickler {
 		out.write(Opcodes.TUPLE);
 		out.write(Opcodes.REDUCE);
 		writeMemo(time);
+	}
+
+	void put_timezone(TimeZone timeZone) throws IOException {
+		out.write(Opcodes.GLOBAL);
+		out.write("pytz\n_p\n".getBytes());
+		out.write(Opcodes.MARK);
+		save(timeZone.getID());
+		save(timeZone.getRawOffset() / 1000);
+		save(timeZone.getDSTSavings() / 1000);
+		save(timeZone.getDisplayName(timeZone.observesDaylightTime(), TimeZone.SHORT));
+		out.write(Opcodes.TUPLE);
+		out.write(Opcodes.REDUCE);
+		writeMemo(timeZone);
 	}
 
 	void put_arrayOfObjects(Object[] array) throws IOException {

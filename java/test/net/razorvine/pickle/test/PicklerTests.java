@@ -23,6 +23,7 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
+import java.util.TimeZone;
 
 import net.razorvine.pickle.IObjectPickler;
 import net.razorvine.pickle.Opcodes;
@@ -249,6 +250,28 @@ public class PicklerTests {
 		o=p.dumps(cal);
 		unpickled=u.loads(o);
 		assertEquals(cal,(Calendar)unpickled);
+
+		TimeZone tz = TimeZone.getTimeZone("America/New_York");
+		cal=new GregorianCalendar(2011,Calendar.DECEMBER,31,14,33,59);
+		cal.set(Calendar.MILLISECOND, 456);
+		cal.setTimeZone(tz);
+
+		o=p.dumps(cal);
+		unpickled=u.loads(o);
+		assertEquals(cal, (Calendar) unpickled);
+		assertEquals(tz, ((Calendar) unpickled).getTimeZone());
+
+		// example ambiguous DST datetime where the zone is in DST and the time occurs in the transition
+		// period, which means two different datetimes could come back
+		tz = TimeZone.getTimeZone("America/St_Johns");
+		cal=new GregorianCalendar(2009, Calendar.OCTOBER, 31, 23, 30, 59);
+		cal.set(Calendar.MILLISECOND, 456);
+		cal.setTimeZone(tz);
+
+		o=p.dumps(cal);
+		unpickled=u.loads(o);
+		assertEquals(cal, (Calendar) unpickled);
+		assertEquals(tz, ((Calendar) unpickled).getTimeZone());
 	}
 	
 	@Test
