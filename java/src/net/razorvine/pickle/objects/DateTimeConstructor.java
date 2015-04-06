@@ -2,6 +2,7 @@ package net.razorvine.pickle.objects;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
@@ -65,8 +66,8 @@ public class DateTimeConstructor implements IObjectConstructor {
 			cal.set(Calendar.MILLISECOND, microsec/1000);
 			return cal;
 		}
-		if (args.length != 1)
-			throw new PickleException("invalid pickle data for datetime; expected 1 or 7 args, got "+args.length);
+		if (args.length != 1 && args.length != 2)
+			throw new PickleException("invalid pickle data for datetime; expected 1, 2 or 7 args, got "+args.length);
 		
 		int yhi, ylo, month, day, hour, minute, second, microsec;
 		if(args[0] instanceof String) {
@@ -102,6 +103,16 @@ public class DateTimeConstructor implements IObjectConstructor {
 		}
 		Calendar cal = new GregorianCalendar(yhi * 256 + ylo, month, day, hour, minute, second);
 		cal.set(Calendar.MILLISECOND, microsec/1000);
+		if(args.length == 2) {
+			// Timezone passed as the second constructor arg in pickle protocal 0
+			if (args[1] instanceof TimeZone)
+				cal.setTimeZone((TimeZone) args[1]);
+			else if (args[1] instanceof Tzinfo) {
+				cal.setTimeZone(((Tzinfo) args[1]).getTimeZone());
+			} else {
+				throw new PickleException("invalid pickle data for datetime; expected arg 2 to be a Tzinfo or TimeZone");
+			}
+		}
 		return cal;
 	}
 

@@ -11,6 +11,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TimeZone;
 
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PickleUtils;
@@ -304,6 +305,58 @@ public class UnpicklerTests {
 		assertEquals(c, c2);
 		c2 = (Calendar) U("cdatetime\ndatetime\np0\n(S\"\\x07\\xdb\\n\\t\\r\\n\\t\\x00\'\\x10\"\np1\ntp2\nRp3\n.");	// protocol 0
 		assertEquals(c, c2);
+	}
+	
+	@Test
+	public void testDateTimeWithTimezones() throws PickleException, IOException
+	{
+		TimeZone tz = TimeZone.getTimeZone("UTC");
+		Calendar c=new GregorianCalendar(2014, Calendar.JULY, 8);
+		c.set(Calendar.HOUR_OF_DAY, 10);
+		c.set(Calendar.MINUTE, 10);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		c.setTimeZone(tz);
+
+		// pytz timezones that are utc
+		Calendar pc=(Calendar) U("cdatetime\ndatetime\np0\n(S'\\x07\\xde\\x07\\x08\\n\\n\\x00\\x00\\x00\\x00'\np1\ncpytz\n_UTC\np2\n(tRp3\ntp4\nRp5\n.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00de\u0007\u0008\n\n\u0000\u0000\u0000\u0000q\u0001cpytz\n_UTC\nq\u0002)Rq\u0003\u0086q\u0004Rq\u0005.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+
+		// dateutil tzutcs
+		pc=(Calendar) U("cdatetime\ndatetime\np0\n(S\'\\x07\\xde\\x07\\x08\\n\\n\\x00\\x00\\x00\\x00\'\np1\nccopy_reg\n_reconstructor\np2\n(cdateutil.tz\ntzutc\np3\ncdatetime\ntzinfo\np4\ng4\n(tRp5\ntp6\nRp7\ntp8\nRp9\n.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00de\u0007\u0008\n\n\u0000\u0000\u0000\u0000q\u0001cdateutil.tz\ntzutc\nq\u0002)\u0081q\u0003}q\u0004b\u0086q\u0005Rq\u0006.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+
+		tz = TimeZone.getTimeZone("America/New_York");
+		c=new GregorianCalendar(2014, Calendar.JULY, 8);
+		c.set(Calendar.HOUR_OF_DAY, 10);
+		c.set(Calendar.MINUTE, 10);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		c.setTimeZone(tz);
+
+		// pytz timezones with DST support
+		pc=(Calendar) U("cdatetime\ndatetime\np0\n(S\'\\x07\\xde\\x07\\x08\\n\\n\\x00\\x00\\x00\\x00\'\np1\ncpytz\n_p\np2\n(VAmerica/New_York\np3\nI-17760\nI0\nVLMT\np4\ntp5\nRp6\ntp7\nRp8\n.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00de\u0007\u0008\n\n\u0000\u0000\u0000\u0000q\u0001cpytz\n_p\nq\u0002(X\u0010\u0000\u0000\u0000America/New_Yorkq\u0003J\u00a0\u00ba\u00ff\u00ffK\u0000X\u0003\u0000\u0000\u0000LMTq\u0004tq\u0005Rq\u0006\u0086q\u0007Rq\u0008.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+
+		tz = TimeZone.getTimeZone("MST");
+		c=new GregorianCalendar(2014, Calendar.JULY, 8);
+		c.set(Calendar.HOUR_OF_DAY, 10);
+		c.set(Calendar.MINUTE, 10);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		c.setTimeZone(tz);
+
+		// pytz timezones with static offsets
+		pc=(Calendar) U("cdatetime\ndatetime\np0\n(S\'\\x07\\xde\\x07\\x08\\n\\n\\x00\\x00\\x00\\x00\'\np1\ncpytz\n_p\np2\n(S\'MST\'\np3\ntp4\nRp5\ntp6\nRp7\n.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00de\u0007\u0008\n\n\u0000\u0000\u0000\u0000q\u0001cpytz\n_p\nq\u0002U\u0003MSTq\u0003\u0085q\u0004Rq\u0005\u0086q\u0006Rq\u0007.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
 	}
 	
 	@Test
