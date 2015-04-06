@@ -1,12 +1,9 @@
 package net.razorvine.pickle.objects;
 
+import java.lang.reflect.Method;
+
 import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
-import net.razorvine.pickle.objects.Tzinfo;
-
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.TimeZone;
 
 /**
  * This constructor is called by the helper methods that pickle protocol 0

@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Pyrolite")]
-[assembly: AssemblyDescription("Thin client-side communication library to connect to Python applications, using the Pyro protocol")]
+[assembly: AssemblyDescription("Thin client-side communication library to connect to Python applications, using the Pyro protocol. Als includes Pickle.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Pyrolite")]

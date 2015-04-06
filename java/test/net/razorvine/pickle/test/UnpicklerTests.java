@@ -357,6 +357,10 @@ public class UnpicklerTests {
 		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
 		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00de\u0007\u0008\n\n\u0000\u0000\u0000\u0000q\u0001cpytz\n_p\nq\u0002U\u0003MSTq\u0003\u0085q\u0004Rq\u0005\u0086q\u0006Rq\u0007.");
 		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+		
+		// dateutil gettz timezone
+		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nU\n\u0007\u00df\u0004\u0006\u000e*.\u0000a\u00a8cdateutil.zoneinfo\ngettz\nU\u0010Europe/Amsterdam\u0085R\u0086R.");
+		assertEquals("Europe/Amsterdam", c.getTimeZone().getID());
 	}
 	
 	@Test
