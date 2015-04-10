@@ -57,6 +57,7 @@ public class Unpickler {
 		objectConstructors.put("pytz._UTC", new TimeZoneConstructor(TimeZoneConstructor.UTC));
 		objectConstructors.put("pytz._p", new TimeZoneConstructor(TimeZoneConstructor.PYTZ));
 		objectConstructors.put("dateutil.tz.tzutc", new TimeZoneConstructor(TimeZoneConstructor.DATEUTIL_TZUTC));
+		objectConstructors.put("dateutil.tz.tzfile", new TimeZoneConstructor(TimeZoneConstructor.DATEUTIL_TZFILE));
 		objectConstructors.put("datetime.tzinfo", new TimeZoneConstructor(TimeZoneConstructor.TZINFO));
 		objectConstructors.put("decimal.Decimal", new AnyClassConstructor(BigDecimal.class));
 		objectConstructors.put("copy_reg._reconstructor", new Reconstructor());

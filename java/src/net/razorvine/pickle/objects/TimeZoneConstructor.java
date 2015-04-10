@@ -9,7 +9,8 @@ public class TimeZoneConstructor implements IObjectConstructor {
 	public static int UTC = 1;
 	public static int PYTZ = 2;
 	public static int DATEUTIL_TZUTC = 3;
-	public static int TZINFO = 4;
+	public static int DATEUTIL_TZFILE = 4;
+	public static int TZINFO = 6;
 
 	private int pythontype;
 
@@ -25,6 +26,8 @@ public class TimeZoneConstructor implements IObjectConstructor {
 		return createZoneFromPytz(args);
 	if (this.pythontype == DATEUTIL_TZUTC)
 		return createInfoFromDateutilTzutc(args);
+	if (this.pythontype == DATEUTIL_TZFILE)
+		return createInfoFromDateutilTzfile(args);
 	if (this.pythontype == TZINFO)
 		return createInfo(args);
 
@@ -53,10 +56,26 @@ public class TimeZoneConstructor implements IObjectConstructor {
 
 	private Object createInfoFromDateutilTzutc(Object[] args) {
 		// In the case of the dateutil.tz.tzutc constructor, which is a python subclass of the datetime.tzinfo class, there is no state
-		// to set, because the zone is implied by the constructor. Pass the timezone indicated by hte constructor here
+		// to set, because the zone is implied by the constructor. Pass the timezone indicated by the constructor here
 		return new Tzinfo(TimeZone.getTimeZone("UTC"));
 	}
 
+	private Object createInfoFromDateutilTzfile(Object[] args) {
+		if (args.length != 1)
+			throw new PickleException("invalid pickle data for dateutil tzfile timezone; expected 1 args, got " + args.length);
+
+		// In the case of the dateutil.tz.tzfile constructor, which is a python subclass of the datetime.tzinfo class, we're passed a
+		// fully qualified path to a zoneinfo file. Extract the actual identifier as the part after the "zoneinfo" folder in the
+		// absolute path.
+		String identifier = (String) args[0];
+		int index = identifier.indexOf("zoneinfo");
+		if (index != -1) {
+			identifier = identifier.substring(index + 8 + 1);
+		} else {
+			throw new PickleException("couldn't parse timezone identifier from zoneinfo path" + identifier);
+		}
+		return new Tzinfo(TimeZone.getTimeZone(identifier));
+	}
 	private Object createZoneFromPytz(Object[] args) {
 
 		if (args.length != 4 && args.length != 1)
