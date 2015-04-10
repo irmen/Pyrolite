@@ -10,6 +10,7 @@ public class TimeZoneConstructor implements IObjectConstructor {
 	public static int PYTZ = 2;
 	public static int DATEUTIL_TZUTC = 3;
 	public static int DATEUTIL_TZFILE = 4;
+	public static int DATEUTIL_GETTZ = 5;
 	public static int TZINFO = 6;
 
 	private int pythontype;
@@ -28,6 +29,8 @@ public class TimeZoneConstructor implements IObjectConstructor {
 		return createInfoFromDateutilTzutc(args);
 	if (this.pythontype == DATEUTIL_TZFILE)
 		return createInfoFromDateutilTzfile(args);
+	if (this.pythontype == DATEUTIL_GETTZ)
+		return createInfoFromDateutilGettz(args);
 	if (this.pythontype == TZINFO)
 		return createInfo(args);
 
@@ -76,6 +79,16 @@ public class TimeZoneConstructor implements IObjectConstructor {
 		}
 		return new Tzinfo(TimeZone.getTimeZone(identifier));
 	}
+
+	private Object createInfoFromDateutilGettz(Object[] args) {
+		if (args.length != 1)
+			throw new PickleException("invalid pickle data for dateutil gettz call; expected 1 args, got " + args.length);
+
+		// In the case of the dateutil.tz.gettz function call, we're passed one string identifier of the the timezone.
+		String identifier = (String) args[0];
+		return new Tzinfo(TimeZone.getTimeZone(identifier));
+	}
+
 	private Object createZoneFromPytz(Object[] args) {
 
 		if (args.length != 4 && args.length != 1)

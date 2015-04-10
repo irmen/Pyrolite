@@ -378,7 +378,7 @@ public class UnpicklerTests {
 
 		// dateutil gettz timezone without full path to the zoneinfo file
 		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nU\n\u0007\u00df\u0004\u0006\u000e*.\u0000a\u00a8cdateutil.zoneinfo\ngettz\nU\u0010Europe/Amsterdam\u0085R\u0086R.");
-		assertEquals("Europe/Amsterdam", c.getTimeZone().getID());
+		assertEquals("Europe/Amsterdam", pc.getTimeZone().getID());
 	}
 	
 	@Test
