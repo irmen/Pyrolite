@@ -272,6 +272,18 @@ public class PicklerTests {
 		unpickled=u.loads(o);
 		assertEquals(cal, (Calendar) unpickled);
 		assertEquals(tz, ((Calendar) unpickled).getTimeZone());
+
+		// example UTC timezone which pytz differently to a special constructor
+		tz = TimeZone.getTimeZone("UTC");
+		cal=new GregorianCalendar(2011,Calendar.DECEMBER,31,14,33,59);
+		cal.set(Calendar.MILLISECOND, 456);
+		cal.setTimeZone(tz);
+
+		o=p.dumps(cal);
+		assertArrayEquals(B("cdatetime\ndatetime\nU\n\u0007Û\f\u001F\u000E!;\u0006õ@cpytz\n_UTC\n(tR\u0086R"), o); // ensure pickling uses the _UTC constructor
+		unpickled=u.loads(o);
+		assertEquals(cal, (Calendar) unpickled);
+		assertEquals(tz, ((Calendar) unpickled).getTimeZone());
 	}
 	
 	@Test

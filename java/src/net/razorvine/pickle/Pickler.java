@@ -393,12 +393,18 @@ public class Pickler {
 
 	void put_timezone(TimeZone timeZone) throws IOException {
 		out.write(Opcodes.GLOBAL);
-		out.write("pytz\n_p\n".getBytes());
-		out.write(Opcodes.MARK);
-		save(timeZone.getID());
-		save(timeZone.getRawOffset() / 1000);
-		save(timeZone.getDSTSavings() / 1000);
-		save(timeZone.getDisplayName(timeZone.observesDaylightTime(), TimeZone.SHORT));
+		if (timeZone.getID().equals("UTC")) {
+			out.write("pytz\n_UTC\n".getBytes());
+			out.write(Opcodes.MARK);
+		} else {
+			out.write("pytz\n_p\n".getBytes());
+			out.write(Opcodes.MARK);
+			save(timeZone.getID());
+			save(timeZone.getRawOffset() / 1000);
+			save(timeZone.getDSTSavings() / 1000);
+			save(timeZone.getDisplayName(timeZone.observesDaylightTime(), TimeZone.SHORT));
+		}
+
 		out.write(Opcodes.TUPLE);
 		out.write(Opcodes.REDUCE);
 		writeMemo(timeZone);
