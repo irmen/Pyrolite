@@ -359,8 +359,26 @@ public class UnpicklerTests {
 		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
 		
 		// dateutil gettz timezone
+		tz = TimeZone.getTimeZone("Europe/Amsterdam");
+		c=new GregorianCalendar(2015, Calendar.APRIL, 9);
+		c.set(Calendar.HOUR_OF_DAY, 19);
+		c.set(Calendar.MINUTE, 6);
+		c.set(Calendar.SECOND, 26);
+		c.set(Calendar.MILLISECOND, 472);
+		c.setTimeZone(tz);
+
+		pc=(Calendar) U("cdatetime\ndatetime\np0\n(S\'\\x07\\xdf\\x04\\t\\x13\\x06\\x1a\\x073\\xcc\'\np1\ncdateutil.tz\ntzfile\np2\n(S\'/usr/share/zoneinfo/Europe/Amsterdam\'\np3\ntp4\nRp5\ntp6\nRp7\n.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00df\u0004\t\u0013\u0006\u001a\u00073\u00ccq\u0001cdateutil.tz\ntzfile\nq\u0002U$/usr/share/zoneinfo/Europe/Amsterdamq\u0003\u0085q\u0004Rq\u0005\u0086q\u0006Rq\u0007.");
+		assertEquals(c.getTimeInMillis(), pc.getTimeInMillis());
+
+		// multi word dateutil gettz timezone
+		pc=(Calendar) U("cdatetime\ndatetime\np0\n(S\'\\x07\\xdf\\x04\\n\\x0f\\x17\\x13\\x07\\xdf\\x91\'\np1\ncdateutil.tz\ntzfile\np2\n(S\'/usr/share/zoneinfo/America/New_York\'\np3\ntp4\nRp5\ntp6\nRp7\n.");
+		assertEquals("America/New_York", pc.getTimeZone().getID());
+
+		// dateutil gettz timezone without full path to the zoneinfo file
 		pc=(Calendar) U("\u0080\u0002cdatetime\ndatetime\nU\n\u0007\u00df\u0004\u0006\u000e*.\u0000a\u00a8cdateutil.zoneinfo\ngettz\nU\u0010Europe/Amsterdam\u0085R\u0086R.");
-		assertEquals("Europe/Amsterdam", c.getTimeZone().getID());
+		assertEquals("Europe/Amsterdam", pc.getTimeZone().getID());
 	}
 	
 	@Test
