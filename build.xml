@@ -74,6 +74,7 @@
       <package name="net.razorvine.pickle" />
       <package name="net.razorvine.pickle.objects" />
       <package name="net.razorvine.pyro" />
+      <package name="net.razorvine.pyro.serializer" />
     </javadoc>
   </target>
 </project>

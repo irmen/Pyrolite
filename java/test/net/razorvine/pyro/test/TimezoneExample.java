@@ -42,6 +42,13 @@ public class TimezoneExample {
 
 		System.out.println("\nECHO Timezone...:");
 		cal = Calendar.getInstance();
+		cal.set(Calendar.YEAR, 2015);
+		cal.set(Calendar.MONTH, 4);
+		cal.set(Calendar.DAY_OF_MONTH, 18);
+		cal.set(Calendar.HOUR, 23);
+		cal.set(Calendar.MINUTE, 59);
+		cal.set(Calendar.SECOND, 59);
+		cal.set(Calendar.MILLISECOND, 0);
 		cal.setTimeZone(TimeZone.getTimeZone("Europe/Amsterdam"));
 		cal = (Calendar) p.call("echo", cal);
 		System.out.println(cal);
@@ -52,7 +59,7 @@ public class TimezoneExample {
 	}
 	
 	static void setConfig() {
-		//Config.SERIALIZER = Config.SerializerType.pickle;
+		Config.SERIALIZER = Config.SerializerType.pickle;
 		Config.MSG_TRACE_DIR="L:/pyrolite_traces";
 	}	
 }
