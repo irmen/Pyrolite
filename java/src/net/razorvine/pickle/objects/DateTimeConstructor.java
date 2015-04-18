@@ -51,8 +51,8 @@ public class DateTimeConstructor implements IObjectConstructor {
 		// python datetime.time --> GregorianCalendar
 		// args is 10 bytes: yhi, ylo, month, day, hour, minute, second, ms1, ms2, ms3
 		// (can be String or byte[])
-		// alternate constructor is with 7 integer arguments: year, month, day, hour, minute, second, microseconds
-		if(args.length==7)
+		// alternate constructor is with 7/8 integer arguments: year, month, day, hour, minute, second, microseconds, [timezone]
+		if(args.length==7 || args.length==8)
 		{
 			int year = (Integer)args[0];
 			int month = ((Integer)args[1]) - 1;   // in java month starts with 0...
@@ -61,13 +61,18 @@ public class DateTimeConstructor implements IObjectConstructor {
 			int minute = (Integer)args[4];
 			int second = (Integer)args[5];
 			int microsec = (Integer)args[6];
+			TimeZone tz = null;
+			if(args.length==8)
+				tz = (TimeZone) args[7];
 			
 			Calendar cal = new GregorianCalendar(year, month, day, hour, minute, second);
 			cal.set(Calendar.MILLISECOND, microsec/1000);
+			if(tz!=null)
+				cal.setTimeZone(tz);
 			return cal;
 		}
 		if (args.length != 1 && args.length != 2)
-			throw new PickleException("invalid pickle data for datetime; expected 1, 2 or 7 args, got "+args.length);
+			throw new PickleException("invalid pickle data for datetime; expected 1, 2, 7 or 8 args, got "+args.length);
 		
 		int yhi, ylo, month, day, hour, minute, second, microsec;
 		if(args[0] instanceof String) {

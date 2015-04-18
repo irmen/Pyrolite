@@ -352,9 +352,34 @@ public class Pickler {
 	}
 
 	void put_calendar(Calendar cal) throws IOException {
+		// Note that we can't use the 2-arg representation of a datetime here.
+		// Python 3 uses the SHORT_BINBYTES opcode to encode the first argument,
+		// but python 2 uses SHORT_BINSTRING instead. This causes encoding problems
+		// if you want to send the pickle to either a Python 2 or 3 receiver.
+		// So instead, we use the full 7 (or 8 with timezone) constructor representation.
 		out.write(Opcodes.GLOBAL);
 		out.write("datetime\ndatetime\n".getBytes());
-		out.write(Opcodes.SHORT_BINSTRING);
+		out.write(Opcodes.MARK);
+		save(cal.get(Calendar.YEAR));
+		save(cal.get(Calendar.MONTH)+1);    // months start at 0 in java
+		save(cal.get(Calendar.DAY_OF_MONTH));
+		save(cal.get(Calendar.HOUR_OF_DAY));
+		save(cal.get(Calendar.MINUTE));
+		save(cal.get(Calendar.SECOND));
+		save(cal.get(Calendar.MILLISECOND)*1000);
+		if(cal.getTimeZone()!=null)
+			save(cal.getTimeZone());
+		out.write(Opcodes.TUPLE);
+		out.write(Opcodes.REDUCE);
+		writeMemo(cal);		
+	}
+	
+	/****
+	/* TODO this is @airhorns implementation, left here for comparison purposes. Clean up later.
+	void put_calendar(Calendar cal) throws IOException {
+		out.write(Opcodes.GLOBAL);
+		out.write("datetime\ndatetime\n".getBytes());
+		out.write(Opcodes.SHORT_BINSTRING);				// this opcode crashes python3 with encoding error
 		out.write(10); // data bytes are 10 chars
 		out.write(this.datetimeDataBytes(cal));
 		if(cal.getTimeZone() != null) {
@@ -366,6 +391,24 @@ public class Pickler {
 		out.write(Opcodes.REDUCE);
 		writeMemo(cal);
 	}
+
+	private byte[] datetimeDataBytes(Calendar cal) {
+		int microseconds = cal.get(Calendar.MILLISECOND) * 1000;
+		byte[] data = {
+				((byte) ((cal.get(Calendar.YEAR) & 0xff00) >> 8)),
+				((byte) (cal.get(Calendar.YEAR) & 0x00ff)),
+				((byte) (cal.get(Calendar.MONTH)+1)),
+				((byte) cal.get(Calendar.DAY_OF_MONTH)),
+				((byte) cal.get(Calendar.HOUR_OF_DAY)),
+				((byte) cal.get(Calendar.MINUTE)),
+				((byte) cal.get(Calendar.SECOND)),
+				((byte) ((microseconds & 0xff0000) >> 16)),
+				((byte) ((microseconds & 0x00ff00) >> 8)),
+				((byte) (microseconds & 0x0000ff)),
+		};
+		return data;
+	}
+	***/
 
 	void put_timedelta(TimeDelta delta) throws IOException {
 		out.write(Opcodes.GLOBAL);
@@ -399,8 +442,17 @@ public class Pickler {
 		} else {
 			out.write("pytz\n_p\n".getBytes());
 			out.write(Opcodes.MARK);
+			
+			// TODO remove debug prints
+//			System.out.println("TIMEZONE PICKLE "+timeZone);
+//			System.out.println("  ID: "+timeZone.getID());
+//			System.out.println("  ODLT: "+timeZone.observesDaylightTime());
+//			System.out.println("  RawOffset: "+timeZone.getRawOffset());
+//			System.out.println("  DstSavings: "+timeZone.getDSTSavings());
+//			System.out.println("  Display: "+timeZone.getDisplayName(timeZone.observesDaylightTime(), TimeZone.SHORT));
+			
 			save(timeZone.getID());
-			save(timeZone.getRawOffset() / 1000);
+			save(timeZone.getRawOffset() / 1000);	// TODO results in wrong tz offset in python when DST is in effect :( 
 			save(timeZone.getDSTSavings() / 1000);
 			save(timeZone.getDisplayName(timeZone.observesDaylightTime(), TimeZone.SHORT));
 		}
@@ -639,22 +691,5 @@ public class Pickler {
 		} catch (InvocationTargetException e) {
 			throw new PickleException("couldn't introspect javabean: "+e);
 		}
-	}
-
-	private byte[] datetimeDataBytes(Calendar cal) {
-		int microseconds = cal.get(Calendar.MILLISECOND) * 1000;
-		byte[] data = {
-				((byte) ((cal.get(Calendar.YEAR) & 0xff00) >> 8)),
-				((byte) (cal.get(Calendar.YEAR) & 0x00ff)),
-				((byte) (cal.get(Calendar.MONTH)+1)),
-				((byte) cal.get(Calendar.DAY_OF_MONTH)),
-				((byte) cal.get(Calendar.HOUR_OF_DAY)),
-				((byte) cal.get(Calendar.MINUTE)),
-				((byte) cal.get(Calendar.SECOND)),
-				((byte) ((microseconds & 0xff0000) >> 16)),
-				((byte) ((microseconds & 0x00ff00) >> 8)),
-				((byte) (microseconds & 0x0000ff)),
-		};
-		return data;
 	}
 }
