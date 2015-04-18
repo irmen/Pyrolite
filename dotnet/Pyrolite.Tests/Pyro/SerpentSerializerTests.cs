@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
 using Razorvine.Pyro;
+using Razorvine.Serpent;
 
 namespace Pyrolite.Tests.Pyro
 {
 	[TestFixture]
 	public class SerpentSerializerTestsNoSets
 	{
+		[Test]
+		public void TestSerpentVersion()
+		{
+			Version serpentVersion = new Version(LibraryVersion.Version);
+			Assert.IsTrue(serpentVersion >= new Version(1, 5));
+		}
+		
 		[Test]
 		public void TestSerializeData()
 		{
