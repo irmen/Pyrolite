@@ -17,6 +17,7 @@ import net.razorvine.pickle.objects.ByteArrayConstructor;
 import net.razorvine.pickle.objects.ClassDictConstructor;
 import net.razorvine.pickle.objects.ComplexNumber;
 import net.razorvine.pickle.objects.DateTimeConstructor;
+import net.razorvine.pickle.objects.OperatorAttrGetterForCalendarTz;
 import net.razorvine.pickle.objects.TimeZoneConstructor;
 import net.razorvine.pickle.objects.Reconstructor;
 import net.razorvine.pickle.objects.SetConstructor;
@@ -56,12 +57,14 @@ public class Unpickler {
 		objectConstructors.put("datetime.timedelta", new DateTimeConstructor(DateTimeConstructor.TIMEDELTA));
 		objectConstructors.put("pytz._UTC", new TimeZoneConstructor(TimeZoneConstructor.UTC));
 		objectConstructors.put("pytz._p", new TimeZoneConstructor(TimeZoneConstructor.PYTZ));
+		objectConstructors.put("pytz.timezone", new TimeZoneConstructor(TimeZoneConstructor.PYTZ));
 		objectConstructors.put("dateutil.tz.tzutc", new TimeZoneConstructor(TimeZoneConstructor.DATEUTIL_TZUTC));
 		objectConstructors.put("dateutil.tz.tzfile", new TimeZoneConstructor(TimeZoneConstructor.DATEUTIL_TZFILE));
 		objectConstructors.put("dateutil.zoneinfo.gettz", new TimeZoneConstructor(TimeZoneConstructor.DATEUTIL_GETTZ));
 		objectConstructors.put("datetime.tzinfo", new TimeZoneConstructor(TimeZoneConstructor.TZINFO));
 		objectConstructors.put("decimal.Decimal", new AnyClassConstructor(BigDecimal.class));
 		objectConstructors.put("copy_reg._reconstructor", new Reconstructor());
+		objectConstructors.put("operator.attrgetter", new OperatorAttrGetterForCalendarTz());
 	}
 
 	/**

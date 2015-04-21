@@ -40,17 +40,15 @@ public class TimezoneExample {
 		System.out.println(cal);
 		System.out.println("Timezone="+cal.getTimeZone());
 
-		// TODO the following test code results in a faulty time on the python side (the timezone offset is wrong)
-		//      strangely enough the offset here (on the java side) is correct even after unpickling the echoed response.
 		System.out.println("\nECHO Timezone...:");
 		cal = Calendar.getInstance();
 		cal.set(Calendar.YEAR, 2015);
-		cal.set(Calendar.MONTH, 4);
+		cal.set(Calendar.MONTH, Calendar.MAY);
 		cal.set(Calendar.DAY_OF_MONTH, 18);
 		cal.set(Calendar.HOUR_OF_DAY, 23);
 		cal.set(Calendar.MINUTE, 59);
 		cal.set(Calendar.SECOND, 59);
-		cal.set(Calendar.MILLISECOND, 0);
+		cal.set(Calendar.MILLISECOND, 998);
 		cal.setTimeZone(TimeZone.getTimeZone("Europe/Amsterdam"));
 		System.out.println("****" + javax.xml.bind.DatatypeConverter.printDateTime(cal));
 		Calendar cal2 = (Calendar) p.call("echo", cal);

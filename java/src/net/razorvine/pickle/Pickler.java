@@ -19,6 +19,7 @@ import java.util.TimeZone;
 
 import net.razorvine.pickle.objects.Time;
 import net.razorvine.pickle.objects.TimeDelta;
+import net.razorvine.pyro.Config;
 
 /**
  * Pickle an object graph into a Python-compatible pickle stream. For
@@ -352,6 +353,39 @@ public class Pickler {
 	}
 
 	void put_calendar(Calendar cal) throws IOException {
+		
+		if(Config.PICKLE_CALENDAR_PYTZ_LOCALIZE && cal.getTimeZone()!=null)
+		{
+			// Use special pickle to get the timezone encoded in such a way
+			// that when unpickling this, the correct time offset is used.
+			// For pytz timezones this means that it is required to not simply
+			// pass a pytz object as tzinfo argument to the datetime constructor,
+			// you have to call tz.localize(datetime) instead.
+			// This is rather tricky to do in pickle because normally you cannot
+			// simply call arbitrary functions or methods. However when we throw
+			// opcode.attrgetter in the mix we can get access to the localize function
+			// of a pytz object and create the datetime from there.
+			
+			out.write(Opcodes.GLOBAL);
+			out.write("operator\nattrgetter\n".getBytes());
+			put_string("localize");
+			out.write(Opcodes.TUPLE1);
+			out.write(Opcodes.REDUCE);
+			put_timezone(cal.getTimeZone());
+			out.write(Opcodes.TUPLE1);
+			out.write(Opcodes.REDUCE);
+			put_calendar_without_timezone(cal, false);
+			out.write(Opcodes.TUPLE1);
+			out.write(Opcodes.REDUCE);
+			writeMemo(cal);		
+			return;
+		}
+		
+		// Use the regular (non-pytz) calendar pickler.
+		put_calendar_without_timezone(cal, true);
+	}
+	
+	void put_calendar_without_timezone(Calendar cal, boolean writememo) throws IOException {
 		// Note that we can't use the 2-arg representation of a datetime here.
 		// Python 3 uses the SHORT_BINBYTES opcode to encode the first argument,
 		// but python 2 uses SHORT_BINSTRING instead. This causes encoding problems
@@ -367,48 +401,14 @@ public class Pickler {
 		save(cal.get(Calendar.MINUTE));
 		save(cal.get(Calendar.SECOND));
 		save(cal.get(Calendar.MILLISECOND)*1000);
-		if(cal.getTimeZone()!=null)
-			save(cal.getTimeZone());
+// this method by design does NOT pickle the tzinfo argument:
+//		if(cal.getTimeZone()!=null)
+//			save(cal.getTimeZone());
 		out.write(Opcodes.TUPLE);
 		out.write(Opcodes.REDUCE);
-		writeMemo(cal);		
+		if(writememo)
+			writeMemo(cal);		
 	}
-	
-	/****
-	/* TODO this is @airhorns implementation, left here for comparison purposes. Clean up later.
-	void put_calendar(Calendar cal) throws IOException {
-		out.write(Opcodes.GLOBAL);
-		out.write("datetime\ndatetime\n".getBytes());
-		out.write(Opcodes.SHORT_BINSTRING);				// this opcode crashes python3 with encoding error
-		out.write(10); // data bytes are 10 chars
-		out.write(this.datetimeDataBytes(cal));
-		if(cal.getTimeZone() != null) {
-			save(cal.getTimeZone());
-			out.write(Opcodes.TUPLE2);
-		} else {
-			out.write(Opcodes.TUPLE1);
-		}
-		out.write(Opcodes.REDUCE);
-		writeMemo(cal);
-	}
-
-	private byte[] datetimeDataBytes(Calendar cal) {
-		int microseconds = cal.get(Calendar.MILLISECOND) * 1000;
-		byte[] data = {
-				((byte) ((cal.get(Calendar.YEAR) & 0xff00) >> 8)),
-				((byte) (cal.get(Calendar.YEAR) & 0x00ff)),
-				((byte) (cal.get(Calendar.MONTH)+1)),
-				((byte) cal.get(Calendar.DAY_OF_MONTH)),
-				((byte) cal.get(Calendar.HOUR_OF_DAY)),
-				((byte) cal.get(Calendar.MINUTE)),
-				((byte) cal.get(Calendar.SECOND)),
-				((byte) ((microseconds & 0xff0000) >> 16)),
-				((byte) ((microseconds & 0x00ff00) >> 8)),
-				((byte) (microseconds & 0x0000ff)),
-		};
-		return data;
-	}
-	***/
 
 	void put_timedelta(TimeDelta delta) throws IOException {
 		out.write(Opcodes.GLOBAL);
@@ -440,23 +440,15 @@ public class Pickler {
 			out.write("pytz\n_UTC\n".getBytes());
 			out.write(Opcodes.MARK);
 		} else {
-			out.write("pytz\n_p\n".getBytes());
+			// Don't write out the shorthand pytz._p for pickle,
+			// because it needs the internal timezone offset amounts.
+			// It is not possible to supply the correct amounts for that
+			// because it would require the context of a specific date/time.
+			// So we just use the pytz.timezone("..") constructor from the ID string.
+			out.write("pytz\ntimezone\n".getBytes());
 			out.write(Opcodes.MARK);
-			
-			// TODO remove debug prints
-//			System.out.println("TIMEZONE PICKLE "+timeZone);
-//			System.out.println("  ID: "+timeZone.getID());
-//			System.out.println("  ODLT: "+timeZone.observesDaylightTime());
-//			System.out.println("  RawOffset: "+timeZone.getRawOffset());
-//			System.out.println("  DstSavings: "+timeZone.getDSTSavings());
-//			System.out.println("  Display: "+timeZone.getDisplayName(timeZone.observesDaylightTime(), TimeZone.SHORT));
-			
 			save(timeZone.getID());
-			save(timeZone.getRawOffset() / 1000);	// TODO results in wrong tz offset in python when DST is in effect :( 
-			save(timeZone.getDSTSavings() / 1000);
-			save(timeZone.getDisplayName(timeZone.observesDaylightTime(), TimeZone.SHORT));
 		}
-
 		out.write(Opcodes.TUPLE);
 		out.write(Opcodes.REDUCE);
 		writeMemo(timeZone);

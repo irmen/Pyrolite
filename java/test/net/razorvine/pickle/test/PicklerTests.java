@@ -269,6 +269,7 @@ public class PicklerTests {
 		cal.setTimeZone(tz);
 
 		o=p.dumps(cal);
+		assertArrayEquals(B("coperator\nattrgetter\nX\u0008\u0000\u0000\u0000localize\u0085Rcpytz\ntimezone\n(X\u0010\u0000\u0000\u0000America/St_JohnstR\u0085Rcdatetime\ndatetime\n(M\u00d9\u0007K\nK\u001fK\u0017K\u001eK;J@\u00f5\u0006\u0000tR\u0085R"), o);
 		unpickled=u.loads(o);
 		assertEquals(cal, (Calendar) unpickled);
 		assertEquals(tz, ((Calendar) unpickled).getTimeZone());
@@ -280,7 +281,7 @@ public class PicklerTests {
 		cal.setTimeZone(tz);
 
 		o=p.dumps(cal);
-		assertArrayEquals(B("cdatetime\ndatetime\n(M\u00db\u0007K\u000cK\u001fK\u000eK!K;J@\u00f5\u0006\u0000cpytz\n_UTC\n(tRtR"), o); // ensure pickling uses the _UTC constructor
+		assertTrue(S(o).contains("pytz\n_UTC\n"));	// ensure pickling uses the _UTC constructor
 		unpickled=u.loads(o);
 		assertEquals(cal, (Calendar) unpickled);
 		assertEquals(tz, ((Calendar) unpickled).getTimeZone());

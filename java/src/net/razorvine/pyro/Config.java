@@ -28,6 +28,7 @@ public final class Config implements Serializable {
 	public static boolean SERPENT_SET_LITERALS = false;     // set to true if talking to Python 3.2 or newer
 	public static SerializerType SERIALIZER = SerializerType.serpent;
 	public static boolean METADATA = true;		// get metadata from server?
+	public static boolean PICKLE_CALENDAR_PYTZ_LOCALIZE = true;		// use pytz localize() pickle for Calendar with timezones 
 
 	public static String DAEMON_NAME = "Pyro.Daemon";
 }
