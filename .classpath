@@ -3,7 +3,8 @@
 	<classpathentry kind="src" path="java/src"/>
 	<classpathentry kind="src" path="java/test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="java/lib/serpent-1.10.jar"/>
+	<classpathentry kind="lib" path="java/lib/serpent-1.11.jar"/>
+	<classpathentry kind="lib" path="java/lib/hamcrest.jar"/>
+	<classpathentry kind="lib" path="java/lib/junit.jar"/>
 	<classpathentry kind="output" path="java/bin"/>
 </classpath>

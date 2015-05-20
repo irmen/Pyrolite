@@ -9,7 +9,7 @@
   <property name="jarfile" location="build/pyrolite.jar" />
   <property name="junitjar" location="java/lib/junit.jar" />
   <property name="junithamcrestjar" location="java/lib/hamcrest.jar" />
-  <property name="serpentjar" location="java/lib/serpent-1.10.jar" />
+  <property name="serpentjar" location="java/lib/serpent-1.11.jar" />
 
   <path id="classpath.test">
     <pathelement location="${build}" />
