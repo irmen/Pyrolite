@@ -165,6 +165,13 @@ public class DateTimeConstructor implements IObjectConstructor {
 	private Calendar createDate(Object[] args) {
 		// python datetime.date --> GregorianCalendar
 		// args is a string of 4 bytes yhi, ylo, month, day (String or byte[])
+		// alternatively, args is 3 values year, month, day
+		if (args.length==3) {
+			int year = (Integer) args[0];
+			int month = (Integer) args[1];
+			int day = (Integer) args[2];
+			return new GregorianCalendar(year, month, day);
+ 		}
 		if (args.length != 1)
 			throw new PickleException("invalid pickle data for date; expected 1 arg, got "+args.length);
 		int yhi, ylo, month, day;

@@ -122,7 +122,7 @@ unicode             String
 complex             net.razorvine.pickle.objects.ComplexNumber
 datetime.date       java.util.Calendar
 datetime.datetime   java.util.Calendar
-datetime.time       java.util.Calendar
+datetime.time       net.razorvine.pickle.objects.Time
 datetime.timedelta  net.razorvine.pickle.objects.TimeDelta
 float               double   (float isn't used) 
 array.array         array of appropriate primitive type (char, int, short, long, float, double)
@@ -164,6 +164,9 @@ Object[]            tuple (cannot contain self-references)
 byte[]              bytearray
 java.util.Date      datetime.datetime
 java.util.Calendar  datetime.datetime
+java.sql.Date       datetime.date
+java.sql.Time       datetime.time
+java.sql.Timestamp  datetime.datetime
 Enum                the enum value as string
 java.util.Set       set
 Map, Hashtable      dict

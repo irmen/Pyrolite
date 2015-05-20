@@ -1,6 +1,7 @@
 package net.razorvine.pickle.objects;
 
 import java.io.Serializable;
+import java.util.Calendar;
 
 /**
  * Helper class to mimic the datetime.time Python object (holds a hours/minute/seconds/microsecond time).
@@ -19,6 +20,15 @@ public class Time implements Serializable {
 		minutes = m;
 		seconds = s;
 		microseconds = microsecs;
+	}
+	
+	public Time(long milliseconds) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(milliseconds);
+		this.hours = cal.get(Calendar.HOUR_OF_DAY);
+		this.minutes = cal.get(Calendar.MINUTE);
+		this.seconds = cal.get(Calendar.SECOND);
+		this.microseconds = cal.get(Calendar.MILLISECOND) * 1000;
 	}
 	
 	public String toString() {

@@ -315,6 +315,59 @@ public class PicklerTests {
 		assertEquals(delta, unpickled);
 	}
 	
+	@Test
+	public void testSqlDate() throws PickleException, IOException
+	{
+	}
+	
+	@Test
+	public void testSqlDateTimes() throws PickleException, IOException
+	{
+		Pickler p=new Pickler(false);
+		Unpickler u=new Unpickler();
+		
+		// java.sql.Timestamp  maps to python datetime.datetime as usual
+		Calendar cal = new GregorianCalendar(2011,Calendar.DECEMBER,31,23,30,59);
+		cal.set(Calendar.MILLISECOND, 432);
+		java.sql.Timestamp sqltimestamp = new java.sql.Timestamp(cal.getTime().getTime());
+		byte[] o=p.dumps(sqltimestamp);
+		assertTrue(new String(o).contains("datetime\ndatetime\n"));
+		Object unpickled=u.loads(o);
+		Calendar unpickledCal=(Calendar)unpickled;
+		assertEquals(cal,unpickledCal);
+
+		// java.sql.Date  maps to python datetime.date (only date info)
+		cal = new GregorianCalendar(2011,Calendar.DECEMBER,31,23,30,59);
+		cal.set(Calendar.MILLISECOND, 432);
+		java.sql.Date sqldate=new java.sql.Date(cal.getTimeInMillis());
+		o=p.dumps(sqldate);
+		assertTrue(new String(o).contains("datetime\ndate\n"));
+		unpickled=u.loads(o);
+		unpickledCal=(Calendar)unpickled;
+		assertNotEquals(cal,unpickledCal);   // it should have lost the time information
+		assertEquals(2011, unpickledCal.get(Calendar.YEAR));
+		assertEquals(Calendar.DECEMBER, unpickledCal.get(Calendar.MONTH));
+		assertEquals(31, unpickledCal.get(Calendar.DAY_OF_MONTH));
+		assertEquals(0, unpickledCal.get(Calendar.HOUR_OF_DAY));
+		assertEquals(0, unpickledCal.get(Calendar.MINUTE));
+		assertEquals(0, unpickledCal.get(Calendar.SECOND));
+		assertEquals(0, unpickledCal.get(Calendar.MILLISECOND));
+
+		// java.sql.Time  maps to python datetime.time (only time info)
+		// (which if received back, maps back into a net.razorvine.pickle.objects.Time)
+		cal = new GregorianCalendar(2011,Calendar.DECEMBER,31,23,30,59);
+		cal.set(Calendar.MILLISECOND, 432);
+		java.sql.Time sqltime = new java.sql.Time(cal.getTime().getTime());
+		o=p.dumps(sqltime);
+		assertTrue(new String(o).contains("datetime\ntime\n"));
+		unpickled=u.loads(o);
+		Time time = (Time) unpickled;
+		assertEquals(23, time.hours);
+		assertEquals(30, time.minutes);
+		assertEquals(59, time.seconds);
+		assertEquals(432000, time.microseconds);
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSets() throws PickleException, IOException

@@ -263,6 +263,16 @@ public class Pickler {
 			put_decimal((BigDecimal)o);
 			return true;
 		}
+		if(o instanceof java.sql.Time) {
+			java.sql.Time sqltime = (java.sql.Time)o;
+			Time time = new Time(sqltime.getTime());
+			put_time(time);
+			return true;
+		}
+		if(o instanceof java.sql.Date) {
+			put_sqldate((java.sql.Date)o);
+			return true;
+		}
 		if(o instanceof Calendar) {
 			put_calendar((Calendar)o);
 			return true;
@@ -432,6 +442,21 @@ public class Pickler {
 		out.write(Opcodes.TUPLE);
 		out.write(Opcodes.REDUCE);
 		writeMemo(time);
+	}
+
+	void put_sqldate(java.sql.Date date) throws IOException {
+		out.write(Opcodes.GLOBAL);
+		out.write("datetime\ndate\n".getBytes());
+		// python itself uses the constructor with a single timestamp byte string of len 4,
+		// we take the easy way out and just provide 3 ints (year/month/day)
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		save(cal.get(Calendar.YEAR));
+		save(cal.get(Calendar.MONTH));
+		save(cal.get(Calendar.DAY_OF_MONTH));
+		out.write(Opcodes.TUPLE3);
+		out.write(Opcodes.REDUCE);
+		writeMemo(date);
 	}
 
 	void put_timezone(TimeZone timeZone) throws IOException {
