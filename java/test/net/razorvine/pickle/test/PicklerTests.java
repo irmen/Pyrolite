@@ -316,11 +316,6 @@ public class PicklerTests {
 	}
 	
 	@Test
-	public void testSqlDate() throws PickleException, IOException
-	{
-	}
-	
-	@Test
 	public void testSqlDateTimes() throws PickleException, IOException
 	{
 		Pickler p=new Pickler(false);
