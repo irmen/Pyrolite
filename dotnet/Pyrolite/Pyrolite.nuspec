@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://raw.githubusercontent.com/irmen/Pyrolite/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/irmen/Pyrolite</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+  	<summary>Pyro (Python Remote Objects) client library</summary>
+    <releaseNotes>Uploaded to nuget.org</releaseNotes>
+    <copyright>Copyright 2015</copyright>
+    <tags>pyro python rpc remote-objects</tags>
+	<dependencies>
+	  	<dependency id="Razorvine.Serpent" version="1.11" />
+  	</dependencies>
+  </metadata>
+</package>
