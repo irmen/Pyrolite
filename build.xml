@@ -56,7 +56,7 @@
   </target>
   
   <target name="test" depends="build-test">
-    <junit failureproperty="junit.failure">
+    <junit failureproperty="junit.failure" fork="true">
       <classpath refid="classpath.test" />
       <batchtest>
         <fileset dir="${testsrc}">
