@@ -11,8 +11,8 @@ scalacOptions += "-target:jvm-1.6"
 crossPaths := false
 autoScalaLibrary := false
 
-javaSource in Compile := baseDirectory.value / "java" / "src"
-javaSource in Test := baseDirectory.value / "java" / "test"
+javaSource in Compile := baseDirectory.value / "src" / "main" / "java"
+javaSource in Test := baseDirectory.value / "src" / "test" / "java"
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
 
 

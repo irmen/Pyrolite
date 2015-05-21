@@ -2,14 +2,14 @@
 <project name="Pyrolite-java" default="all">
   <property name="ant.build.javac.target" value="1.6" />
   <property name="ant.build.javac.source" value="1.6" />
-  <property name="libsrc" location="java/src" />
-  <property name="testsrc" location="java/test" />
-  <property name="build" location="java/bin" />
-  <property name="javadocs" location="java/docs" />
-  <property name="jarfile" location="build/pyrolite.jar" />
-  <property name="junitjar" location="java/lib/junit.jar" />
-  <property name="junithamcrestjar" location="java/lib/hamcrest.jar" />
-  <property name="serpentjar" location="java/lib/serpent-1.11.jar" />
+  <property name="libsrc" location="src/main/java" />
+  <property name="testsrc" location="src/test/java" />
+  <property name="build" location="bin" />
+  <property name="javadocs" location="target/docs" />
+  <property name="jarfile" location="target/pyrolite.jar" />
+  <property name="junitjar" location="lib/junit.jar" />
+  <property name="junithamcrestjar" location="lib/hamcrest.jar" />
+  <property name="serpentjar" location="lib/serpent-1.11.jar" />
 
   <path id="classpath.test">
     <pathelement location="${build}" />

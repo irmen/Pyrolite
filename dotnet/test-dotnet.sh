@@ -10,4 +10,4 @@ echo "Running tests"
 NUNIT_CONSOLE=/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/4.5/nunit-console.exe
 NUNIT="mono ${MONO_OPTIONS} ${NUNIT_CONSOLE}"
 
-${NUNIT} -noshadow dotnet/Pyrolite.Tests/bin/Debug/Pyrolite.Tests.exe
+${NUNIT} -noshadow Pyrolite.Tests/bin/Debug/Pyrolite.Tests.exe
