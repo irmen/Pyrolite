@@ -9,6 +9,7 @@
 [Bb]in/
 [Oo]bj/
 build
+target
 
 # mstest test results
 TestResults
