@@ -287,8 +287,10 @@ You can find the Serpent project at: https://github.com/irmen/Serpent
 You need version 1.5 of Serpent, or newer.
 
 
-7. DOWNLOAD COMPILED BINARIES
------------------------------
+7. DOWNLOAD COMPILED LIBRARY
+----------------------------
 
-Precompiled binaries (java jar, .net assembly dll) are here:
-http://irmen.home.xs4all.nl/pyrolite/
+Precompiled libraries are available in the usual sources.
+
+For .NET you can get it with nuget; https://www.nuget.org/packages/Razorvine.Pyrolite/
+For Java you can get it from Maven central, groupid `net.razorvine` artifactid `pyrolite`.
