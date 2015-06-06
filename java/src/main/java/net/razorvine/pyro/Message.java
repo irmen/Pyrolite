@@ -1,9 +1,9 @@
 package net.razorvine.pyro;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,7 +46,7 @@ public class Message
 	public int annotations_size;
 	public int serializer_id;
 	public int seq;
-	public Map<String, byte[]> annotations;
+	public SortedMap<String, byte[]> annotations;
 	
 	/**
 	 * construct a header-type message, without data and annotations payload.
@@ -62,17 +62,17 @@ public class Message
 	/**
 	 * construct a full wire message including data and annotations payloads.
 	 */
-	public Message(int msgType, byte[] databytes, int serializer_id, int flags, int seq, Map<String, byte[]> annotations, byte[] hmac)
+	public Message(int msgType, byte[] databytes, int serializer_id, int flags, int seq, SortedMap<String, byte[]> annotations, byte[] hmac)
 	{
 		this(msgType, serializer_id, flags, seq);
 		this.data = databytes;
 		this.data_size = databytes.length;
 		this.annotations = annotations;
 		if(null==annotations)
-			this.annotations = new HashMap<String, byte[]>(0);
+			this.annotations = new TreeMap<String, byte[]>();
 		
 		if(hmac!=null)
-			this.annotations.put("HMAC", this.hmac(hmac));
+			this.annotations.put("HMAC", this.hmac(hmac));		// do this last because it hmacs the other annotation chunks
 		
 		this.annotations_size = 0;
 		for(Entry<String, byte[]> a: this.annotations.entrySet())
@@ -82,14 +82,14 @@ public class Message
 	/**
 	 * returns the hmac of the data and the annotation chunk values (except HMAC chunk itself)
 	 */
-	protected byte[] hmac(byte[] key)
+	public byte[] hmac(byte[] key)
 	{
 		try {
 			Key secretKey = new SecretKeySpec(key, "HmacSHA1");
 			Mac hmac_algo = Mac.getInstance("HmacSHA1");
 			hmac_algo.init(secretKey);
 			hmac_algo.update(this.data);
-			for(Entry<String, byte[]> a: this.annotations.entrySet())
+			for(Entry<String, byte[]> a: this.annotations.entrySet())   // this is in a fixed order because it is a SortedMap
 			{
 				if(!a.getKey().equals("HMAC"))
 					hmac_algo.update(a.getValue());
@@ -281,7 +281,7 @@ public class Message
 		}
 
 		byte[] annotations_data = null;
-		msg.annotations = new HashMap<String, byte[]>();
+		msg.annotations = new TreeMap<String, byte[]>();
 		if(msg.annotations_size>0)
 		{
 			// read annotation chunks

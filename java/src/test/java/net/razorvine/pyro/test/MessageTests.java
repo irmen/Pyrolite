@@ -1,16 +1,11 @@
 package net.razorvine.pyro.test;
 
 import java.io.*;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.UUID;
 
 import net.razorvine.pyro.*;
 import net.razorvine.pyro.serializer.*;
@@ -45,26 +40,6 @@ public class MessageTests {
 		return Arrays.copyOfRange(data,  0, Message.HEADER_SIZE);
 	}
 
-	public byte[] pyrohmac(byte[] data, Map<String, byte[]> annotations, byte[] key)
-	{
-		try {
-			Key secretKey = new SecretKeySpec(key, "HmacSHA1");
-			Mac hmac_algo = Mac.getInstance("HmacSHA1");
-			hmac_algo.init(secretKey);
-			hmac_algo.update(data);
-			for(Entry<String, byte[]> a: annotations.entrySet())
-			{
-				if(!a.getKey().equals("HMAC"))
-					hmac_algo.update(a.getValue());
-			}
-			return hmac_algo.doFinal();
-		} catch (NoSuchAlgorithmException e) {
-			throw new PyroException("invalid hmac algorithm",e);
-		} catch (InvalidKeyException e) {
-			throw new PyroException("invalid hmac key",e);
-		}
-	}
-	
 	@Test
 	public void TestMessage()
 	{
@@ -82,7 +57,7 @@ public class MessageTests {
 		assertEquals(5, msg.data_size);
 		assertArrayEquals(new byte[]{(byte)'h',(byte)'e',(byte)'l',(byte)'l',(byte)'o'}, msg.data);
 		assertEquals(4+2+20, msg.annotations_size);
-		byte[] mac = pyrohmac("hello".getBytes(), msg.annotations, hmac);
+		byte[] mac = msg.hmac(hmac);
 		assertEquals(1, msg.annotations.size());
 		assertArrayEquals(mac, msg.annotations.get("HMAC"));
 
@@ -138,25 +113,44 @@ public class MessageTests {
 	public void TestAnnotations()
 	{
 		byte[] key = "secret".getBytes();
-		Map<String, byte[]> annotations = new HashMap<String,byte[]>();
-		annotations.put("TEST", new byte[]{10,20,30,40,50});
+		SortedMap<String, byte[]> annotations = new TreeMap<String,byte[]>();
+		annotations.put("TES1", new byte[]{10,20,30,40,50});
+		annotations.put("TES2", new byte[]{20,30,40,50,60});
+		annotations.put("TES3", new byte[]{30,40,50,60,70});
+		annotations.put("TES4", new byte[]{40,50,60,70,80});
 		
 		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, annotations, "secret".getBytes());
 		byte[] data = msg.to_bytes();
-		int annotations_size = 4+2+20 + 4+2+5;
+		int annotations_size = 4+2+20 + (4+2+5)*4;
 		assertEquals(Message.HEADER_SIZE + 5 + annotations_size, data.length);
 		assertEquals(annotations_size, msg.annotations_size);
-		assertEquals(2, msg.annotations.size());
-		assertArrayEquals(new byte[]{10,20,30,40,50}, msg.annotations.get("TEST"));
-		byte[] mac = pyrohmac(new byte[]{1,2,3,4,5}, annotations, key);
+		assertEquals(5, msg.annotations.size());
+		assertArrayEquals(new byte[]{10,20,30,40,50}, msg.annotations.get("TES1"));
+		assertArrayEquals(new byte[]{20,30,40,50,60}, msg.annotations.get("TES2"));
+		assertArrayEquals(new byte[]{30,40,50,60,70}, msg.annotations.get("TES3"));
+		assertArrayEquals(new byte[]{40,50,60,70,80}, msg.annotations.get("TES4"));
+		byte[] mac = msg.hmac(key);
 		assertArrayEquals(mac, msg.annotations.get("HMAC"));
+		
+		annotations = new TreeMap<String,byte[]>();
+		annotations.put("TES4", new byte[]{40,50,60,70,80});
+		annotations.put("TES3", new byte[]{30,40,50,60,70});
+		annotations.put("TES2", new byte[]{20,30,40,50,60});
+		annotations.put("TES1", new byte[]{10,20,30,40,50});
+		Message msg2 = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, annotations, "secret".getBytes());
+		assertArrayEquals(msg.hmac(key), msg2.hmac(key));
+
+		annotations = new TreeMap<String,byte[]>();
+		annotations.put("TES4", new byte[]{40,50,60,70,80});
+		Message msg3 = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, annotations, "secret".getBytes());
+		assertNotEquals(Arrays.asList(msg.hmac(key)), Arrays.asList(msg3.hmac(key)));
 	}
 	
 	@Test
 	public void testAnnotationsIdLength4()
 	{
 		try {
-			Map<String, byte[]> anno = new HashMap<String, byte[]>();
+			SortedMap<String, byte[]> anno = new TreeMap<String, byte[]>();
 			anno.put("TOOLONG", new byte[]{10,20,30});
 			Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, anno, null);
 			msg.to_bytes();
@@ -165,7 +159,7 @@ public class MessageTests {
 			//ok
 		}
 		try {
-			Map<String, byte[]> anno = new HashMap<String, byte[]>();
+			SortedMap<String, byte[]> anno = new TreeMap<String, byte[]>();
 			anno.put("QQ", new byte[]{10,20,30});
 			Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, anno, null);
 			msg.to_bytes();
@@ -178,7 +172,7 @@ public class MessageTests {
 	@Test
 	public void testRecvAnnotations() throws IOException
 	{
-		Map<String, byte[]> annotations = new HashMap<String, byte[]>();
+		SortedMap<String, byte[]> annotations = new TreeMap<String, byte[]>();
 		annotations.put("TEST", new byte[]{10, 20,30,40,50});
 		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, annotations, "secret".getBytes());
 		byte[] data = msg.to_bytes();
@@ -287,5 +281,22 @@ public class MessageTests {
 		catch(PyroException x) {
 			assertTrue(x.getMessage().contains("checksum"));
 		}
+	}
+	
+	@Test
+	public void testProxyCorrelationId() throws IOException
+	{
+		PyroProxy p = new PyroProxy(new PyroURI("PYRO:foo@localhost:55555"));
+		p.correlation_id = null;
+		SortedMap<String,byte[]> ann = p.annotations();
+		assertEquals(0, ann.size());
+		p.correlation_id = UUID.randomUUID();
+		ann = p.annotations();
+		assertEquals(1, ann.size());
+		assertTrue(ann.containsKey("CORR"));
+		
+		ByteBuffer bb = ByteBuffer.wrap(ann.get("CORR"));
+		UUID uuid = new UUID(bb.getLong(), bb.getLong());
+		assertEquals(p.correlation_id, uuid);
 	}
 }

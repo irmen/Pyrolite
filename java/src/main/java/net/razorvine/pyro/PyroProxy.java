@@ -8,11 +8,15 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -31,6 +35,7 @@ public class PyroProxy implements Serializable {
 	public int port;
 	public String objectid;
 	public byte[] pyroHmacKey = null;		// per-proxy hmac key, used to be HMAC_KEY config item
+	public UUID correlation_id = null;		// per-proxy correlation id (need to set/update this yourself)
 
 	private transient int sequenceNr = 0;
 	private transient Socket sock;
@@ -188,6 +193,21 @@ public class PyroProxy implements Serializable {
 	}
 
 	/**
+	 * Returns a sorted map with annotations to be sent with each message.
+	 * Default behavior is to include the current correlation id (if it is set).
+	 */
+	public SortedMap<String, byte[]> annotations()
+	{
+		SortedMap<String,byte[]> ann = new TreeMap<String, byte[]>();
+		if(correlation_id!=null) {
+			long hi = correlation_id.getMostSignificantBits();
+			long lo = correlation_id.getLeastSignificantBits();
+			ann.put("CORR", ByteBuffer.allocate(16).putLong(hi).putLong(lo).array());
+		}
+		return ann;
+	}
+	
+	/**
 	 * Internal call method to actually perform the Pyro method call and process the result.
 	 */
 	private Object internal_call(String method, String actual_objectId, int flags, boolean checkMethodName, Object... parameters) throws PickleException, PyroException, IOException {
@@ -209,7 +229,7 @@ public class PyroProxy implements Serializable {
 			parameters = new Object[] {};
 		PyroSerializer ser = PyroSerializer.getFor(Config.SERIALIZER);
 		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, Collections.<String, Object> emptyMap());
-		Message msg = new Message(Message.MSG_INVOKE, pickle, ser.getSerializerId(), flags, sequenceNr, null, pyroHmacKey);
+		Message msg = new Message(Message.MSG_INVOKE, pickle, ser.getSerializerId(), flags, sequenceNr, annotations(), pyroHmacKey);
 		Message resultmsg;
 		synchronized (this.sock) {
 			IOUtil.send(sock_out, msg.to_bytes());

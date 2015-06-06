@@ -1,9 +1,7 @@
 package net.razorvine.pyro.test;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
-
 import net.razorvine.pyro.*;
 
 
@@ -14,7 +12,7 @@ import net.razorvine.pyro.*;
  */
 public class NamingExample {
 
-	static protected byte[] hmacKey;	// just ignore this if you don't specify a PYRO_HMAC_KEY environment var
+	static protected byte[] hmacKey;
 
 	public static void main(String[] args) throws IOException {
 
@@ -55,18 +53,6 @@ public class NamingExample {
 	}
 
 	static void setConfig() {
-		String hmackey=System.getenv("PYRO_HMAC_KEY");
-		String hmackey_property=System.getProperty("PYRO_HMAC_KEY");
-		if(hmackey_property!=null) {
-			hmackey=hmackey_property;
-		}
-		if(hmackey!=null && hmackey.length()>0) {
-			try {
-				hmacKey=hmackey.getBytes("UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				hmacKey=null;
-			}
-		}
 		String tracedir=System.getenv("PYRO_TRACE_DIR");
 		if(System.getProperty("PYRO_TRACE_DIR")!=null) {
 			tracedir=System.getProperty("PYRO_TRACE_DIR");
