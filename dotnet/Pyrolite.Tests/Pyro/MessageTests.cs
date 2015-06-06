@@ -18,23 +18,6 @@ public class MessageTestsHmac {
 	
 	ushort serializer_id = new PickleSerializer().serializer_id;
 	
-	public byte[] pyrohmac(byte[] data, IDictionary<string, byte[]> annotations, byte[] hmacKey)
-	{
-		using(HMACSHA1 hmac=new HMACSHA1(hmacKey)) {
-			hmac.TransformBlock(data, 0, data.Length, data, 0);
-			if(annotations!=null)
-			{
-				foreach(var e in annotations)
-				{
-					if(e.Key!="HMAC")
-						hmac.TransformBlock(e.Value, 0, e.Value.Length, e.Value, 0);
-				}
-			}
-			hmac.TransformFinalBlock(data, 0, 0);
-			return hmac.Hash;
-		}
-	}
-	
 	[Test]
 	public void TestMessage()
 	{
@@ -47,7 +30,7 @@ public class MessageTestsHmac {
 		Assert.AreEqual(5, msg.data_size);
 		Assert.AreEqual(new byte[]{(byte)'h',(byte)'e',(byte)'l',(byte)'l',(byte)'o'}, msg.data);
 		Assert.AreEqual(4+2+20, msg.annotations_size);
-		byte[] mac = pyrohmac(Encoding.ASCII.GetBytes("hello"), msg.annotations, hmac);
+		byte[] mac = msg.hmac(hmac);
 		var expected = new Dictionary<string, byte[]>();
 		expected["HMAC"] = mac;
 		CollectionAssert.AreEqual(expected, msg.annotations);
@@ -106,17 +89,36 @@ public class MessageTestsHmac {
 		byte[] hmac=Encoding.UTF8.GetBytes("secret");
 		
 		var annotations = new Dictionary<string,byte[]>();
-		annotations["TEST"]=new byte[]{10,20,30,40,50};
-		
+		annotations["TES1"]=new byte[]{10,20,30,40,50};
+		annotations["TES2"]=new byte[]{20,30,40,50,60};
+		annotations["TES3"]=new byte[]{30,40,50,60,70};
+		annotations["TES4"]=new byte[]{40,50,60,70,80};
+
 		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, annotations, hmac);
 		byte[] data = msg.to_bytes();
-		int annotations_size = 4+2+20 + 4+2+5;
+		int annotations_size = 4+2+20 + (4+2+5)*4;
 		Assert.AreEqual(Message.HEADER_SIZE + 5 + annotations_size, data.Length);
 		Assert.AreEqual(annotations_size, msg.annotations_size);
-		Assert.AreEqual(2, msg.annotations.Count);
-		Assert.AreEqual(new byte[]{10,20,30,40,50}, msg.annotations["TEST"]);
-		byte[] mac = pyrohmac(new byte[]{1,2,3,4,5}, annotations, hmac);
+		Assert.AreEqual(5, msg.annotations.Count);
+		Assert.AreEqual(new byte[]{10,20,30,40,50}, msg.annotations["TES1"]);
+		Assert.AreEqual(new byte[]{20,30,40,50,60}, msg.annotations["TES2"]);
+		Assert.AreEqual(new byte[]{30,40,50,60,70}, msg.annotations["TES3"]);
+		Assert.AreEqual(new byte[]{40,50,60,70,80}, msg.annotations["TES4"]);
+		byte[] mac = msg.hmac(hmac);
 		Assert.AreEqual(mac, msg.annotations["HMAC"]);
+
+		annotations = new Dictionary<string,byte[]>();
+		annotations["TES4"]=new byte[]{40,50,60,70,80};
+		annotations["TES3"]=new byte[]{30,40,50,60,70};
+		annotations["TES2"]=new byte[]{20,30,40,50,60};
+		annotations["TES1"]=new byte[]{10,20,30,40,50};
+		var msg2 = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, annotations, hmac);
+		Assert.AreEqual(msg.hmac(hmac), msg2.hmac(hmac));
+
+		annotations = new Dictionary<string,byte[]>();
+		annotations["TES4"]=new byte[]{40,50,60,70,80};
+		var msg3 = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, annotations, hmac);
+		Assert.AreNotEqual(msg.hmac(hmac), msg3.hmac(hmac));
 	}
 	
 	[Test]

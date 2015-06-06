@@ -10,11 +10,27 @@ namespace Pyrolite.TestPyroEcho
 {
 	
 /// <summary>
+/// This custom proxy adds custom annotations to the pyro messages
+/// </summary>
+public class CustomProxy : PyroProxy
+{
+	public CustomProxy(PyroURI uri): base(uri) 
+	{
+	}
+	public override IDictionary<string, byte[]> annotations()
+	{
+		var ann = base.annotations();
+		ann["XYZZ"] = Encoding.UTF8.GetBytes("A custom annotation!");
+		return ann;
+	}
+}
+	
+/// <summary>
 /// Test Pyro with the Pyro echo server. 
 /// </summary>
 public class TestEcho {
 
-	static protected byte[] hmacKey; // just ignore this if you don't specify a PYRO_HMAC_KEY environment var
+	static protected byte[] hmacKey = null;  // Encoding.UTF8.GetBytes("foo");
 	
 	public static void Main(String[] args) {
 		try {
@@ -34,8 +50,8 @@ public class TestEcho {
 		if(Config.SERIALIZER==Config.SerializerType.serpent)
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
-		NameServerProxy ns = NameServerProxy.locateNS(null);
-		using(dynamic p = new PyroProxy(ns.lookup("test.echoserver")))
+		NameServerProxy ns = NameServerProxy.locateNS(null, hmacKey: hmacKey);
+		using(dynamic p = new CustomProxy(ns.lookup("test.echoserver")))
 		{
 			p.pyroHmacKey=hmacKey;
 			
@@ -102,11 +118,6 @@ public class TestEcho {
 
 	static void setConfig()
 	{
-		string hmackeyEnv=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
-		
-		if(hmackeyEnv!=null) {
-			hmacKey=Encoding.UTF8.GetBytes(hmackeyEnv);
-		}
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {
 			Config.MSG_TRACE_DIR=tracedir;

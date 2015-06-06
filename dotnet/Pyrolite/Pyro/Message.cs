@@ -74,11 +74,11 @@ public class Message
 	/// <summary>
 	/// returns the hmac of the data and the annotation chunk values (except HMAC chunk itself)
 	/// </summary>
-	protected byte[] hmac(byte[] key)
+	public byte[] hmac(byte[] key)
 	{
 		using(HMACSHA1 hmac=new HMACSHA1(key)) {
 			hmac.TransformBlock(this.data, 0, this.data.Length, this.data, 0);
-			foreach(var e in this.annotations)
+			foreach(var e in this.annotations.OrderBy(a=>a.Key))
 			{
 				if(e.Key!="HMAC")
 					hmac.TransformBlock(e.Value, 0, e.Value.Length, e.Value, 0);

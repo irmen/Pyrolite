@@ -30,4 +30,4 @@ More info about Pyro: http://pythonhosted.org/Pyro4/")]
 //
 // You can specify all the values or you can use the default the Revision and 
 // Build Numbers by using the '*' as shown below:
-[assembly: AssemblyVersion("4.6.0.*")]
+[assembly: AssemblyVersion("4.7.0.*")]

@@ -7,10 +7,8 @@ using System.Dynamic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Threading;
 
 namespace Razorvine.Pyro
 {
@@ -197,6 +195,14 @@ public class PyroProxy : DynamicObject, IDisposable {
 		this.internal_call("__setattr__", null, 0, false, new object[] {attr, value});
 	}
 	
+	/// <summary>
+	/// Returns a dict with annotations to be sent with each message.
+    /// Default behavior is to include the correlation id from the current context (if it is set).
+	/// </summary>
+	public virtual IDictionary<string, byte[]> annotations()
+	{
+		return new Dictionary<string, byte[]>(0);
+	}
 	
 	/// <summary>
 	/// Internal call method to actually perform the Pyro method call and process the result.
@@ -224,7 +230,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		PyroSerializer ser = PyroSerializer.GetFor(Config.SERIALIZER);
 		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
-		var msg = new Message(Message.MSG_INVOKE, pickle, ser.serializer_id, flags, sequenceNr, null, pyroHmacKey);
+		var msg = new Message(Message.MSG_INVOKE, pickle, ser.serializer_id, flags, sequenceNr, this.annotations(), pyroHmacKey);
 		Message resultmsg;
 		lock (this.sock) {
 			IOUtil.send(sock_stream, msg.to_bytes());

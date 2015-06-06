@@ -12,7 +12,7 @@ namespace Pyrolite.TestPyroFlame
 /// </summary>
 public class TestFlame {
 
-	static protected byte[] hmacKey; // just ignore this if you don't specify a PYRO_HMAC_KEY environment var
+	static protected byte[] hmacKey = null;
 
 	public static void Main(String[] args) {
 		try {
@@ -65,10 +65,6 @@ public class TestFlame {
 
 	static void setConfig()
 	{
-		string hmackeyEnv=Environment.GetEnvironmentVariable("PYRO_HMAC_KEY");
-		if(hmackeyEnv!=null) {
-			hmacKey=Encoding.UTF8.GetBytes(hmackeyEnv);
-		}
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {
 			Config.MSG_TRACE_DIR=tracedir;
