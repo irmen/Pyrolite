@@ -239,6 +239,22 @@ public class MessageTestsHmac {
 			Assert.IsTrue(x.Message.Contains("checksum"));
 		}
 	}
+	
+	[Test]
+	public void testProxyCorrelationId()
+	{
+		PyroProxy p = new PyroProxy(new PyroURI("PYRO:foo@localhost:55555"));
+		p.correlation_id = null;
+		var ann = p.annotations();
+		Assert.AreEqual(0, ann.Count);
+		p.correlation_id = Guid.NewGuid();
+		ann = p.annotations();
+		Assert.AreEqual(1, ann.Count);
+		Assert.IsTrue(ann.ContainsKey("CORR"));
+		
+		Guid uuid = new Guid(ann["CORR"]);
+		Assert.AreEqual(p.correlation_id, uuid);
+	}	
 }
 
 

@@ -25,6 +25,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	public int port {get;set;}
 	public string objectid {get;set;}
 	public byte[] pyroHmacKey = null;		// per-proxy hmac key, used to be HMAC_KEY config item
+	public Guid? correlation_id = null;     // per-proxy correlation id (need to set/update this yourself)
 
 	private ushort sequenceNr = 0;
 	private TcpClient sock;
@@ -197,11 +198,15 @@ public class PyroProxy : DynamicObject, IDisposable {
 	
 	/// <summary>
 	/// Returns a dict with annotations to be sent with each message.
-    /// Default behavior is to include the correlation id from the current context (if it is set).
+    /// Default behavior is to include the current correlation id (if it is set).
 	/// </summary>
 	public virtual IDictionary<string, byte[]> annotations()
 	{
-		return new Dictionary<string, byte[]>(0);
+		var ann = new Dictionary<string, byte[]>(0);
+		if(correlation_id.HasValue) {
+			ann["CORR"]=correlation_id.Value.ToByteArray();
+		}
+		return ann;
 	}
 	
 	/// <summary>
