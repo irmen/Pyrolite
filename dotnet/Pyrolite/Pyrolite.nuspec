@@ -1,21 +1,26 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>$id$</id>
-    <version>$version$</version>
-    <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
+    <id>Razorvine.Pyrolite</id>
+    <version>4.7.0.0</version>
+    <title>Razorvine.Pyrolite</title>
+    <authors>Irmen de Jong</authors>
+    <owners>Irmen de Jong</owners>
     <licenseUrl>https://raw.githubusercontent.com/irmen/Pyrolite/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/irmen/Pyrolite</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>$description$</description>
+    <description>Thin client-side communication library to connect to Python applications, using the Pyro protocol.
+Also includes Pickle/Unpickle.
+More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
-    <releaseNotes>Uploaded to nuget.org</releaseNotes>
+    <releaseNotes>correlation id, annotations, fixed build config</releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>pyro python rpc remote-objects</tags>
-	<dependencies>
+	  <dependencies>
 	  	<dependency id="Razorvine.Serpent" version="1.11" />
   	</dependencies>
   </metadata>
+  <files>
+    <file src="bin/Release/Razorvine.Pyrolite.dll" target="lib/net40" />
+  </files>
 </package>
