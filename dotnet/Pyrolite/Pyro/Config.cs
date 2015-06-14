@@ -21,8 +21,8 @@ public static class Config  {
 	public static SerializerType SERIALIZER = SerializerType.serpent;
 	public static bool METADATA = true;
 	
-	public const int PROTOCOL_VERSION = 47;		// Pyro 4.26+ 
-	public const string PYROLITE_VERSION="4.7";
+	public const int PROTOCOL_VERSION = 48;		// Pyro 4.38+ 
+	public const string PYROLITE_VERSION="4.8";
 	
 	public const string DAEMON_NAME = "Pyro.Daemon";
 }

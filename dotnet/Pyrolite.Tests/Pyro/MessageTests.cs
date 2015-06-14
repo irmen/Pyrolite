@@ -171,22 +171,22 @@ public class MessageTestsHmac {
 	}
 	
 	[Test]
-	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 46")]
+	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 47")]
 	public void testProtocolVersionsNotSupported1()
 	{
 		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 0;
-		msg[5] = 46;	
+		msg[5] = 47;	
 		Message.from_header(msg);
 	}
 
 	[Test]
-	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 48")]
+	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 49")]
 	public void testProtocolVersionsNotSupported2()
 	{
 		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 0;
-		msg[5] = 48;	
+		msg[5] = 49;	
 		Message.from_header(msg);
 	}
 

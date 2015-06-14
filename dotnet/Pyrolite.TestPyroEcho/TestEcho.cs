@@ -1,6 +1,7 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
+using System.Diagnostics;
 using System.Text;
 using System.Collections.Generic;
 using Razorvine.Pickle;
@@ -51,9 +52,10 @@ public class TestEcho {
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
 		NameServerProxy ns = NameServerProxy.locateNS(null, hmacKey: hmacKey);
-		using(dynamic p = new CustomProxy(ns.lookup("test.echoserver")))
+		using(dynamic p = new PyroProxy(ns.lookup("test.echoserver")))
 		{
 			p.pyroHmacKey=hmacKey;
+			p.pyroHandshake = "banana";
 			
 			// non-dynamic way of constructing a proxy is:
 			// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
@@ -99,6 +101,18 @@ public class TestEcho {
 			Console.WriteLine("return value:");
 			PrettyPrint.print(result);
 			
+			// echo a pyro proxy and validate that all relevant attributes are also present on the proxy we got back.
+			Console.WriteLine("proxy test.");
+			result = p.echo(p);
+			PyroProxy p2 = (PyroProxy) result;
+			Console.WriteLine("response proxy: " + p2);
+			Debug.Assert(p2.objectid=="test.echoserver");
+			Debug.Assert((string)p2.pyroHandshake == "banana");
+			Debug.Assert(p2.pyroMethods.Count == 7);
+			if(p2.pyroHmacKey!=null) {
+				string hmac2 = Encoding.UTF8.GetString(p2.pyroHmacKey);
+				Debug.Assert(hmac2==Encoding.UTF8.GetString(hmacKey));
+			}
 			
 			Console.WriteLine("error test.");
 			try {

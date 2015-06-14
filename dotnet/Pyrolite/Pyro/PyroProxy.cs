@@ -26,6 +26,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	public string objectid {get;set;}
 	public byte[] pyroHmacKey = null;		// per-proxy hmac key, used to be HMAC_KEY config item
 	public Guid? correlation_id = null;     // per-proxy correlation id (need to set/update this yourself)
+	public object pyroHandshake = "hello";	// data object that should be sent in the initial connection handshake message. Can be any serializable object.
 
 	private ushort sequenceNr = 0;
 	private TcpClient sock;
@@ -77,7 +78,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 			sock.NoDelay=true;
 			sock_stream=sock.GetStream();
 			sequenceNr = 0;
-			handshake();
+			_handshake();
 
 			if (Config.METADATA) {
 				// obtain metadata if this feature is enabled, and the metadata is not known yet
@@ -104,6 +105,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 	
 		//  invoke the get_metadata method on the daemon
+		Console.WriteLine("INVOKE get_metadata");  // TODO
 		Hashtable result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new [] {objectId}) as Hashtable;
 		if(result==null)
 			return;
@@ -304,18 +306,29 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <summary>
 	/// Perform the Pyro protocol connection handshake with the Pyro daemon.
 	/// </summary>
-	protected void handshake() {
+	protected void _handshake() {
 		// do connection handshake
+		var ser = PyroSerializer.GetFor(Config.SERIALIZER);
+		var handshakedata = new Dictionary<string, Object>();
+		handshakedata["handshake"] = pyroHandshake;
+		if(Config.METADATA)
+			handshakedata["object"] = objectid;
+		byte[] data = ser.serializeData(handshakedata);
+		ushort flags = Config.METADATA? Message.FLAGS_META_ON_CONNECT : (ushort)0;
+		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
+		IOUtil.send(sock_stream, msg.to_bytes());
+		
+		
 		Message.recv(sock_stream, new ushort[]{Message.MSG_CONNECTOK}, pyroHmacKey);
 		// message data is ignored for now, should be 'ok' :)
 	}
-
+	
 	/// <summary>
 	/// called by the Unpickler to restore state.
 	/// </summary>
-	/// <param name="args">args(6): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey</param>
+	/// <param name="args">args(7): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake</param>
 	public void __setstate__(object[] args) {
-		if(args.Length != 6) {
+		if(args.Length != 7) {
 			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
 		}
 		PyroURI uri=(PyroURI)args[0];
@@ -324,6 +337,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		this.objectid=uri.objectid;
 		this.sock=null;
 		this.sock_stream=null;
+		this.correlation_id=null;
 		
 		this.pyroOneway.Clear();
 		foreach(object o in (HashSet<object>) args[1])
@@ -336,6 +350,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 			this.pyroAttrs.Add(o as string);
 
 		this.pyroHmacKey = (byte[])args[5];
+		this.pyroHandshake = args[6];
 	}	
 }
 
