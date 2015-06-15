@@ -25,14 +25,15 @@ public class PyroProxyPickler implements IObjectPickler {
 		out.write(Opcodes.EMPTY_TUPLE);
 		out.write(Opcodes.NEWOBJ);
 		
-		// args(6): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey
+		// args(7): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake
 		Object[] args = new Object[] {   
 			new PyroURI(proxy.objectid, proxy.hostname, proxy.port),
 			proxy.pyroOneway,
 			proxy.pyroMethods,
 			proxy.pyroAttrs,
 			0.0,
-			proxy.pyroHmacKey
+			proxy.pyroHmacKey,
+			proxy.pyroHandshake
 		};
 		currentPickler.save(args);
 		out.write(Opcodes.BUILD);

@@ -186,6 +186,36 @@ public class MessageTests {
 		assertTrue(msg.annotations.containsKey("HMAC"));
 	}
 	
+	@SuppressWarnings("serial")
+	class CustomAnnProxy extends PyroProxy
+	{
+		public CustomAnnProxy(PyroURI uri) throws IOException
+		{
+			super(uri);
+		}
+		
+		@Override
+		public SortedMap<String, byte[]> annotations()
+		{
+			SortedMap<String, byte[]> ann = super.annotations();
+			ann.put("XYZZ", "some value".getBytes());
+			return ann;
+		}
+	}
+	
+	@Test
+	public void testProxyAnnotations() throws IOException
+	{
+		PyroProxy p = new CustomAnnProxy(new PyroURI("PYRO:dummy@localhost:50000"));
+		p.pyroHmacKey = "secret".getBytes();
+		p.correlation_id = UUID.randomUUID();
+		SortedMap<String, byte[]> annotations = p.annotations();
+		assertEquals(2, annotations.size());
+		assertTrue(annotations.containsKey("CORR"));
+		assertTrue(annotations.containsKey("XYZZ"));
+	}
+	
+	
 	@Test
 	public void testProtocolVersionKaputt()
 	{
@@ -205,12 +235,12 @@ public class MessageTests {
 	{
 		byte[] msg = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 1, null, null).to_bytes());
 		msg[4] = 0;
-		msg[5] = 46;	
+		msg[5] = 47;	
 		try {
 			Message.from_header(msg);
 			fail("should crash");
 		} catch (PyroException x) {
-			assertEquals("invalid protocol version: 46", x.getMessage());
+			assertEquals("invalid protocol version: 47", x.getMessage());
 		}
 	}
 
@@ -219,12 +249,12 @@ public class MessageTests {
 	{
 		byte[] msg = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 1, null, null).to_bytes());
 		msg[4] = 0;
-		msg[5] = 48;	
+		msg[5] = 49;	
 		try {
 			Message.from_header(msg);
 			fail("should crash");
 		} catch (PyroException x) {
-			assertEquals("invalid protocol version: 48", x.getMessage());
+			assertEquals("invalid protocol version: 49", x.getMessage());
 		}
 	}
 	
@@ -237,7 +267,7 @@ public class MessageTests {
 
 		byte[] data = msg.to_bytes();
 		assertEquals(55, data.length);
-		assertArrayEquals(new byte[]{80, 89, 82, 79, 0, 47, 0, 5, 0, 0, 0, 1, 0, 0, 0, 5, 0, 42, 0, 26, 0, 0, 53, 103, 72, 77, 65, 67, 0, 20, -75, -6, -112, 32, 1, 34, -75, 17, -3, 2, 33, -1, -81, -47, 14, -88, -84, 11, -66, -119, 1, 2, 3, 4, 5},	data);
+		assertArrayEquals(new byte[]{80, 89, 82, 79, 0, 48, 0, 5, 0, 0, 0, 1, 0, 0, 0, 5, 0, 42, 0, 26, 0, 0, 53, 104, 72, 77, 65, 67, 0, 20, -75, -6, -112, 32, 1, 34, -75, 17, -3, 2, 33, -1, -81, -47, 14, -88, -84, 11, -66, -119, 1, 2, 3, 4, 5},	data);
 
 		InputStream c = new ByteArrayInputStream(data);
 

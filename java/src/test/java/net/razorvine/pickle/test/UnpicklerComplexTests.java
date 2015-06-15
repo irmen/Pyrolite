@@ -2,7 +2,9 @@ package net.razorvine.pickle.test;
 
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,14 +70,11 @@ public class UnpicklerComplexTests {
 
 	@Test
 	public void testUnpickleRealProxy() throws IOException {
-		byte[] pickled_proxy=new byte[]
-				{-128, 3, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 80, 114, 111, 120, 121, 10, 113, 0, 41, -127, 113, 1, 40, 99, 80, 121, 114, 111, 52, 46, 99, 111, 114, 101, 10, 85, 82, 73, 10, 113, 2, 41, -127, 113, 3, 40, 88, 4, 0, 0, 0, 80, 89, 82, 79, 113, 4, 88, 15, 0, 0, 0, 80, 121, 114, 111, 46, 78, 97, 109, 101, 83, 101, 114,
-				 118, 101, 114, 113, 5, 78, 88, 9, 0, 0, 0, 108, 111, 99, 97, 108, 104, 111, 115, 116, 113, 6, 77, -126, 35, 116, 113, 7, 98, 99, 98, 117, 105, 108, 116, 105, 110, 115, 10, 115, 101, 116, 10, 113, 8, 93, 113, 9, 40, 88, 2,
-				 0, 0, 0, 111, 49, 113, 10, 88, 2, 0, 0, 0, 111, 50, 113, 11, 101, -123, 113, 12, 82, 113, 13, 104, 8, 93, 113,
-				 14, 40, 88, 6, 0, 0, 0, 108, 111, 111, 107, 117, 112, 113, 15, 88, 8, 0, 0, 0, 114, 101, 103, 105, 115, 116, 101, 114, 113, 16, 88, 6, 0, 0, 0, 114, 101, 109, 111, 118, 101, 113, 17, 88, 4, 0, 0, 0, 108, 105, 115, 116, 113, 18, 88, 4, 0, 0, 0, 112, 105, 110, 103, 113, 19, 88, 5, 0, 0, 0, 99, 111, 117, 110, 116, 113, 20, 101, -123,
-				 113, 21, 82, 113, 22, 104, 8, 93, 113, 23, 40, 88, 5, 0, 0, 0, 97, 116, 116, 114, 49, 113, 24, 88, 5, 0, 0, 0,
-				 97, 116, 116, 114, 50, 113, 25, 101, -123, 113, 26, 82, 113, 27, 71, 0, 0, 0, 0, 0, 0, 0, 0, 67, 6, 115, 101, 99, 114, 101, 116, 113, 28, 116, 113, 29, 98, 46};
-		
+		InputStream is = this.getClass().getResourceAsStream("pickled_nameserver_proxy.dat");
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		int c;
+		while((c = is.read())>=0) bos.write(c);
+		byte[] pickled_proxy = bos.toByteArray();
 		PyroSerializer ser = new PickleSerializer();
 		PyroProxy proxy=(PyroProxy)ser.deserializeData(pickled_proxy);
 		assertEquals("Pyro.NameServer",proxy.objectid);
@@ -84,8 +83,6 @@ public class UnpicklerComplexTests {
 		assertArrayEquals("secret".getBytes(), proxy.pyroHmacKey);
 		
 		Set<String> expectedSet = new HashSet<String>();
-		expectedSet.add("attr1");
-		expectedSet.add("attr2");
 		assertEquals(expectedSet, proxy.pyroAttrs);
 		expectedSet.clear();
 		expectedSet.add("lookup");
@@ -95,9 +92,7 @@ public class UnpicklerComplexTests {
 		expectedSet.add("list");
 		expectedSet.add("count");
 		assertEquals(expectedSet, proxy.pyroMethods);
-		expectedSet.clear();
-		expectedSet.add("o1");
-		expectedSet.add("o2");
+		expectedSet = new HashSet<String>();
 		assertEquals(expectedSet, proxy.pyroOneway);
 	}
 	

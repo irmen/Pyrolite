@@ -1,11 +1,14 @@
-package net.razorvine.pyro.test;
+package net.razorvine.examples;
 
 import java.io.IOException;
+import java.util.SortedMap;
+
 import net.razorvine.pickle.PrettyPrint;
 import net.razorvine.pyro.Config;
 import net.razorvine.pyro.NameServerProxy;
 import net.razorvine.pyro.PyroException;
 import net.razorvine.pyro.PyroProxy;
+import net.razorvine.pyro.PyroURI;
 
 /**
  * Simple example that shows the use of Pyro with the Pyro echo server.
@@ -14,8 +17,9 @@ import net.razorvine.pyro.PyroProxy;
  */
 public class EchoExample {
 
-	static protected byte[] hmacKey = null;
-
+	static protected byte[] hmacKey = null; // "irmen".getBytes(); 
+	
+	
 	public static void main(String[] args) throws IOException {
 
 		System.out.println("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
@@ -44,6 +48,19 @@ public class EchoExample {
 		result=p.call("echo", s);
 		System.out.println("return value:");
 		PrettyPrint.print(result);
+
+		// echo a pyro proxy and validate that all relevant attributes are also present on the proxy we got back.
+		System.out.println("proxy test.");
+		result = p.call("echo", p);
+		PyroProxy p2 = (PyroProxy) result;
+		System.out.println("response proxy: " + p2);
+		assert (p2.objectid=="test.echoserver");
+		assert ((String)p2.pyroHandshake == "banana");
+		assert (p2.pyroMethods.size() == 8);
+		if(p2.pyroHmacKey!=null) {
+			String hmac2 = new String(p2.pyroHmacKey);
+			assert (hmac2==new String(hmacKey));
+		}
 
 		System.out.println("error test.");
 		try {
@@ -77,4 +94,24 @@ public class EchoExample {
 
 		Config.MSG_TRACE_DIR=tracedir;
 	}	
+}
+
+
+/**
+ * This custom proxy adds custom annotations to the pyro messages
+ */
+@SuppressWarnings("serial")
+class CustomProxy extends PyroProxy
+{
+	public CustomProxy(PyroURI uri) throws IOException 
+	{
+		super(uri);
+	}
+	@Override
+	public SortedMap<String, byte[]> annotations()
+	{
+		SortedMap<String, byte[]> ann = super.annotations();
+		ann.put("XYZZ", "A custom annotation!".getBytes());
+		return ann;
+	}
 }

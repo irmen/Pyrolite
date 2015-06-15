@@ -9,14 +9,7 @@ import java.lang.reflect.Field;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -36,7 +29,8 @@ public class PyroProxy implements Serializable {
 	public String objectid;
 	public byte[] pyroHmacKey = null;		// per-proxy hmac key, used to be HMAC_KEY config item
 	public UUID correlation_id = null;		// per-proxy correlation id (need to set/update this yourself)
-
+	public Object pyroHandshake = "hello";	// data object that should be sent in the initial connection handshake message. Can be any serializable object.
+	
 	private transient int sequenceNr = 0;
 	private transient Socket sock;
 	private transient OutputStream sock_out;
@@ -80,7 +74,7 @@ public class PyroProxy implements Serializable {
 			sock_out = sock.getOutputStream();
 			sock_in = sock.getInputStream();
 			sequenceNr = 0;
-			handshake();
+			_handshake();
 			
 			if(Config.METADATA) {
 				// obtain metadata if this feature is enabled, and the metadata is not known yet
@@ -306,19 +300,30 @@ public class PyroProxy implements Serializable {
 	/**
 	 * Perform the Pyro protocol connection handshake with the Pyro daemon.
 	 */
-	protected void handshake() throws IOException {
+	protected void _handshake() throws IOException {
 		// do connection handshake
+		
+		PyroSerializer ser = PyroSerializer.getFor(Config.SERIALIZER);
+		Map<String, Object> handshakedata = new HashMap<String, Object>();
+		handshakedata.put("handshake", pyroHandshake);
+		if(Config.METADATA)
+			handshakedata.put("object", objectid);
+		byte[] data = ser.serializeData(handshakedata);
+		int flags = Config.METADATA? Message.FLAGS_META_ON_CONNECT : 0;
+		Message msg = new Message(Message.MSG_CONNECT, data, ser.getSerializerId(), flags, sequenceNr, annotations(), pyroHmacKey);
+		IOUtil.send(sock_out, msg.to_bytes());
+		
+		// TODO do something with the result!
 		Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK}, pyroHmacKey);
-		// message data is ignored for now, should be 'ok' :)
 	}
 
 	/**
 	 * called by the Unpickler to restore state
-	 * args(6): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey
+	 * args(7): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake
 	 */
 	@SuppressWarnings("unchecked")
 	public void __setstate__(Object[] args) throws IOException {
-		if(args.length != 6) {
+		if(args.length != 7) {
 			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
 		}
 		PyroURI uri=(PyroURI)args[0];
@@ -328,6 +333,7 @@ public class PyroProxy implements Serializable {
 		this.sock=null;
 		this.sock_in=null;
 		this.sock_out=null;
+		this.correlation_id=null;
 		if(args[1] instanceof Set)
 			this.pyroOneway = (Set<String>) args[1];
 		else
@@ -341,5 +347,6 @@ public class PyroProxy implements Serializable {
 		else
 			this.pyroAttrs = new HashSet<String>( (Collection<String>)args[3] );
 		this.pyroHmacKey = (byte[]) args[5];
+		this.pyroHandshake = args[6];
 	}	
 }

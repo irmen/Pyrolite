@@ -34,6 +34,7 @@ public class Message
 	public final static int FLAGS_COMPRESSED = 1<<1;
 	public final static int FLAGS_ONEWAY = 1<<2;
 	public final static int FLAGS_BATCH = 1<<3;
+	public final static int FLAGS_META_ON_CONNECT = 1<<4;
 	public final static int SERIALIZER_SERPENT = 1;
 	public final static int SERIALIZER_JSON = 2;
 	public final static int SERIALIZER_MARSHAL = 3;

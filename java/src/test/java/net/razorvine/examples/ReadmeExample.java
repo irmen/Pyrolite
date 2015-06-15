@@ -1,4 +1,4 @@
-package net.razorvine.pyro.test;
+package net.razorvine.examples;
 import java.io.IOException;
 
 import net.razorvine.pyro.*;

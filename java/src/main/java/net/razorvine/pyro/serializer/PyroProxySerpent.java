@@ -1,10 +1,13 @@
 package net.razorvine.pyro.serializer;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
+import javax.xml.bind.DatatypeConverter;
+
+import net.razorvine.pyro.PyroException;
 import net.razorvine.pyro.PyroProxy;
 import net.razorvine.pyro.PyroURI;
 import net.razorvine.serpent.IClassSerializer;
@@ -17,16 +20,84 @@ import net.razorvine.serpent.IClassSerializer;
 public class PyroProxySerpent implements IClassSerializer {
 
 	public static Object FromSerpentDict(Map<Object, Object> dict) throws IOException {
-		Object[] state = (Object[])dict.get("state");  // pyroUri, onway(set), timeout
+		// note: the state array received in the dict conforms to the list produced by Pyro4's Proxy.__getstate_for_dict__
+		// that means, we must produce an array of length 7:  (the same as with convert, below!)
+		// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake  (in this order)
+		Object[] state = (Object[])dict.get("state");
 		PyroURI uri = new PyroURI((String)state[0]);
-		return new PyroProxy(uri);
+		PyroProxy proxy = new PyroProxy(uri);
+		
+		// the following nasty piece of code is similar to getMetatData from the PyroProxy
+		// this is because the three collections can either be an array or a set
+		Object methods = state[2];
+		Object attrs = state[3];
+		Object oneways = state[1];
+		
+		if(methods instanceof Object[]) {
+			Object[] methods_array = (Object[]) methods;
+			proxy.pyroMethods = new HashSet<String>();
+			for(int i=0; i<methods_array.length; ++i) {
+				proxy.pyroMethods.add((String) methods_array[i]);
+			}
+		} else if(methods!=null) {
+			@SuppressWarnings("unchecked")
+			HashSet<String> methods_set = (HashSet<String>) methods;
+			proxy.pyroMethods = methods_set;
+		}
+		if(attrs instanceof Object[]) {
+			Object[] attrs_array = (Object[]) attrs;
+			proxy.pyroAttrs = new HashSet<String>();
+			for(int i=0; i<attrs_array.length; ++i) {
+				proxy.pyroAttrs.add((String) attrs_array[i]);
+			}
+		} else if(attrs!=null) {
+			@SuppressWarnings("unchecked")
+			HashSet<String> attrs_set = (HashSet<String>) attrs;
+			proxy.pyroAttrs = attrs_set;
+		}
+		if(oneways instanceof Object[]) {
+			Object[] oneways_array = (Object[]) oneways;
+			proxy.pyroOneway = new HashSet<String>();
+			for(int i=0; i<oneways_array.length; ++i) {
+				proxy.pyroOneway.add((String) oneways_array[i]);
+			}
+		} else if(oneways!=null) {
+			@SuppressWarnings("unchecked")
+			HashSet<String> oneways_set = (HashSet<String>) oneways;
+			proxy.pyroOneway = oneways_set;
+		}
+		
+		if(state[5]!=null) {
+			String encodedHmac = (String)state[5];
+			if(encodedHmac.startsWith("b64:")) {
+				proxy.pyroHmacKey = DatatypeConverter.parseBase64Binary(encodedHmac.substring(4));
+			} else {
+				throw new PyroException("hmac encoding error");
+			}		
+		}
+		
+		proxy.pyroHandshake = state[6];
+		return proxy;
 	}
 
 	public Map<String, Object> convert(Object obj) {
+		// note: the state array returned here must conform to the list consumed by Pyro4's Proxy.__setstate_from_dict__ 
+		// that means, we get an array of length 7:
+		// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake  (in this order)
 		PyroProxy proxy = (PyroProxy) obj;
 		Map<String, Object> dict = new HashMap<String, Object>();
 		String uri = String.format("PYRO:%s@%s:%d", proxy.objectid, proxy.hostname, proxy.port);
-		dict.put("state", new Object[]{uri, Collections.EMPTY_SET, 0.0});
+
+		String encodedHmac = proxy.pyroHmacKey!=null? "b64:"+DatatypeConverter.printBase64Binary(proxy.pyroHmacKey) : null;
+		dict.put("state", new Object[]{
+			uri,
+			proxy.pyroOneway,
+			proxy.pyroMethods,
+			proxy.pyroAttrs,
+			0.0,
+			encodedHmac,
+			proxy.pyroHandshake
+		});
 		dict.put("__class__", "Pyro4.core.Proxy");
 		return dict;
 	}
