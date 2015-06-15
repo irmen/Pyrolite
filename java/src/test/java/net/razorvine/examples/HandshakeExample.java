@@ -1,7 +1,6 @@
 package net.razorvine.examples;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.SortedMap;
@@ -42,10 +41,12 @@ class CustomAnnotationsProxy extends PyroProxy
 	public void validateHandshake(Object handshake_response)
 	{
 		// the handshake example server returns a list.
-		ArrayList<String> strs = new ArrayList<String>();
-		for(Object o: (List<Object>) handshake_response)
-			strs.add(o.toString());
-		System.out.println("Proxy received handshake response data: "+ String.join(",", strs));;
+		String msg = "";
+		for(Object o: (List<Object>) handshake_response) {
+			msg += o;
+			msg += ",";
+		}
+		System.out.println("Proxy received handshake response data: "+msg);
 	}
 }
 
