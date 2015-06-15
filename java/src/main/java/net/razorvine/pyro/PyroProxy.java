@@ -348,7 +348,8 @@ public class PyroProxy implements Serializable {
 		if(msg.type==Message.MSG_CONNECTOK) {
 			if((msg.flags & Message.FLAGS_META_ON_CONNECT) != 0) {
 				HashMap<String, Object> response_dict = (HashMap<String, Object>)handshake_response;
-				_processMetadata((HashMap<String, Object>) response_dict.get("meta"));
+				HashMap<String, Object> metadata = (HashMap<String, Object>) response_dict.get("meta");
+				_processMetadata(metadata);
 				handshake_response = response_dict.get("handshake");
 				try {
 					validateHandshake(handshake_response);

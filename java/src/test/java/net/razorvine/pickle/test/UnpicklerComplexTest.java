@@ -74,6 +74,7 @@ public class UnpicklerComplexTest {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		int c;
 		while((c = is.read())>=0) bos.write(c);
+		is.close();
 		byte[] pickled_proxy = bos.toByteArray();
 		PyroSerializer ser = new PickleSerializer();
 		PyroProxy proxy=(PyroProxy)ser.deserializeData(pickled_proxy);
