@@ -100,12 +100,20 @@ public class PyroProxy implements Serializable {
 				return;    // metadata has already been retrieved as part of creating the connection
 		}
 	
-		//  invoke the get_metadata method on the daemon
+		// invoke the get_metadata method on the daemon
 		@SuppressWarnings("unchecked")
 		HashMap<String, Object> result = (HashMap<String, Object>) this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new Object[] {objectId});
 		if(result==null)
 			return;
 		
+		_processMetadata(result);
+	}
+
+	/**
+	 * Extract meta data and store it in the relevant properties on the proxy.
+	 * If no attribute or method is exposed at all, throw an exception.
+	 */
+	private void _processMetadata(HashMap<String, Object> result) {
 		// the collections in the result can be either an object[] or a HashSet<object>, depending on the serializer that is used
 		Object methods = result.get("methods");
 		Object attrs = result.get("attrs");
@@ -241,20 +249,7 @@ public class PyroProxy implements Serializable {
 			throw new PyroException("result msg out of sync");
 		}
 		if ((resultmsg.flags & Message.FLAGS_COMPRESSED) != 0) {
-			Inflater decompresser = new Inflater();
-			decompresser.setInput(resultmsg.data);
-			ByteArrayOutputStream bos = new ByteArrayOutputStream(resultmsg.data.length);
-			byte[] buffer = new byte[8192];
-			try {
-				while (!decompresser.finished()) {
-					int size = decompresser.inflate(buffer);
-					bos.write(buffer, 0, size);
-				}
-				resultmsg.data = bos.toByteArray();
-				decompresser.end();
-			} catch (DataFormatException e) {
-				throw new PyroException("invalid compressed data: ", e);
-			}
+			_decompressMessageData(resultmsg);
 		}
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
 			Throwable rx = (Throwable) ser.deserializeData(resultmsg.data);
@@ -273,6 +268,30 @@ public class PyroProxy implements Serializable {
 			}
 		}
 		return ser.deserializeData(resultmsg.data);
+	}
+
+	/**
+	 * Decompress the data bytes in the given message (in place).
+	 */
+	private void _decompressMessageData(Message msg) {
+		if((msg.flags & Message.FLAGS_COMPRESSED) == 0) {
+			throw new IllegalArgumentException("message data is not compressed");
+		}
+		Inflater decompresser = new Inflater();
+		decompresser.setInput(msg.data);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(msg.data.length);
+		byte[] buffer = new byte[8192];
+		try {
+			while (!decompresser.finished()) {
+				int size = decompresser.inflate(buffer);
+				bos.write(buffer, 0, size);
+			}
+			msg.data = bos.toByteArray();
+			msg.flags &= ~Message.FLAGS_COMPRESSED;
+			decompresser.end();
+		} catch (DataFormatException e) {
+			throw new PyroException("invalid compressed data: ", e);
+		}
 	}
 
 	/**
@@ -300,6 +319,7 @@ public class PyroProxy implements Serializable {
 	/**
 	 * Perform the Pyro protocol connection handshake with the Pyro daemon.
 	 */
+	@SuppressWarnings("unchecked")
 	protected void _handshake() throws IOException {
 		// do connection handshake
 		
@@ -312,9 +332,48 @@ public class PyroProxy implements Serializable {
 		int flags = Config.METADATA? Message.FLAGS_META_ON_CONNECT : 0;
 		Message msg = new Message(Message.MSG_CONNECT, data, ser.getSerializerId(), flags, sequenceNr, annotations(), pyroHmacKey);
 		IOUtil.send(sock_out, msg.to_bytes());
+		if(Config.MSG_TRACE_DIR!=null) {
+			Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
+		}
 		
-		// TODO do something with the result!
-		Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK}, pyroHmacKey);
+		// process handshake response
+		msg = Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL}, pyroHmacKey);
+		Object handshake_response = "?";
+		if(msg.data!=null) {
+			if((msg.flags & Message.FLAGS_COMPRESSED) != 0) {
+				_decompressMessageData(msg);
+			}
+			handshake_response = ser.deserializeData(msg.data);
+		}
+		if(msg.type==Message.MSG_CONNECTOK) {
+			if((msg.flags & Message.FLAGS_META_ON_CONNECT) != 0) {
+				HashMap<String, Object> response_dict = (HashMap<String, Object>)handshake_response;
+				_processMetadata((HashMap<String, Object>) response_dict.get("meta"));
+				handshake_response = response_dict.get("handshake");
+				try {
+					validateHandshake(handshake_response);
+				} catch (IOException x) {
+					close();
+					throw x;
+				}
+			}
+		} else if (msg.type==Message.MSG_CONNECTFAIL) {
+			close();
+			throw new PyroException("connection rejected, reason: "+handshake_response);
+		} else {
+			close();
+			throw new PyroException("connect: invalid msg type "+msg.type+" received");
+		}
+	}
+	
+	/**
+	 * Process and validate the initial connection handshake response data received from the daemon.
+	 * Simply return without error if everything is ok.
+     * Throw an IOException if something is wrong and the connection should not be made.
+	 */
+	public void validateHandshake(Object response) throws IOException
+	{
+		// override this in subclass
 	}
 
 	/**

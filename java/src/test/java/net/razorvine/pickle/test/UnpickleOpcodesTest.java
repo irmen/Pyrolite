@@ -30,7 +30,7 @@ import org.junit.Test;
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */
-public class UnpickleOpcodesTests {
+public class UnpickleOpcodesTest {
 
 	Unpickler u;
 	static String STRING256;

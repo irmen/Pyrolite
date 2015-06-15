@@ -17,7 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SerializePyroTests {
+public class SerializePyroTest {
 
 	@Before
 	public void setUp() throws Exception {

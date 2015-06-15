@@ -30,7 +30,7 @@ import org.junit.Test;
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 @SuppressWarnings({"unchecked", "serial"})
-public class UnpicklerComplexTests {
+public class UnpicklerComplexTest {
 
 	@Before
 	public void setUp() throws Exception {

@@ -22,7 +22,7 @@ import org.junit.Test;
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */
-public class MessageTests {
+public class MessageTest {
 	
 	PyroSerializer ser;
 	

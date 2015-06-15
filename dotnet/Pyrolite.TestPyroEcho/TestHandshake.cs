@@ -53,6 +53,7 @@ public class TestHandshake {
 		using(dynamic p = new CustomAnnotationsProxy(new PyroURI(uri)))
 		{
 		    p.pyroHandshake = secret;
+		    p.correlation_id = Guid.NewGuid();
 		    p.ping();
 		    Console.WriteLine("Connection Ok!");
 		}

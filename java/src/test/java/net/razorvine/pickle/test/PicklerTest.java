@@ -43,7 +43,7 @@ import org.junit.Test;
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */
-public class PicklerTests {
+public class PicklerTest {
 
 	@Before
 	public void setUp() throws Exception {
@@ -839,7 +839,7 @@ public class PicklerTests {
 		assertEquals("Tupac", map.get("name"));
 		assertEquals(true, map.get("deceased"));
 		assertArrayEquals(new int[] {3,4,5}, (int[]) map.get("values"));
-		assertEquals("net.razorvine.pickle.test.PicklerTests$PersonBean", map.get("__class__"));
+		assertEquals("net.razorvine.pickle.test.PicklerTest$PersonBean", map.get("__class__"));
 	}
 	
 	class NotABean {

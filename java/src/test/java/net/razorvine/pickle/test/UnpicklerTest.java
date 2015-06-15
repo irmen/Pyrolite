@@ -30,7 +30,7 @@ import org.junit.Test;
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */
-public class UnpicklerTests {
+public class UnpicklerTest {
 
 	@Before
 	public void setUp() throws Exception {

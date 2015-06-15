@@ -27,7 +27,7 @@ public class PyroProxySerpent implements IClassSerializer {
 		PyroURI uri = new PyroURI((String)state[0]);
 		PyroProxy proxy = new PyroProxy(uri);
 		
-		// the following nasty piece of code is similar to getMetatData from the PyroProxy
+		// the following nasty piece of code is similar to _processMetadata from the PyroProxy
 		// this is because the three collections can either be an array or a set
 		Object methods = state[2];
 		Object attrs = state[3];

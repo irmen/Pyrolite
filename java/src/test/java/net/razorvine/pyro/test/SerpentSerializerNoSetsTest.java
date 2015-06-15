@@ -17,7 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SerpentSerializerTestsNoSets {
+public class SerpentSerializerNoSetsTest {
 
 	@Before
 	public void setUp() throws Exception {

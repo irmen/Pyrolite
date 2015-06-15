@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
  *  
  * @author Irmen de Jong (irmen@razorvine.net)
  */
-public class MessageTestsNoHmac {
+public class MessageNoHmacTest {
 
 	@Test
 	public void testRecvNoAnnotations() throws IOException
