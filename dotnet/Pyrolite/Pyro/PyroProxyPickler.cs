@@ -70,7 +70,7 @@ public class PyroProxyPickler : IObjectPickler {
 		PyroURI uri = new PyroURI((string)state[0]);
 		var proxy = new PyroProxy(uri);
 		
-		// the following nasty piece of code is similar to GetMetatData from the PyroProxy
+		// the following nasty piece of code is similar to _processMetaData from the PyroProxy
 		// this is because the three collections can either be an array or a set
 		object[] oneway_array = state[1] as object[];
 		object[] methods_array = state[2] as object[];

@@ -13,7 +13,7 @@ namespace Pyrolite.TestPyroEcho
 /// <summary>
 /// This custom proxy adds custom annotations to the pyro messages
 /// </summary>
-public class CustomProxy : PyroProxy
+class CustomProxy : PyroProxy
 {
 	public CustomProxy(PyroURI uri): base(uri) 
 	{
@@ -33,20 +33,12 @@ public class TestEcho {
 
 	static protected byte[] hmacKey = null;  // Encoding.UTF8.GetBytes("foo");
 	
-	public static void Main(String[] args) {
-		try {
-			Test();
-		} catch (Exception x) {
-			Console.WriteLine("unhandled exception: {0}",x);
-		}
-	}
 	
-	public static void Test() {
+	public void Run() {
 
 		Console.WriteLine("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
-		setConfig();
 		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
 		if(Config.SERIALIZER==Config.SerializerType.serpent)
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
@@ -125,20 +117,6 @@ public class TestEcho {
 	
 			Console.WriteLine("shutting down the test echo server.");
 			p.shutdown();
-
-			Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
-		}
-	}
-
-	static void setConfig()
-	{
-		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
-		if(tracedir!=null) {
-			Config.MSG_TRACE_DIR=tracedir;
-		}
-		string serializer=Environment.GetEnvironmentVariable("PYRO_SERIALIZER");
-		if(serializer!=null) {
-			Config.SERIALIZER=(Config.SerializerType) Enum.Parse(typeof(Config.SerializerType), serializer, true);
 		}
 	}
 }

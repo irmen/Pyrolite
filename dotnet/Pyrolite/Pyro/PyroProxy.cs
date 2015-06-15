@@ -108,7 +108,15 @@ public class PyroProxy : DynamicObject, IDisposable {
 		Hashtable result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new [] {objectId}) as Hashtable;
 		if(result==null)
 			return;
-		
+		_processMetadata(result);
+	}
+
+	/// <summary>
+	/// Extract meta data and store it in the relevant properties on the proxy.
+	/// If no attribute or method is exposed at all, throw an exception.
+	/// </summary>
+	private void _processMetadata(Hashtable result)
+	{
 		// the collections in the result can be either an object[] or a HashSet<object>, depending on the serializer that is used
 		object[] methods_array = result["methods"] as object[];
 		object[] attrs_array = result["attrs"] as object[];
@@ -255,20 +263,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 			throw new PyroException("result msg out of sync");
 		}
 		if ((resultmsg.flags & Message.FLAGS_COMPRESSED) != 0) {
-			// we need to skip the first 2 bytes in the buffer due to a tiny mismatch between zlib-written 
-			// data and the deflate data bytes that .net expects.
-			// See http://www.chiramattel.com/george/blog/2007/09/09/deflatestream-block-length-does-not-match.html
-			using(MemoryStream compressed=new MemoryStream(resultmsg.data, 2, resultmsg.data.Length-2, false)) {
-				using(DeflateStream decompresser=new DeflateStream(compressed, CompressionMode.Decompress)) {
-					MemoryStream bos = new MemoryStream(resultmsg.data.Length);
-	        		byte[] buffer = new byte[4096];
-	        		int numRead;
-	        		while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
-	        		    bos.Write(buffer, 0, numRead);
-	        		}
-	        		resultmsg.data=bos.ToArray();
-				}
-			}
+			_decompressMessageData(resultmsg);
 		}
 
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
@@ -289,6 +284,28 @@ public class PyroProxy : DynamicObject, IDisposable {
 		return ser.deserializeData(resultmsg.data);
 	}
 
+	
+	/// <summary>
+	/// Decompress the data bytes in the given message (in place).
+	/// </summary>
+	private void _decompressMessageData(Message msg) {
+		if((msg.flags & Message.FLAGS_COMPRESSED) == 0) {
+			throw new ArgumentException("message data is not compressed");
+		}
+		using(MemoryStream compressed=new MemoryStream(msg.data, 2, msg.data.Length-2, false)) {
+			using(DeflateStream decompresser=new DeflateStream(compressed, CompressionMode.Decompress)) {
+				MemoryStream bos = new MemoryStream(msg.data.Length);
+        		byte[] buffer = new byte[4096];
+        		int numRead;
+        		while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
+        		    bos.Write(buffer, 0, numRead);
+        		}
+        		msg.data=bos.ToArray();
+        		msg.flags ^= Message.FLAGS_COMPRESSED;
+			}
+		}
+	}
+		
 	/// <summary>
 	/// Close the network connection of this Proxy.
 	/// If you re-use the proxy, it will automatically reconnect.
@@ -307,7 +324,6 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// Perform the Pyro protocol connection handshake with the Pyro daemon.
 	/// </summary>
 	protected void _handshake() {
-		// do connection handshake
 		var ser = PyroSerializer.GetFor(Config.SERIALIZER);
 		var handshakedata = new Dictionary<string, Object>();
 		handshakedata["handshake"] = pyroHandshake;
@@ -317,10 +333,48 @@ public class PyroProxy : DynamicObject, IDisposable {
 		ushort flags = Config.METADATA? Message.FLAGS_META_ON_CONNECT : (ushort)0;
 		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
 		IOUtil.send(sock_stream, msg.to_bytes());
+		if(Config.MSG_TRACE_DIR!=null) {
+			Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
+		}
 		
-		
-		Message.recv(sock_stream, new ushort[]{Message.MSG_CONNECTOK}, pyroHmacKey);
-		// message data is ignored for now, should be 'ok' :)
+		// process handshake response
+		msg = Message.recv(sock_stream, new ushort[]{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL}, pyroHmacKey);
+		object handshake_response = "?";
+		if(msg.data!=null) {
+			if((msg.flags & Message.FLAGS_COMPRESSED) != 0) {
+				_decompressMessageData(msg);
+			}
+			handshake_response = ser.deserializeData(msg.data);
+		}
+		if(msg.type==Message.MSG_CONNECTOK) {
+			if((msg.flags & Message.FLAGS_META_ON_CONNECT) != 0) {
+				var response_dict = (Hashtable)handshake_response;
+				_processMetadata(response_dict["meta"] as Hashtable);
+				handshake_response = response_dict["handshake"];
+				try {
+					validateHandshake(handshake_response);
+				} catch (Exception) {
+					close();
+					throw;
+				}
+			}
+		} else if (msg.type==Message.MSG_CONNECTFAIL) {
+			close();
+			throw new PyroException("connection rejected, reason: "+handshake_response);
+		} else {
+			close();
+			throw new PyroException(string.Format("connect: invalid msg type {0} received", msg.type));
+		}
+	}
+	
+	/// <summary>
+	/// Process and validate the initial connection handshake response data received from the daemon.
+	/// Simply return without error if everything is ok.
+    /// Throw an exception if something is wrong and the connection should not be made.
+	/// </summary>
+	public virtual void validateHandshake(object handshake_response)
+	{
+		// override this in subclass
 	}
 	
 	/// <summary>
