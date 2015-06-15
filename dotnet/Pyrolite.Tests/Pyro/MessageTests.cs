@@ -159,6 +159,30 @@ public class MessageTestsHmac {
 		Assert.AreEqual(new byte[]{10,20,30,40,50}, msg.annotations["TEST"]);
 		Assert.IsTrue(msg.annotations.ContainsKey("HMAC"));
 	}
+
+	class CustomAnnProxy : PyroProxy
+	{
+		public CustomAnnProxy(PyroURI uri) : base(uri) {}
+		
+		public override IDictionary<string, byte[]> annotations()
+		{
+			var ann = base.annotations();
+			ann["XYZZ"] = Encoding.UTF8.GetBytes("some value");
+			return ann;
+		}
+	}
+	
+	[Test]
+	public void testProxyAnnotations()
+	{
+		var p = new CustomAnnProxy(new PyroURI("PYRO:dummy@localhost:50000"));
+		p.pyroHmacKey = Encoding.UTF8.GetBytes("secret");
+		p.correlation_id = Guid.NewGuid();
+		var annotations = p.annotations();
+		Assert.AreEqual(2, annotations.Count);
+		Assert.IsTrue(annotations.ContainsKey("CORR"));
+		Assert.IsTrue(annotations.ContainsKey("XYZZ"));
+	}
 	
 	[Test]
 	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 25455")]

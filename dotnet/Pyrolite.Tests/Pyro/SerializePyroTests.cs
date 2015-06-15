@@ -50,6 +50,7 @@ namespace Pyrolite.Tests.Pyro
 			Assert.IsNull(proxy2.correlation_id, "correlation_id is not serialized on the proxy object");
 			Assert.AreEqual(proxy.pyroHandshake, proxy2.pyroHandshake);
 			Assert.AreEqual(proxy.pyroHmacKey, proxy2.pyroHmacKey);
+			Assert.AreEqual(2, proxy2.pyroAttrs.Count);
 			Assert.AreEqual(proxy.pyroAttrs, proxy2.pyroAttrs);
 
 			PyroException ex = new PyroException("error");
@@ -81,6 +82,9 @@ namespace Pyrolite.Tests.Pyro
 			proxy.correlation_id = Guid.NewGuid();
 			proxy.pyroHandshake = "apples";
 			proxy.pyroHmacKey = Encoding.UTF8.GetBytes("secret");
+			proxy.pyroAttrs = new HashSet<string>();
+			proxy.pyroAttrs.Add("attr1");
+			proxy.pyroAttrs.Add("attr2");
 			s = pickler.serializeData(proxy);
 			x = pickler.deserializeData(s);
 			PyroProxy proxy2 = (PyroProxy) x;
@@ -90,6 +94,8 @@ namespace Pyrolite.Tests.Pyro
 			Assert.IsNull(proxy2.correlation_id, "correlation_id is not serialized on the proxy object");
 			Assert.AreEqual(proxy.pyroHandshake, proxy2.pyroHandshake);
 			Assert.AreEqual(proxy.pyroHmacKey, proxy2.pyroHmacKey);
+			Assert.AreEqual(2, proxy2.pyroAttrs.Count);
+			Assert.AreEqual(proxy.pyroAttrs, proxy2.pyroAttrs);
 
 			PyroException ex = new PyroException("error");
 			s = pickler.serializeData(ex);

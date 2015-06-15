@@ -105,7 +105,6 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 	
 		//  invoke the get_metadata method on the daemon
-		Console.WriteLine("INVOKE get_metadata");  // TODO
 		Hashtable result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new [] {objectId}) as Hashtable;
 		if(result==null)
 			return;
@@ -201,6 +200,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <summary>
 	/// Returns a dict with annotations to be sent with each message.
     /// Default behavior is to include the current correlation id (if it is set).
+    /// (note that the Message may include an additional hmac annotation at the moment the message is sent)
 	/// </summary>
 	public virtual IDictionary<string, byte[]> annotations()
 	{
