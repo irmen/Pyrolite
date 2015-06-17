@@ -1,6 +1,7 @@
 package net.razorvine.examples;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Scanner;
 import java.util.SortedMap;
@@ -48,6 +49,25 @@ class CustomAnnotationsProxy extends PyroProxy
 		}
 		System.out.println("Proxy received handshake response data: "+msg);
 	}
+	
+	@Override
+	public void responseAnnotations(SortedMap<String, byte[]> annotations, int msgtype)
+	{
+		System.out.println("    Got response (type=" + msgtype + "). Annotations:");
+		for(String ann: annotations.keySet()) {
+			String value;
+			if(ann.equals("CORR")) {
+				ByteBuffer bb = ByteBuffer.wrap(annotations.get(ann));
+				value = new UUID(bb.getLong(), bb.getLong()).toString();
+			} else if (ann.equals("HMAC")) {
+				value = "[...]";
+			} else {
+				value = annotations.get(ann).toString();
+			}
+			System.out.println("      " + ann + " -> " + value);
+		}
+		
+	}
 }
 
 
@@ -70,6 +90,7 @@ public class HandshakeExample {
 		PyroProxy p = new CustomAnnotationsProxy(new PyroURI(uri));
 		p.pyroHandshake = secret;
 		p.correlation_id = UUID.randomUUID();
+		System.out.println("Correlation id set to: "+p.correlation_id);
 		p.call("ping");
 		System.out.println("Connection Ok!");
 		

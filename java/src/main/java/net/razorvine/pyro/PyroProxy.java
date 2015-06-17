@@ -248,6 +248,7 @@ public class PyroProxy implements Serializable {
 		if (resultmsg.seq != sequenceNr) {
 			throw new PyroException("result msg out of sync");
 		}
+		responseAnnotations(resultmsg.annotations, resultmsg.type);
 		if ((resultmsg.flags & Message.FLAGS_COMPRESSED) != 0) {
 			_decompressMessageData(resultmsg);
 		}
@@ -338,6 +339,7 @@ public class PyroProxy implements Serializable {
 		
 		// process handshake response
 		msg = Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL}, pyroHmacKey);
+		responseAnnotations(msg.annotations, msg.type);
 		Object handshake_response = "?";
 		if(msg.data!=null) {
 			if((msg.flags & Message.FLAGS_COMPRESSED) != 0) {
@@ -377,6 +379,16 @@ public class PyroProxy implements Serializable {
 		// override this in subclass
 	}
 
+	/**
+	 * Process any response annotations (dictionary set by the daemon).
+	 * Usually this contains the internal Pyro annotations such as hmac and correlation id,
+	 * and if you override the annotations method in the daemon, can contain your own annotations as well.
+	 */
+	public void responseAnnotations(SortedMap<String, byte[]> annotations, int msgtype)
+	{
+		// override this in subclass
+	}
+	
 	/**
 	 * called by the Unpickler to restore state
 	 * args(7): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake
