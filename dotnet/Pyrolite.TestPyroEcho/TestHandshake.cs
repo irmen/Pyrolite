@@ -29,6 +29,21 @@ class CustomAnnotationsProxy : PyroProxy
 		var response_list = (IList<object>) handshake_response;
 		Console.WriteLine("Proxy received handshake response data: "+ string.Join(",", response_list));
 	}
+
+	public override void responseAnnotations(IDictionary<string, byte[]> annotations, ushort msgtype) {
+		Console.WriteLine("    Got response (type={0}). Annotations:", msgtype);
+		foreach(var ann in annotations) {
+			string value;
+			if(ann.Key=="CORR") {
+				value = new Guid(ann.Value).ToString();
+			} else if (ann.Key=="HMAC") {
+				value = "[...]";
+			} else {
+				value = ann.Value.ToString();
+			}
+			Console.WriteLine("      {0} -> {1}", ann.Key, value);
+		}
+	}
 }
 	
 /// <summary>
@@ -54,6 +69,7 @@ public class TestHandshake {
 		{
 		    p.pyroHandshake = secret;
 		    p.correlation_id = Guid.NewGuid();
+		    Console.WriteLine("correlation id set to: {0}", p.correlation_id);
 		    p.ping();
 		    Console.WriteLine("Connection Ok!");
 		}

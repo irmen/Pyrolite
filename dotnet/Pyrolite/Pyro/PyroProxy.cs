@@ -262,6 +262,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		if (resultmsg.seq != sequenceNr) {
 			throw new PyroException("result msg out of sync");
 		}
+		responseAnnotations(resultmsg.annotations, resultmsg.type);
 		if ((resultmsg.flags & Message.FLAGS_COMPRESSED) != 0) {
 			_decompressMessageData(resultmsg);
 		}
@@ -339,6 +340,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		// process handshake response
 		msg = Message.recv(sock_stream, new ushort[]{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL}, pyroHmacKey);
+		responseAnnotations(msg.annotations, msg.type);
 		object handshake_response = "?";
 		if(msg.data!=null) {
 			if((msg.flags & Message.FLAGS_COMPRESSED) != 0) {
@@ -373,6 +375,16 @@ public class PyroProxy : DynamicObject, IDisposable {
     /// Throw an exception if something is wrong and the connection should not be made.
 	/// </summary>
 	public virtual void validateHandshake(object handshake_response)
+	{
+		// override this in subclass
+	}
+	
+	/// <summary>
+	/// Process any response annotations (dictionary set by the daemon).
+	/// Usually this contains the internal Pyro annotations such as hmac and correlation id,
+	/// and if you override the annotations method in the daemon, can contain your own annotations as well.
+	/// </summary>
+	public virtual void responseAnnotations(IDictionary<string, byte[]> annotations, ushort msgtype)
 	{
 		// override this in subclass
 	}
