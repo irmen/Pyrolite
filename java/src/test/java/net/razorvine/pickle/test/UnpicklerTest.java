@@ -594,12 +594,12 @@ public class UnpicklerTest {
 	}
 	
     @Test
-    // @Ignore("performancetest")
+    @Ignore("performancetest")
     public void testUnpicklingPerformance() throws PickleException, IOException {
         Pickler pickler = new Pickler();
 
         List<String> myList = new ArrayList<String>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             myList.add(String.valueOf(i));
         }
 
@@ -608,7 +608,7 @@ public class UnpicklerTest {
         Unpickler unpickler = new Unpickler();
 
         long start = System.currentTimeMillis();
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 1000000; i++) {
             unpickler.loads(bytes);
         }
 
