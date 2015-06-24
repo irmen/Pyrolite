@@ -26,6 +26,7 @@ public class Unpickler : IDisposable {
 	protected UnpickleStack stack;
 	private Stream input;
 	private static IDictionary<string, IObjectConstructor> objectConstructors;
+	private static readonly object NO_RETURN_VALUE = new object();
 
 	static Unpickler() {
 		objectConstructors = new Dictionary<string, IObjectConstructor>();
@@ -67,13 +68,11 @@ public class Unpickler : IDisposable {
 	public object load(Stream stream) {
 		input = stream;
 		stack = new UnpickleStack();
-		try {
-			while (true) {
-				byte key = PickleUtils.readbyte(input);
-				dispatch(key);
-			}
-		} catch (StopException x) {
-			return x.value;
+		while (true) {
+			byte key = PickleUtils.readbyte(input);
+			object value = dispatch(key);
+			if(value != NO_RETURN_VALUE)
+				return value;
 		}
 	}
 
@@ -95,19 +94,10 @@ public class Unpickler : IDisposable {
 		if(input!=null) input.Close();
 	}
 
-	private class StopException : Exception {
-
-		public StopException(object value) {
-			this.value = value;
-		}
-
-		public object value;
-	}
-
 	/**
 	 * Process a single pickle stream opcode.
 	 */
-	protected void dispatch(short key) {
+	protected object dispatch(short key) {
 		switch (key) {
 		case Opcodes.MARK:
 			load_mark();
@@ -115,7 +105,7 @@ public class Unpickler : IDisposable {
 		case Opcodes.STOP:
 			object value = stack.pop();
 			stack.clear();
-			throw new StopException(value);
+			return value;		// final result value
 		case Opcodes.POP:
 			load_pop();
 			break;
@@ -308,6 +298,8 @@ public class Unpickler : IDisposable {
 		default:
 			throw new InvalidOpcodeException("invalid pickle opcode: " + key);
 		}
+		
+		return NO_RETURN_VALUE;
 	}
 
 	void load_build() {

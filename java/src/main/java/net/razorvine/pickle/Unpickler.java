@@ -135,7 +135,7 @@ public class Unpickler {
 		case Opcodes.STOP:
 			Object value = stack.pop();
 			stack.clear();
-			return value;
+			return value;		// final result value
 		case Opcodes.POP:
 			load_pop();
 			break;
