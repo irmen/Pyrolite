@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -24,6 +25,8 @@ import net.razorvine.pickle.objects.TimeDelta;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
+
 
 /**
  * Unit tests for the unpickler.
@@ -590,9 +593,25 @@ public class UnpicklerTest {
 		assertEquals(9090,result);
 	}
 	
-	public static void main(String[] args) throws PickleException, IOException
-	{
-		//Unpickler u=new Unpickler();
-	}
-	
+    @Test
+    // @Ignore("performancetest")
+    public void testUnpicklingPerformance() throws PickleException, IOException {
+        Pickler pickler = new Pickler();
+
+        List<String> myList = new ArrayList<String>();
+        for (int i = 0; i < 100; i++) {
+            myList.add(String.valueOf(i));
+        }
+
+        byte[] bytes = pickler.dumps(myList);
+
+        Unpickler unpickler = new Unpickler();
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 100000; i++) {
+            unpickler.loads(bytes);
+        }
+
+        System.out.println(System.currentTimeMillis() - start);
+    }
 }
