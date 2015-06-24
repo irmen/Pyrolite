@@ -515,7 +515,29 @@ public class UnpicklerTests {
 		int result=(int) u.loads(data);
 		Assert.AreEqual(9090,result);
 	}
-	
+
+	[Test]
+	[Ignore("performancetest")]
+    public void testUnpicklingPerformance()
+    {
+        Pickler pickler = new Pickler();
+
+        var myList = new List<string>();
+        for (int i = 0; i < 10; i++) {
+        	myList.Add(i.ToString());
+        }
+
+        byte[] bytes = pickler.dumps(myList);
+
+        Unpickler unpickler = new Unpickler();
+
+        DateTime start = DateTime.Now;
+        for (int i = 0; i < 1000000; i++) {
+            unpickler.loads(bytes);
+        }
+
+        Console.WriteLine(DateTime.Now - start);
+    }	
 }
 
 }
