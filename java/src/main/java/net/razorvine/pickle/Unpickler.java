@@ -33,6 +33,8 @@ import net.razorvine.pickle.objects.SetConstructor;
  */
 public class Unpickler {
 
+	private static final Object NO_RETURN_VALUE = new Object();
+
 	private final int HIGHEST_PROTOCOL = 4;
 
 	private Map<Integer, Object> memo;
@@ -89,15 +91,14 @@ public class Unpickler {
 	public Object load(InputStream stream) throws PickleException, IOException {
 		stack = new UnpickleStack();
 		input = stream;
-		try {
-			while (true) {
-				short key = PickleUtils.readbyte(input);
-				if (key == -1)
-					throw new IOException("premature end of file");
-				dispatch(key);
+		while (true) {
+			short key = PickleUtils.readbyte(input);
+			if (key == -1)
+				throw new IOException("premature end of file");
+			Object value = dispatch(key);
+			if (value != NO_RETURN_VALUE) {
+				return value;
 			}
-		} catch (StopException x) {
-			return x.value;
 		}
 	}
 
@@ -123,20 +124,10 @@ public class Unpickler {
 			}
 	}
 
-	private class StopException extends RuntimeException {
-		private static final long serialVersionUID = 6528222454688362873L;
-
-		public StopException(Object value) {
-			this.value = value;
-		}
-
-		public Object value;
-	}
-
 	/**
 	 * Process a single pickle stream opcode.
 	 */
-	protected void dispatch(short key) throws PickleException, IOException {
+	protected Object dispatch(short key) throws PickleException, IOException {
 		switch (key) {
 		case Opcodes.MARK:
 			load_mark();
@@ -144,7 +135,7 @@ public class Unpickler {
 		case Opcodes.STOP:
 			Object value = stack.pop();
 			stack.clear();
-			throw new StopException(value);
+			return value;
 		case Opcodes.POP:
 			load_pop();
 			break;
@@ -337,6 +328,8 @@ public class Unpickler {
 		default:
 			throw new InvalidOpcodeException("invalid pickle opcode: " + key);
 		}
+
+		return NO_RETURN_VALUE;
 	}
 
 	void load_build() {
