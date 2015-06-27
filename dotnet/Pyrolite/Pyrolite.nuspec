@@ -13,7 +13,7 @@
 Also includes Pickle/Unpickle.
 More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
-    <releaseNotes>correlation id, annotations, fixed build config</releaseNotes>
+    <releaseNotes>new wire protocol, handshake, annotations, unpickle performance inprovement</releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>pyro python rpc remote-objects</tags>
 	  <dependencies>
