@@ -29,7 +29,7 @@ public class ClassDictConstructor : IObjectConstructor {
 /// <summary>
 /// A dictionary containing just the fields of the class.
 /// </summary>
-class ClassDict : Dictionary<string, object>
+public class ClassDict : Dictionary<string, object>
 {
 	private string classname;
 	

@@ -8,6 +8,7 @@ using System.Text;
 
 using NUnit.Framework;
 using Razorvine.Pickle;
+using Razorvine.Pickle.Objects;
 using Razorvine.Pyro;
 
 namespace Pyrolite.Tests.Pickle
@@ -164,6 +165,17 @@ public class UnpickleComplexTests
 		}
 	}
 
+	[Test]
+	public void testUnpickleCustomClassAsClassDict() {
+		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 115, 115, 115, 115, 115, 97, 122, 122, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
+
+		ClassDict cd = (ClassDict) U(pickled);
+		Assert.AreEqual("__main__.Cussssssazz", cd["__class__"]);
+		Assert.AreEqual("Harry" , cd["name"]);
+		Assert.AreEqual(34 , cd["age"]);
+		Assert.AreEqual(new ArrayList() {1,2,3}, cd["values"]);
+	}
+	
 	[Test]
 	public void testUnpickleCustomClass() {
 		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108, 97, 122, 122, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};

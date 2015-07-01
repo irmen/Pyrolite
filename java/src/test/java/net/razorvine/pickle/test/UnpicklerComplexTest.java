@@ -15,6 +15,7 @@ import net.razorvine.pickle.IObjectConstructor;
 import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PythonException;
 import net.razorvine.pickle.Unpickler;
+import net.razorvine.pickle.objects.ClassDict;
 import net.razorvine.pyro.PyroProxy;
 import net.razorvine.pyro.PyroURI;
 import net.razorvine.pyro.serializer.PickleSerializer;
@@ -182,6 +183,27 @@ public class UnpicklerComplexTest {
 			}
 			else throw new PickleException("expected 0 or 3 constructor arguments");
 		}
+	}
+
+	@Test
+	public void testUnpickleCustomClassAsClassDict() throws IOException {
+		byte[] pickled = new byte[] {
+				(byte)128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 115, 115, 115, 115, 115,
+				97, 122, 122, 10, 113, 0, 41, (byte)129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3,
+				75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3,
+				101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
+		
+		PyroSerializer ser = new PickleSerializer();
+		ClassDict cd = (ClassDict) ser.deserializeData(pickled);
+		assertEquals("__main__.Cussssssazz", cd.get("__class__"));
+		assertEquals("Harry", cd.get("name"));
+		assertEquals(34, cd.get("age"));
+		ArrayList<Object> expected = new ArrayList<Object>() {{
+			add(1);
+			add(2);
+			add(3);
+		}};
+		assertEquals(expected, cd.get("values"));
 	}
 
 	@Test

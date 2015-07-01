@@ -2,7 +2,7 @@
  * Object constructors and other utility classes for the pickle package.
  * 
  * @author Irmen de Jong (irmen@razorvine.net)
- * @version 4.8
+ * @version 4.9
  * @see net.razorvine.pickle
  */
 package net.razorvine.pickle.objects;
