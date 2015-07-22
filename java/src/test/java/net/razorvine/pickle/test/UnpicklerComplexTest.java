@@ -70,8 +70,23 @@ public class UnpicklerComplexTest {
 	}
 
 	@Test
-	public void testUnpickleRealProxy() throws IOException {
-		InputStream is = this.getClass().getResourceAsStream("pickled_nameserver_proxy.dat");
+	public void testUnpickleRealProxy2() throws IOException {
+		unpickleRealProxy("pickled_nameserver_proxy_p2.dat");
+	}
+
+	@Test
+	public void testUnpickleRealProxy3() throws IOException {
+		unpickleRealProxy("pickled_nameserver_proxy_p3.dat");
+	}
+
+	@Test
+	public void testUnpickleRealProxy4() throws IOException {
+		unpickleRealProxy("pickled_nameserver_proxy_p4.dat");
+	}
+
+	private void unpickleRealProxy(String pickle_name) throws IOException
+	{
+		InputStream is = this.getClass().getResourceAsStream(pickle_name);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		int c;
 		while((c = is.read())>=0) bos.write(c);
@@ -82,6 +97,7 @@ public class UnpicklerComplexTest {
 		assertEquals("Pyro.NameServer",proxy.objectid);
 		assertEquals("localhost",proxy.hostname);
 		assertEquals(9090,proxy.port);
+		assertEquals("hello", proxy.pyroHandshake);
 		assertArrayEquals("secret".getBytes(), proxy.pyroHmacKey);
 		
 		Set<String> expectedSet = new HashSet<String>();

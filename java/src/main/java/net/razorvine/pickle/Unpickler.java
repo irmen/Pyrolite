@@ -67,6 +67,7 @@ public class Unpickler {
 		objectConstructors.put("decimal.Decimal", new AnyClassConstructor(BigDecimal.class));
 		objectConstructors.put("copy_reg._reconstructor", new Reconstructor());
 		objectConstructors.put("operator.attrgetter", new OperatorAttrGetterForCalendarTz());
+		objectConstructors.put("_codecs.encode", new ByteArrayConstructor());   // we're lucky, the bytearray constructor is also able to mimic codecs.encode()
 	}
 
 	/**

@@ -44,6 +44,7 @@ public class Unpickler : IDisposable {
 		objectConstructors["datetime.date"] = new DateTimeConstructor(DateTimeConstructor.PythonType.DATE);
 		objectConstructors["datetime.timedelta"] = new DateTimeConstructor(DateTimeConstructor.PythonType.TIMEDELTA);
 		objectConstructors["decimal.Decimal"] = new DecimalConstructor();
+		objectConstructors["_codecs.encode"] = new ByteArrayConstructor();		// we're lucky, the bytearray constructor is also able to mimic codecs.encode()
 	}
 
 	/**

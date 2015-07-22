@@ -25,7 +25,7 @@ public class PyroProxyPickler implements IObjectPickler {
 		out.write(Opcodes.EMPTY_TUPLE);
 		out.write(Opcodes.NEWOBJ);
 		
-		// args(7): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake
+		// args(8): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake, pyroMaxRetries
 		Object[] args = new Object[] {   
 			new PyroURI(proxy.objectid, proxy.hostname, proxy.port),
 			proxy.pyroOneway,
@@ -33,7 +33,8 @@ public class PyroProxyPickler implements IObjectPickler {
 			proxy.pyroAttrs,
 			0.0,
 			proxy.pyroHmacKey,
-			proxy.pyroHandshake
+			proxy.pyroHandshake,
+			0  // maxretries is not yet used/supported by pyrolite
 		};
 		currentPickler.save(args);
 		out.write(Opcodes.BUILD);

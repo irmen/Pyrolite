@@ -123,16 +123,22 @@ public class PyroProxy : DynamicObject, IDisposable {
 		object[] oneway_array = result["oneway"] as object[];
 		if(methods_array!=null)
 			this.pyroMethods = new HashSet<string>(methods_array.Select(o=>o as string));
+		else if((result["methods"] as HashSet<string>) != null)
+			this.pyroOneway = result["methods"] as HashSet<string>;
 		else
 			this.pyroMethods = new HashSet<string>((result["methods"] as HashSet<object>).Select(o=>o.ToString()));
 		
 		if(attrs_array!=null)
 			this.pyroAttrs = new HashSet<string>(attrs_array.Select(o=>o as string));
+		else if((result["attrs"] as HashSet<string>) != null)
+			this.pyroAttrs = result["attrs"] as HashSet<string>;
 		else
 			this.pyroAttrs = new HashSet<string>((result["attrs"] as HashSet<object>).Select(o=>o.ToString()));
 
 		if(oneway_array!=null)
 			this.pyroOneway = new HashSet<string>(oneway_array.Select(o=>o as string));
+		else if((result["oneway"] as HashSet<string>) != null)
+			this.pyroOneway = result["oneway"] as HashSet<string>;
 		else
 			this.pyroOneway =new HashSet<string> ((result["oneway"] as HashSet<object>).Select(o=>o.ToString()));
 		
@@ -392,9 +398,9 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <summary>
 	/// called by the Unpickler to restore state.
 	/// </summary>
-	/// <param name="args">args(7): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake</param>
+	/// <param name="args">args(8): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake, pyroMaxRetries</param>
 	public void __setstate__(object[] args) {
-		if(args.Length != 7) {
+		if(args.Length != 8) {
 			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
 		}
 		PyroURI uri=(PyroURI)args[0];
@@ -417,6 +423,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 
 		this.pyroHmacKey = (byte[])args[5];
 		this.pyroHandshake = args[6];
+		// maxretries is not yet supported/used in pyrolite
 	}	
 }
 

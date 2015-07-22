@@ -385,7 +385,15 @@ public class UnpicklerTest {
 	}
 	
 	@Test
-	public void testBytes() throws PickleException, IOException
+	public void testCodecBytes() throws IOException
+	{
+		// this is a protocol 2 pickle that contains the way python3 encodes bytes
+		byte[] data = (byte[]) U("\u0080\u0002c_codecs\nencode\nX\u0004\u0000\u0000\u0000testX\u0006\u0000\u0000\u0000latin1\u0086R.");
+		assertArrayEquals("test".getBytes(), data);
+	}
+	
+	@Test
+	public void testBytes() throws IOException
 	{
 		byte[] bytes=new byte[]{1,2,127,(byte)128,(byte)255};
 		assertArrayEquals(bytes, (byte[])U("\u0080\u0003C\u0005\u0001\u0002\u007f\u0080\u00ffq\u0000."));

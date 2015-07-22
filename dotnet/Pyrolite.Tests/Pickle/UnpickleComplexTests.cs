@@ -70,13 +70,30 @@ public class UnpickleComplexTests
 	}
 
 	[Test]
-	public void testUnpickleRealProxy() {
-		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy.dat");
+	public void testUnpickleRealProxy2() {
+		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p2.dat");
+		unpickleRealProxy(pickled_proxy);
+	}
+
+	[Test]
+	public void testUnpickleRealProxy3() {
+		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p3.dat");
+		unpickleRealProxy(pickled_proxy);
+	}
+
+	[Test]
+	public void testUnpickleRealProxy4() {
+		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p4.dat");
+		unpickleRealProxy(pickled_proxy);
+	}
+
+	private void unpickleRealProxy(byte[] pickled_proxy) {
 		PyroSerializer ser = new PickleSerializer();
 		PyroProxy proxy=(PyroProxy)ser.deserializeData(pickled_proxy);
 		Assert.AreEqual("Pyro.NameServer",proxy.objectid);
 		Assert.AreEqual("localhost",proxy.hostname);
 		Assert.AreEqual(9090,proxy.port);
+		Assert.AreEqual("hello", proxy.pyroHandshake);
 		CollectionAssert.AreEqual(Encoding.UTF8.GetBytes("secret"), proxy.pyroHmacKey);
 		ISet<string> expectedSet = new HashSet<string>();
 		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroAttrs);

@@ -391,11 +391,11 @@ public class PyroProxy implements Serializable {
 	
 	/**
 	 * called by the Unpickler to restore state
-	 * args(7): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake
+	 * args(8): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake, pyroMaxRetries
 	 */
 	@SuppressWarnings("unchecked")
 	public void __setstate__(Object[] args) throws IOException {
-		if(args.length != 7) {
+		if(args.length != 8) {
 			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
 		}
 		PyroURI uri=(PyroURI)args[0];
@@ -420,5 +420,6 @@ public class PyroProxy implements Serializable {
 			this.pyroAttrs = new HashSet<String>( (Collection<String>)args[3] );
 		this.pyroHmacKey = (byte[]) args[5];
 		this.pyroHandshake = args[6];
+		// pyromaxretries is not yet used/supported by pyrolite
 	}	
 }

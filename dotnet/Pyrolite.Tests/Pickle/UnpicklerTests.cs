@@ -323,6 +323,14 @@ public class UnpicklerTests {
 	}
 	
 	[Test]
+	public void testCodecBytes()
+	{
+		// this is a protocol 2 pickle that contains the way python3 encodes bytes
+		byte[] data = (byte[]) U("\u0080\u0002c_codecs\nencode\nX\u0004\u0000\u0000\u0000testX\u0006\u0000\u0000\u0000latin1\u0086R.");
+		CollectionAssert.AreEqual(Encoding.ASCII.GetBytes("test"), data);
+	}
+	
+	[Test]
 	public void testBytes() 
 	{
 		byte[] bytes=new byte[]{1,2,127,(byte)128,(byte)255};

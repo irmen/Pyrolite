@@ -21,8 +21,8 @@ public class PyroProxySerpent implements IClassSerializer {
 
 	public static Object FromSerpentDict(Map<Object, Object> dict) throws IOException {
 		// note: the state array received in the dict conforms to the list produced by Pyro4's Proxy.__getstate_for_dict__
-		// that means, we must produce an array of length 7:  (the same as with convert, below!)
-		// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake  (in this order)
+		// that means, we get an array of length 8:  (the same as with convert, below!)
+		// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake, maxretries  (in this order)
 		Object[] state = (Object[])dict.get("state");
 		PyroURI uri = new PyroURI((String)state[0]);
 		PyroProxy proxy = new PyroProxy(uri);
@@ -77,13 +77,15 @@ public class PyroProxySerpent implements IClassSerializer {
 		}
 		
 		proxy.pyroHandshake = state[6];
+		// maxretries is not used/supported in pyrolite, so simply ignore it
+
 		return proxy;
 	}
 
 	public Map<String, Object> convert(Object obj) {
 		// note: the state array returned here must conform to the list consumed by Pyro4's Proxy.__setstate_from_dict__ 
-		// that means, we get an array of length 7:
-		// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake  (in this order)
+		// that means, we make a list with 8 entries:
+		// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake, maxretries  (in this order)
 		PyroProxy proxy = (PyroProxy) obj;
 		Map<String, Object> dict = new HashMap<String, Object>();
 		String uri = String.format("PYRO:%s@%s:%d", proxy.objectid, proxy.hostname, proxy.port);
@@ -96,7 +98,8 @@ public class PyroProxySerpent implements IClassSerializer {
 			proxy.pyroAttrs,
 			0.0,
 			encodedHmac,
-			proxy.pyroHandshake
+			proxy.pyroHandshake,
+			0   // maxretries is not used/supported in pyrolite
 		});
 		dict.put("__class__", "Pyro4.core.Proxy");
 		return dict;
