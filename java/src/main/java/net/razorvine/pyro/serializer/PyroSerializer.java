@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+
 import net.razorvine.pyro.Config;
 import net.razorvine.pyro.PyroException;
 
@@ -54,6 +55,17 @@ public abstract class PyroSerializer
 			default:
 				throw new IllegalArgumentException("unrecognised serializer type: "+type);
 		}
+	}
+
+	public static PyroSerializer getFor(int serializer_id) {
+		if(serpentSerializer!=null) {
+			if(serializer_id == serpentSerializer.getSerializerId())
+				return serpentSerializer;
+		}
+		if(serializer_id==pickleSerializer.getSerializerId())
+			return pickleSerializer;
+		
+		throw new IllegalArgumentException("unsupported serializer id: "+serializer_id);
 	}
 
 	public static int compareLibraryVersions(String actual, String other) {

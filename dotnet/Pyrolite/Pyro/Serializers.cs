@@ -55,6 +55,18 @@ namespace Razorvine.Pyro
 					throw new ArgumentException("unrecognised serializer type: "+type);
 			}
 		}
+
+		public static PyroSerializer GetFor(int serializer_id)
+		{
+			if(serpentSerializer!=null) {
+				if(serializer_id == serpentSerializer.serializer_id)
+					return serpentSerializer;
+			}
+			if(serializer_id==pickleSerializer.serializer_id)
+				return pickleSerializer;
+			
+			throw new ArgumentException("unsupported serializer id: "+serializer_id);
+		}
 	}
 
 	

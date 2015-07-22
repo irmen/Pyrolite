@@ -352,7 +352,13 @@ public class PyroProxy : DynamicObject, IDisposable {
 			if((msg.flags & Message.FLAGS_COMPRESSED) != 0) {
 				_decompressMessageData(msg);
 			}
-			handshake_response = ser.deserializeData(msg.data);
+			try {
+				ser = PyroSerializer.GetFor(msg.serializer_id);
+				handshake_response = ser.deserializeData(msg.data);	
+			} catch (Exception) {
+				msg.type = Message.MSG_CONNECTFAIL;
+				handshake_response = "<not available because unsupported serialization format>";
+			}
 		}
 		if(msg.type==Message.MSG_CONNECTOK) {
 			if((msg.flags & Message.FLAGS_META_ON_CONNECT) != 0) {
