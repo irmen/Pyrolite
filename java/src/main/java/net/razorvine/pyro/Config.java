@@ -7,7 +7,6 @@ import java.io.Serializable;
  * Minimalistic holders for Pyro config items.
  *
  * @author Irmen de Jong (irmen@razorvine.net)
- * @version 4.7
  */
 public final class Config implements Serializable {
 	private static final long serialVersionUID = 197645607890570066L;
