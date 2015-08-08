@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Razorvine.Pyrolite</id>
-    <version>4.9.0.0</version>
+    <version>4.10.0.0</version>
     <title>Razorvine.Pyrolite</title>
     <authors>Irmen de Jong</authors>
     <owners>Irmen de Jong</owners>
@@ -13,11 +13,11 @@
 Also includes Pickle/Unpickle.
 More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
-    <releaseNotes>fixed proxy (un)pickling, added support for new exception class, fixed handshake response serializer</releaseNotes>
+    <releaseNotes>@todo</releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>pyro python rpc remote-objects</tags>
 	  <dependencies>
-	  	<dependency id="Razorvine.Serpent" version="1.11" />
+	  	<dependency id="Razorvine.Serpent" version="1.12" />
   	</dependencies>
   </metadata>
   <files>
