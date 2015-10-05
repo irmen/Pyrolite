@@ -33,6 +33,17 @@ public class NameServerProxy : PyroProxy {
 		return (PyroURI) this.call("lookup", name);
 	}
 	
+	public Tuple<PyroURI, ISet<string>> lookup(string name, bool return_metadata) {
+		object[] result = (object[])this.call("lookup", name, return_metadata);
+		PyroURI uri = (PyroURI) result[0];
+		var metaobjects = (ISet<object>) result[1];
+		var metastrings = new HashSet<string>();
+		foreach(object ms in metaobjects) {
+			metastrings.Add((string)ms);
+		}
+		return new Tuple<PyroURI, ISet<string>>(uri, metastrings);
+	}
+
 	public int remove(string name, string prefix, string regex) {
 		return (int) this.call("remove", name, prefix, regex);
 	}
@@ -41,6 +52,14 @@ public class NameServerProxy : PyroProxy {
 		this.call("register", name, uri, safe);
 	}
 	
+	public void register(string name, PyroURI uri, bool safe, IEnumerable<string> metadata) {
+		this.call("register", name, uri, safe, metadata);
+	}
+
+	public void set_metadata(string name, ISet<string> metadata) {
+		this.call("set_metadata", name, metadata);
+	}
+
 	public IDictionary<string,string> list(string prefix, string regex) {
 		IDictionary hash = (IDictionary) this.call("list", prefix, regex);
 		IDictionary<string,string> typed=new Dictionary<string,string>(hash.Count);
@@ -50,6 +69,47 @@ public class NameServerProxy : PyroProxy {
 		return typed;
 	}
 	
+	public IDictionary<string,string> list(string prefix, string regex, IEnumerable<string> metadata_all, IEnumerable<string> metadata_any) {
+		IDictionary hash = (IDictionary) this.call("list", prefix, regex, metadata_all, metadata_any);
+		IDictionary<string,string> typed=new Dictionary<string,string>(hash.Count);
+		foreach(object name in hash.Keys) {
+			typed[(string)name]=(string)hash[name];
+		}
+		return typed;
+	}
+
+	public IDictionary<string, Tuple<string, ISet<string>>> list_with_meta(string prefix, string regex) {
+		IDictionary hash = (IDictionary) this.call("list", prefix, regex, null, null, true);
+		IDictionary<string, Tuple<string, ISet<string>>> typed=new Dictionary<string, Tuple<string, ISet<string>>>(hash.Count);
+		foreach(object name in hash.Keys) {
+			object[] o = (object[]) hash[name];
+			string uri = (string) o[0];
+			var metaobjects = (ISet<object>)o[1];
+			var metastrings = new HashSet<string>();
+			foreach(object ms in metaobjects) {
+				metastrings.Add((string)ms);
+			}
+			typed[(string)name] =  new Tuple<string, ISet<string>>(uri, metastrings);
+		}
+		return typed;
+	}
+
+	public IDictionary<string, Tuple<string, ISet<string>>> list_with_meta(string prefix, string regex, IEnumerable<string> metadata_all, IEnumerable<string> metadata_any) {
+		IDictionary hash = (IDictionary) this.call("list", prefix, regex, metadata_all, metadata_any, true);
+		IDictionary<string, Tuple<string, ISet<string>>> typed=new Dictionary<string, Tuple<string, ISet<string>>>(hash.Count);
+		foreach(object name in hash.Keys) {
+			object[] o = (object[]) hash[name];
+			string uri = (string) o[0];
+			var metaobjects = (ISet<object>)o[1];
+			var metastrings = new HashSet<string>();
+			foreach(object ms in metaobjects) {
+				metastrings.Add((string)ms);
+			}
+			typed[(string)name] =  new Tuple<string, ISet<string>>(uri, metastrings);
+		}
+		return typed;
+	}
+
 	public static NameServerProxy locateNS(string host, int port=0, byte[] hmacKey=null) {
 		if(host!=null) {
 			if(port==0)
