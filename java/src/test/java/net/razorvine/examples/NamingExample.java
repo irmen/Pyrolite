@@ -2,6 +2,8 @@ package net.razorvine.examples;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
+
 import net.razorvine.pyro.*;
 
 
@@ -24,14 +26,50 @@ public class NamingExample {
 		NameServerProxy ns=NameServerProxy.locateNS(null, hmacKey);
 		System.out.println("discovered ns at "+ns.hostname+":"+ns.port);
 		ns.ping();
+		
+		System.out.println("lookup of name server object:");
+		PyroURI uri = ns.lookup("Pyro.NameServer");
+		System.out.println("   "+uri);
+		System.out.println("lookup of name server object, with metadata:");
+		Object[] lookupresult = ns.lookup("Pyro.NameServer", true);
+		@SuppressWarnings("unchecked")
+		Set<String> metadata = (Set<String>) lookupresult[1];
+		System.out.println("   "+lookupresult[0]);
+		System.out.println("   "+metadata);
+		metadata.add("updated-by-java-pyrolite");
+		ns.set_metadata("Pyro.NameServer", metadata);
 
-		System.out.println("objects registered in the name server:");
+		System.out.println("\nobjects registered in the name server:");
 		Map<String, String> objects = ns.list(null, null);
 		for (String name : objects.keySet()) {
 			System.out.println(name + " --> " + objects.get(name));
 		}
 		
+		System.out.println("\nobjects registered in the name server, with metadata:");
+		Map<String, Object[]> objects_meta = ns.list_with_meta(null, null);
+		for (String name : objects_meta.keySet()) {
+			Object[] entry = objects_meta.get(name);
+			String uri_m = (String) entry[0];
+			@SuppressWarnings("unchecked")
+			Set<String> metadata_m = (Set<String>) entry[1];
+			System.out.println(name + " --> " + uri_m);
+			System.out.println("      metadata: " + metadata_m);
+		}
+
+		System.out.println("\nobjects registered having all metadata:");
+		objects = ns.list(null, null, new String[] {"blahblah", "class:Pyro4.naming.NameServer"}, null);
+		for (String name : objects.keySet()) {
+			System.out.println(name + " --> " + objects.get(name));
+		}
+		System.out.println("\nobjects registered having any metadata:");
+		objects = ns.list(null, null, null, new String[] {"blahblah", "class:Pyro4.naming.NameServer"});
+		for (String name : objects.keySet()) {
+			System.out.println(name + " --> " + objects.get(name));
+		}
+
+		System.out.println("");
 		ns.register("java.test", new PyroURI("PYRO:JavaTest@localhost:9999"), false);
+		ns.register("java.testmeta", new PyroURI("PYRO:JavaTest@localhost:9999"), false, new String[]{"example", "from-java-pyrolite"});
 		System.out.println("uri=" + ns.lookup("java.test"));
 		System.out.println("using a new proxy to call the nameserver.");
 		PyroProxy p=new PyroProxy(ns.lookup("Pyro.NameServer"));

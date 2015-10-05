@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.Set;
 
 import net.razorvine.pickle.PickleException;
 
@@ -19,7 +20,7 @@ import net.razorvine.pickle.PickleException;
  */
 public class NameServerProxy extends PyroProxy implements Serializable {
 
-	private static final long serialVersionUID = -3774989423700492289L;
+	private static final long serialVersionUID = -3774989423700493399L;
 
 	public NameServerProxy(PyroURI uri) throws UnknownHostException, IOException {
 		this(uri.host, uri.port, uri.objectid);
@@ -41,6 +42,10 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		return (PyroURI) this.call("lookup", name);
 	}
 	
+	public Object[] lookup(String name, boolean return_metadata) throws PickleException, IOException {
+		return (Object[]) this.call("lookup", name, return_metadata);
+	}
+
 	public int remove(String name, String prefix, String regex) throws PickleException, IOException {
 		return (Integer) this.call("remove", name, prefix, regex);
 	}
@@ -49,11 +54,34 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		this.call("register", name, uri, safe);
 	}
 	
+	public void register(String name, PyroURI uri, boolean safe, String[] metadata) throws PickleException, IOException {
+		this.call("register", name, uri, safe, metadata);
+	}
+
 	@SuppressWarnings("unchecked")
 	public Map<String,String> list(String prefix, String regex) throws PickleException, IOException {
 		return (Map<String,String>) this.call("list", prefix, regex);
 	}
 	
+	@SuppressWarnings("unchecked")
+	public Map<String,String> list(String prefix, String regex, String[] metadata_all, String[] metadata_any) throws PickleException, IOException {
+		return (Map<String,String>) this.call("list", prefix, regex, metadata_all, metadata_any);
+	}
+
+	@SuppressWarnings("unchecked")
+	public Map<String, Object[]> list_with_meta(String prefix, String regex) throws PickleException, IOException {
+		return (Map<String, Object[]>) this.call("list", prefix, regex, null, null, true);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Map<String, Object[]> list_with_meta(String prefix, String regex, String[] metadata_all, String[] metadata_any) throws PickleException, IOException {
+		return (Map<String, Object[]>) this.call("list", prefix, regex, metadata_all, metadata_any, true);
+	}
+
+	public void set_metadata(String name, Set<String> metadata) throws PickleException, IOException {
+		this.call("set_metadata", name, metadata);
+	}
+
 	public static NameServerProxy locateNS(String host) throws IOException {
 		return locateNS(host,0,null);
 	}
