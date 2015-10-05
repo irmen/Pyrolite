@@ -66,6 +66,16 @@ public class NamingExample {
 		for (String name : objects.keySet()) {
 			System.out.println(name + " --> " + objects.get(name));
 		}
+		System.out.println("\nobjects registered having any metadata (showing it too):");
+		Map<String, Object[]> objectsm = ns.list_with_meta(null, null, null, new String[] {"blahblah", "class:Pyro4.naming.NameServer"});
+		for (String name : objectsm.keySet()) {
+			Object[] entry = objectsm.get(name);
+			String uri_m = (String) entry[0];
+			@SuppressWarnings("unchecked")
+			Set<String> metadata_m = (Set<String>) entry[1];
+			System.out.println(name + " --> " + uri_m);
+			System.out.println("      metadata: " + metadata_m);
+		}
 
 		System.out.println("");
 		ns.register("java.test", new PyroURI("PYRO:JavaTest@localhost:9999"), false);
