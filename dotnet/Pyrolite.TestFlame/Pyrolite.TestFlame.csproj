@@ -7,9 +7,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Pyrolite.TestFlame</RootNamespace>
     <AssemblyName>Pyrolite.TestFlame</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
