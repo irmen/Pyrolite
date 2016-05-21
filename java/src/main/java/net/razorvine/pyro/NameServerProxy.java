@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import net.razorvine.pickle.PickleException;
@@ -43,7 +44,11 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 	}
 	
 	public Object[] lookup(String name, boolean return_metadata) throws PickleException, IOException {
-		return (Object[]) this.call("lookup", name, return_metadata);
+		Object[] result = (Object[]) this.call("lookup", name, return_metadata);
+		if(return_metadata) {
+			result[1] = getSetOfStrings(result[1]);  // convert the metadata string lists to sets
+		}
+		return result;
 	}
 
 	public int remove(String name, String prefix, String regex) throws PickleException, IOException {
@@ -70,12 +75,24 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	public Map<String, Object[]> list_with_meta(String prefix, String regex) throws PickleException, IOException {
-		return (Map<String, Object[]>) this.call("list", prefix, regex, null, null, true);
+		Map<String, Object[]> result = (Map<String, Object[]>) this.call("list", prefix, regex, null, null, true);
+		// meta to sets
+		for(Entry<String, Object[]> entry: result.entrySet()) {
+			Object[] registration = entry.getValue();
+			registration[1] = getSetOfStrings(registration[1]);
+		}
+		return result;
 	}
 	
 	@SuppressWarnings("unchecked")
 	public Map<String, Object[]> list_with_meta(String prefix, String regex, String[] metadata_all, String[] metadata_any) throws PickleException, IOException {
-		return (Map<String, Object[]>) this.call("list", prefix, regex, metadata_all, metadata_any, true);
+		Map<String, Object[]> result = (Map<String, Object[]>) this.call("list", prefix, regex, metadata_all, metadata_any, true);
+		// meta to sets
+		for(Entry<String, Object[]> entry: result.entrySet()) {
+			Object[] registration = entry.getValue();
+			registration[1] = getSetOfStrings(registration[1]);
+		}
+		return result;
 	}
 
 	public void set_metadata(String name, Set<String> metadata) throws PickleException, IOException {
@@ -133,3 +150,4 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		return nsp;
 	}
 }
+

@@ -18,12 +18,12 @@ public class TimezoneExample {
 
 	public static void main(String[] args) throws IOException {
 
-		System.out.println("Testing Pyro timezone example server (make sure it's running, with nameserver enabled)...");
+		System.out.println("Testing Pyro timezone example server (make sure it's running, with nameserver enabled, and pickle as serializer)...");
 		System.out.println("Pyrolite version: "+Config.PYROLITE_VERSION);
 
 		setConfig();
 
-		NameServerProxy ns = NameServerProxy.locateNS("127.0.0.1");
+		NameServerProxy ns = NameServerProxy.locateNS(null);
 		PyroProxy p = new PyroProxy(ns.lookup("example.timezones"));
 		ns.close();
 
@@ -64,6 +64,6 @@ public class TimezoneExample {
 	
 	static void setConfig() {
 		Config.SERIALIZER = Config.SerializerType.pickle;
-		Config.MSG_TRACE_DIR="L:/pyrolite_traces";
+		// Config.MSG_TRACE_DIR="L:/pyrolite_traces";
 	}	
 }

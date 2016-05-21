@@ -126,9 +126,7 @@ public class PyroProxy implements Serializable {
 				this.pyroMethods.add((String) methods_array[i]);
 			}
 		} else if(methods!=null) {
-			@SuppressWarnings("unchecked")
-			HashSet<String> methods_set = (HashSet<String>) methods;
-			this.pyroMethods = methods_set;
+			this.pyroMethods = getSetOfStrings(methods);
 		}
 		if(attrs instanceof Object[]) {
 			Object[] attrs_array = (Object[]) attrs;
@@ -137,9 +135,7 @@ public class PyroProxy implements Serializable {
 				this.pyroAttrs.add((String) attrs_array[i]);
 			}
 		} else if(attrs!=null) {
-			@SuppressWarnings("unchecked")
-			HashSet<String> attrs_set = (HashSet<String>) attrs;
-			this.pyroAttrs = attrs_set;
+			this.pyroAttrs = getSetOfStrings(attrs);
 		}
 		if(oneways instanceof Object[]) {
 			Object[] oneways_array = (Object[]) oneways;
@@ -148,13 +144,26 @@ public class PyroProxy implements Serializable {
 				this.pyroOneway.add((String) oneways_array[i]);
 			}
 		} else if(oneways!=null) {
-			@SuppressWarnings("unchecked")
-			HashSet<String> oneways_set = (HashSet<String>) oneways;
-			this.pyroOneway = oneways_set;
+			this.pyroOneway = getSetOfStrings(oneways);
 		}
 		
 		if(pyroMethods.isEmpty() && pyroAttrs.isEmpty()) {
 			throw new PyroException("remote object doesn't expose any methods or attributes");
+		}
+	}
+	
+	/**
+	 * Converts the given object into a set of strings.
+	 * The object must either be a HashSet already, or a different collection type.
+	 */
+	@SuppressWarnings("unchecked")
+	protected HashSet<String> getSetOfStrings(Object strings)
+	{
+		try {
+			return (HashSet<String>) strings;
+		} catch (ClassCastException ex) {
+			Collection<String> list = (Collection<String>) strings;
+			return new HashSet<String>(list);
 		}
 	}
 

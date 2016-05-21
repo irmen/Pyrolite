@@ -21,7 +21,7 @@ public class AutoproxyExample {
 
 		setConfig();
 		
-		PyroProxy p=new PyroProxy("localhost",56814,"example.autoproxy");
+		PyroProxy p=new PyroProxy("localhost",51353,"example.autoproxy");	// change port number to whatever the server prints
 
 		Object result=p.call("createSomething", 42);
 		System.out.println("return value:");

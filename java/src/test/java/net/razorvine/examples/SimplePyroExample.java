@@ -44,7 +44,7 @@ public class SimplePyroExample {
         
         // error
         try {
-        	remoteobject.call("error", (Object)null);
+        	remoteobject.call("error");
         } catch (PyroException e) {
         	System.out.println("Pyro Exception (expected)! "+e.getMessage());
         	System.out.println("Pyro Exception cause: "+e.getCause());
