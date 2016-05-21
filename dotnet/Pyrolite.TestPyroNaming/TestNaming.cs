@@ -22,6 +22,7 @@ public class TestNaming {
 		} catch (Exception x) {
 			Console.WriteLine("unhandled exception: {0}",x);
 		}
+		Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
 	}
 	
 	public static void Test() {
@@ -105,8 +106,6 @@ public class TestNaming {
 				// ok
 				Console.WriteLine("got a PyroException (expected): {0}", x.Message);
 			}
-			
-			Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
 		}
 
 	}

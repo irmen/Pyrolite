@@ -36,11 +36,7 @@ public class NameServerProxy : PyroProxy {
 	public Tuple<PyroURI, ISet<string>> lookup(string name, bool return_metadata) {
 		object[] result = (object[])this.call("lookup", name, return_metadata);
 		PyroURI uri = (PyroURI) result[0];
-		var metaobjects = (ISet<object>) result[1];
-		var metastrings = new HashSet<string>();
-		foreach(object ms in metaobjects) {
-			metastrings.Add((string)ms);
-		}
+		var metastrings = GetStringSet(result[1]);
 		return new Tuple<PyroURI, ISet<string>>(uri, metastrings);
 	}
 
@@ -84,11 +80,7 @@ public class NameServerProxy : PyroProxy {
 		foreach(object name in hash.Keys) {
 			object[] o = (object[]) hash[name];
 			string uri = (string) o[0];
-			var metaobjects = (ISet<object>)o[1];
-			var metastrings = new HashSet<string>();
-			foreach(object ms in metaobjects) {
-				metastrings.Add((string)ms);
-			}
+			var metastrings = GetStringSet(o[1]);
 			typed[(string)name] =  new Tuple<string, ISet<string>>(uri, metastrings);
 		}
 		return typed;
@@ -100,11 +92,7 @@ public class NameServerProxy : PyroProxy {
 		foreach(object name in hash.Keys) {
 			object[] o = (object[]) hash[name];
 			string uri = (string) o[0];
-			var metaobjects = (ISet<object>)o[1];
-			var metastrings = new HashSet<string>();
-			foreach(object ms in metaobjects) {
-				metastrings.Add((string)ms);
-			}
+			var metastrings = GetStringSet(o[1]);
 			typed[(string)name] =  new Tuple<string, ISet<string>>(uri, metastrings);
 		}
 		return typed;

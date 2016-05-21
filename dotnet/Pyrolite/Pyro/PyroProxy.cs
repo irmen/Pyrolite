@@ -117,34 +117,30 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// </summary>
 	private void _processMetadata(Hashtable result)
 	{
-		// the collections in the result can be either an object[] or a HashSet<object>, depending on the serializer that is used
+		// the collections in the result can be either an object[] or a HashSet<object> or List<object>, 
+		// depending on the serializer and Pyro version that is used
 		object[] methods_array = result["methods"] as object[];
 		object[] attrs_array = result["attrs"] as object[];
 		object[] oneway_array = result["oneway"] as object[];
-		if(methods_array!=null)
-			this.pyroMethods = new HashSet<string>(methods_array.Select(o=>o as string));
-		else if((result["methods"] as HashSet<string>) != null)
-			this.pyroOneway = result["methods"] as HashSet<string>;
-		else
-			this.pyroMethods = new HashSet<string>((result["methods"] as HashSet<object>).Select(o=>o.ToString()));
 		
-		if(attrs_array!=null)
-			this.pyroAttrs = new HashSet<string>(attrs_array.Select(o=>o as string));
-		else if((result["attrs"] as HashSet<string>) != null)
-			this.pyroAttrs = result["attrs"] as HashSet<string>;
-		else
-			this.pyroAttrs = new HashSet<string>((result["attrs"] as HashSet<object>).Select(o=>o.ToString()));
-
-		if(oneway_array!=null)
-			this.pyroOneway = new HashSet<string>(oneway_array.Select(o=>o as string));
-		else if((result["oneway"] as HashSet<string>) != null)
-			this.pyroOneway = result["oneway"] as HashSet<string>;
-		else
-			this.pyroOneway =new HashSet<string> ((result["oneway"] as HashSet<object>).Select(o=>o.ToString()));
+		this.pyroMethods = methods_array != null ? new HashSet<string>(methods_array.Select(o => o as string)) : GetStringSet(result["methods"]);
+		this.pyroAttrs = attrs_array != null ? new HashSet<string>(attrs_array.Select(o => o as string)) : GetStringSet(result["attrs"]);
+		this.pyroOneway = oneway_array != null ? new HashSet<string>(oneway_array.Select(o => o as string)) : GetStringSet(result["attrs"]);
 		
 		if(!pyroMethods.Any() && !pyroAttrs.Any()) {
 			throw new PyroException("remote object doesn't expose any methods or attributes");
 		}
+	}
+	
+	protected HashSet<string> GetStringSet(object strings)
+	{
+		var result1 = strings as HashSet<string>;
+		if(result1!=null)
+			return result1;
+		
+		// another collection, convert to set of strings.
+		var result = (IEnumerable<object>)strings;
+		return new HashSet<string>(result.Select(o=>o.ToString()));
 	}
 
 	/// <summary>
