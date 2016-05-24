@@ -16,6 +16,7 @@ import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PythonException;
 import net.razorvine.pickle.Unpickler;
 import net.razorvine.pickle.objects.ClassDict;
+import net.razorvine.pickle.objects.ClassDictConstructor;
 import net.razorvine.pyro.PyroProxy;
 import net.razorvine.pyro.PyroURI;
 import net.razorvine.pyro.serializer.PickleSerializer;
@@ -220,6 +221,18 @@ public class UnpicklerComplexTest {
 			add(3);
 		}};
 		assertEquals(expected, cd.get("values"));
+	}
+	
+	@Test
+	public void testClassDictConstructorSetsClass() {
+		ClassDict cd = new ClassDict("module", "myclass");
+		assertEquals("module.myclass", cd.get("__class__"));
+		
+		ClassDictConstructor cdc = new ClassDictConstructor("module", "myclass");
+		cd = (ClassDict) cdc.construct(new Object[]{});
+		assertEquals("module.myclass", cd.get("__class__"));
+		
+		assertEquals("module.myclass", cd.getClassName());
 	}
 
 	@Test

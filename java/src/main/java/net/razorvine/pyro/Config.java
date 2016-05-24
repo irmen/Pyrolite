@@ -16,7 +16,7 @@ public final class Config implements Serializable {
 	public static int NS_BCPORT = 9091;
 
 	public final static int PROTOCOL_VERSION = 48;	// Pyro 4.38 and later 
-	public final static String PYROLITE_VERSION = "4.11";
+	public final static String PYROLITE_VERSION = "4.12";
 	
 	public enum SerializerType {
 		pickle,

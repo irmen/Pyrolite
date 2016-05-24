@@ -39,6 +39,8 @@ public class ClassDict : Dictionary<string, object>
 			this.classname = classname;
 		else
 			this.classname = modulename+"."+classname;
+		
+		this.Add("__class__", this.classname);
 	}
 	
 	/// <summary>
@@ -51,6 +53,14 @@ public class ClassDict : Dictionary<string, object>
 			this.Add(x, values[x]);
 	}
 	
+	/// <summary>
+	/// retrieve the (python) class name of the object that was pickled.
+	/// </summary>
+	public string ClassName {
+		get {
+			return this.classname;
+		}
+	}
 }
 
 }

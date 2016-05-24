@@ -3,9 +3,9 @@ package net.razorvine.pickle.objects;
 import java.util.HashMap;
 import java.util.Map;
 
-/// <summary>
-/// A dictionary containing just the fields of the class.
-/// </summary>
+/**
+ * A dictionary containing just the fields of the class.
+ */
 public class ClassDict extends HashMap<String, Object>
 {
 	private static final long serialVersionUID = 576056580143549390L;
@@ -17,11 +17,13 @@ public class ClassDict extends HashMap<String, Object>
 			this.classname = classname;
 		else
 			this.classname = modulename+"."+classname;
+
+		this.put("__class__", this.classname);
 	}
 	
-	/// <summary>
-	/// for the unpickler to restore state
-	/// </summary>
+	/**
+	 * for the unpickler to restore state
+	 */
 	public void __setstate__(HashMap<String, Object> values) {
 		this.clear();
 		this.put("__class__", this.classname);
@@ -29,5 +31,13 @@ public class ClassDict extends HashMap<String, Object>
 		{
 			this.put(e.getKey(), e.getValue());
 		}
+	}
+
+	
+	/**
+	 * retrieve the (python) class name of the object that was pickled.
+	 */
+	public String getClassName() {
+		return this.classname;
 	}
 }
