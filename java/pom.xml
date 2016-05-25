@@ -93,5 +93,5 @@
 	<description>This library allows your Java program to interface very easily with the Python world. It uses the Pyro protocol to call methods on remote objects. (See https://github.com/irmen/Pyro4). To that end, it also contains and uses a feature complete pickle protocol implementation -read and write- to exchange data with Pyro/Python.
 
 Pyrolite only implements part of the client side Pyro library, hence its name 'lite'...  But because Pyrolite has no dependencies, it is a much lighter way to use Pyro from Java/.NET than a solution with jython+pyro or IronPython+Pyro would provide. So if you don't need Pyro's full feature set, and don't require your Java/.NET code to host Pyro objects itself, Pyrolite may be a good choice to connect java or .NET and python.
-Version 4.11 adds compatibility with the Pyro 4.44+ metadata datatype change (from HashSet to List).</description>
+Version 4.12 fixes unpickling of bytearrays from a Python3 pickle. Also a slight tweak to the ClassDict constructor to set __class__.</description>
 </project>

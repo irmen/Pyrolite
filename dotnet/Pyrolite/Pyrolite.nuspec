@@ -13,7 +13,7 @@
 Also includes Pickle/Unpickle.
 More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
-    <releaseNotes>ClassDict constructor tweak</releaseNotes>
+    <releaseNotes>ClassDict constructor tweak to set __class__. Fixed unpickling of bytarray pickle from Python3.</releaseNotes>
     <copyright>Copyright 2015, 2016</copyright>
     <tags>pyro python rpc remote-objects</tags>
 	  <dependencies>

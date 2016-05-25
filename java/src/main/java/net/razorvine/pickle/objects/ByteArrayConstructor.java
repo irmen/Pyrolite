@@ -15,11 +15,14 @@ public class ByteArrayConstructor implements IObjectConstructor {
 
 	public Object construct(Object[] args) throws PickleException {
 		// args for bytearray constructor: [ String string, String encoding ]
-		// args for bytearray constructor (from python3 bytes): [ ArrayList<Number> ]
+		// args for bytearray constructor (from python3 bytes): [ ArrayList<Number> ] or just [byte[]] (when it uses BINBYTES opcode)
 		if (args.length != 1 && args.length != 2)
 			throw new PickleException("invalid pickle data for bytearray; expected 1 or 2 args, got "+args.length);
 
 		if(args.length==1) {
+			if(args[0] instanceof byte[]) {
+				return args[0];
+			}
 			@SuppressWarnings("unchecked")
 			ArrayList<Number>values=(ArrayList<Number>)args[0];
 			byte[] data=new byte[values.size()];

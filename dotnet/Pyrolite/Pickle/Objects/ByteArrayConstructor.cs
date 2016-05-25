@@ -14,11 +14,14 @@ public class ByteArrayConstructor : IObjectConstructor {
 
 	public object construct(object[] args) {
 		// args for bytearray constructor: [ String string, String encoding ]
-		// args for bytearray constructor (from python3 bytes): [ ArrayList ]
+		// args for bytearray constructor (from python3 bytes): [ ArrayList ] or just [byte[]] (when it uses BINBYTES opcode)
 		if (args.Length != 1 && args.Length != 2)
 			throw new PickleException("invalid pickle data for bytearray; expected 1 or 2 args, got "+args.Length);
 
 		if(args.Length==1) {
+			if(args[0] is byte[]) {
+				return args[0];
+			}
 			ArrayList values=(ArrayList) args[0];
 			byte[] data=new byte[values.Count];
 			for(int i=0; i<data.Length; ++i) {
