@@ -34,7 +34,7 @@ public class Pickler {
 
 	public static int HIGHEST_PROTOCOL = 2;
 
-	private static class Memo {
+	protected static class Memo {
 		public Object obj;
 		public int index;
 
@@ -44,13 +44,13 @@ public class Pickler {
 		}
 	}
 
-	private static int MAX_RECURSE_DEPTH = 1000;
-	private int recurse = 0;  // recursion level
-	private OutputStream out;
-	private int PROTOCOL = 2;
-	private static Map<Class<?>, IObjectPickler> customPicklers=new HashMap<Class<?>, IObjectPickler>();
-	private boolean useMemo=true;
-	private HashMap<Integer, Memo> memo;  // maps object's identity hash to (object, memo index)
+	protected static int MAX_RECURSE_DEPTH = 1000;
+	protected int recurse = 0;  // recursion level
+	protected OutputStream out;
+	protected int PROTOCOL = 2;
+	protected static Map<Class<?>, IObjectPickler> customPicklers=new HashMap<Class<?>, IObjectPickler>();
+	protected boolean useMemo=true;
+	protected HashMap<Integer, Memo> memo;  // maps object's identity hash to (object, memo index)
 	
 	/**
 	 * Create a Pickler.
