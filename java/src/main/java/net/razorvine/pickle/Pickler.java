@@ -146,7 +146,8 @@ public class Pickler {
 	 * Write the object to the memo table and output a memo write opcode
 	 * Only works for hashable objects
 	 */
-	private void writeMemo(Object obj) throws IOException {
+    protected void writeMemo( Object obj ) throws IOException
+    {
 		if(!this.useMemo)
 			return;
 		int idHash = System.identityHashCode(obj);
