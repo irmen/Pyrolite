@@ -21,13 +21,13 @@ public class Pickler : IDisposable {
 
 	public static int HIGHEST_PROTOCOL = 2;
 
-	private const int MAX_RECURSE_DEPTH = 200;
-	private Stream outs;
-	private int recurse = 0;	// recursion level
-	private int PROTOCOL = 2;
-	private static IDictionary<Type, IObjectPickler> customPicklers = new Dictionary<Type, IObjectPickler>();
-	private bool useMemo=true;
-	private IDictionary<object, int> memo;		// maps objects to memo index
+	protected const int MAX_RECURSE_DEPTH = 200;
+	protected Stream outs;
+	protected int recurse = 0;	// recursion level
+	protected int PROTOCOL = 2;
+	protected static IDictionary<Type, IObjectPickler> customPicklers = new Dictionary<Type, IObjectPickler>();
+	protected bool useMemo=true;
+	protected IDictionary<object, int> memo;		// maps objects to memo index
 	
 	/**
 	 * Create a Pickler.
@@ -124,7 +124,7 @@ public class Pickler : IDisposable {
 	 * Write the object to the memo table and output a memo write opcode
 	 * Only works for hashable objects
 	 */
-	private void WriteMemo(object obj) {
+	protected void WriteMemo(object obj) {
 		if(!this.useMemo)
 			return;
 		if(!memo.ContainsKey(obj))
