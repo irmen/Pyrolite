@@ -858,6 +858,7 @@ public class PicklerTest {
 		public int x=42;
 	}
 	class CustomClassPickler implements IObjectPickler {
+		@Override
 		public void pickle(Object o, OutputStream out, Pickler currentpickler) throws PickleException, IOException {
 			CustomClass c=(CustomClass)o;
 			currentpickler.save("customclassint="+c.x);
@@ -873,6 +874,65 @@ public class PicklerTest {
 		p.dumps(c);
 	}
 	
+	
+	interface IBaseInterface {};
+	interface ISubInterface extends IBaseInterface {};
+	class BaseClassWithInterface implements IBaseInterface {};
+	class SubClassWithInterface extends BaseClassWithInterface implements ISubInterface {};
+	class BaseClass {};
+	class SubClass extends BaseClass {};
+	abstract class AbstractBaseClass {};
+	class ConcreteSubClass extends AbstractBaseClass {};
+
+	class AnyClassPickler implements IObjectPickler {
+		@Override
+		public void pickle(Object o, OutputStream out, Pickler currentPickler) throws PickleException, IOException {
+			currentPickler.save("[class="+o.getClass().getName()+"]");
+		}
+	}
+
+	@Test
+	public void testAbstractBaseClassHierarchyPickler() throws PickleException, IOException
+	{
+		ConcreteSubClass c = new ConcreteSubClass();
+		Pickler p = new Pickler(false);
+		try {
+			p.dumps(c);
+			fail("should crash");
+		} catch (PickleException x) {
+			assertTrue(x.getMessage().contains("couldn't pickle object of type"));
+		}
+		
+		Pickler.registerCustomPickler(AbstractBaseClass.class, new AnyClassPickler());
+		byte[] data = p.dumps(c);
+		assertTrue(new String(data).contains("[class=net.razorvine.pickle.test.PicklerTest$ConcreteSubClass]"));
+	}
+	
+	@Test
+	public void testInterfaceHierarchyPickler() throws PickleException, IOException
+	{
+		BaseClassWithInterface b = new BaseClassWithInterface();
+		SubClassWithInterface sub = new SubClassWithInterface();
+		Pickler p = new Pickler(false);
+		try {
+			p.dumps(b);
+			fail("should crash");
+		} catch (PickleException x) {
+			assertTrue(x.getMessage().contains("couldn't pickle object of type"));
+		}
+		try {
+			p.dumps(sub);
+			fail("should crash");
+		} catch (PickleException x) {
+			assertTrue(x.getMessage().contains("couldn't pickle object of type"));
+		}
+		Pickler.registerCustomPickler(IBaseInterface.class, new AnyClassPickler());
+		byte[] data = p.dumps(b);
+		assertTrue(new String(data).contains("[class=net.razorvine.pickle.test.PicklerTest$BaseClassWithInterface]"));
+		data = p.dumps(sub);
+		assertTrue(new String(data).contains("[class=net.razorvine.pickle.test.PicklerTest$SubClassWithInterface]"));
+	}
+
 	public static void main(String[] args) throws PickleException, IOException
 	{
 	}

@@ -613,6 +613,64 @@ public class PicklerTests {
 		Assert.AreEqual(34, dict["Age"]);
 		Assert.IsFalse(dict.Contains("__class__"));
 	}
+	
+	
+	interface IBaseInterface {};
+	interface ISubInterface : IBaseInterface {};
+	class BaseClassWithInterface : IBaseInterface {};
+	class SubClassWithInterface : BaseClassWithInterface, ISubInterface {};
+	class BaseClass {};
+	class SubClass : BaseClass {};
+	abstract class AbstractBaseClass {};
+	class ConcreteSubClass : AbstractBaseClass {};
+
+	class AnyClassPickler : IObjectPickler {
+		public void pickle(object o, Stream outs, Pickler currentpickler)  {
+			currentpickler.save("[class="+o.GetType().FullName+"]");
+		}
+	}
+
+	[Test]
+	public void testAbstractBaseClassHierarchyPickler()
+	{
+		ConcreteSubClass c = new ConcreteSubClass();
+		Pickler p = new Pickler(false);
+		try {
+			p.dumps(c);
+			Assert.Fail("should crash");
+		} catch (PickleException x) {
+			Assert.IsTrue(x.Message.Contains("couldn't pickle object of type"));
+		}
+		
+		Pickler.registerCustomPickler(typeof(AbstractBaseClass), new AnyClassPickler());
+		byte[] data = p.dumps(c);
+		Assert.IsTrue(S(data).Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+ConcreteSubClass]"));
+	}
+	
+	[Test]
+	public void testInterfaceHierarchyPickler()
+	{
+		BaseClassWithInterface b = new BaseClassWithInterface();
+		SubClassWithInterface sub = new SubClassWithInterface();
+		Pickler p = new Pickler(false);
+		try {
+			p.dumps(b);
+			Assert.Fail("should crash");
+		} catch (PickleException x) {
+			Assert.IsTrue(x.Message.Contains("couldn't pickle object of type"));
+		}
+		try {
+			p.dumps(sub);
+			Assert.Fail("should crash");
+		} catch (PickleException x) {
+			Assert.IsTrue(x.Message.Contains("couldn't pickle object of type"));
+		}
+		Pickler.registerCustomPickler(typeof(IBaseInterface), new AnyClassPickler());
+		byte[] data = p.dumps(b);
+		Assert.IsTrue(S(data).Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+BaseClassWithInterface]"));
+		data = p.dumps(sub);
+		Assert.IsTrue(S(data).Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+SubClassWithInterface]"));
+	}	
 }
 
 }

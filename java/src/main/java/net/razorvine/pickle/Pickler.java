@@ -14,6 +14,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -79,6 +80,9 @@ public class Pickler {
 
 	/**
 	 * Register additional object picklers for custom classes.
+	 * If you register an interface or abstract base class, it means the pickler is used for 
+	 * the whole inheritance tree of all classes ultimately implementing that interface or abstract base class.
+	 * If you register a normal concrete class, the pickler is only used for objects of exactly that particular class.
 	 */
 	public static void registerCustomPickler(Class<?> clazz, IObjectPickler pickler) {
 		customPicklers.put(clazz, pickler);
@@ -244,7 +248,7 @@ public class Pickler {
 		}
 		
 		// check registry
-		IObjectPickler custompickler=customPicklers.get(t);
+		IObjectPickler custompickler=getCustomPickler(t);
 		if(custompickler!=null) {
 			custompickler.pickle(o, this.out, this);
 			writeMemo(o);
@@ -326,6 +330,23 @@ public class Pickler {
 		}
 
 		return false;
+	}
+
+	protected IObjectPickler getCustomPickler(Class<?> t) {
+		IObjectPickler pickler = customPicklers.get(t);
+		if(pickler!=null) {
+			return pickler;		// exact match
+		}
+		
+		// check if there's a custom pickler registered for an interface or abstract base class
+		// that this object implements or inherits from.
+		for(Entry<Class<?>, IObjectPickler> x: customPicklers.entrySet()) {
+			if(x.getKey().isAssignableFrom(t)) {
+				return x.getValue();
+			}
+		}
+
+		return null;
 	}
 
 	void put_collection(Collection<?> list) throws IOException {

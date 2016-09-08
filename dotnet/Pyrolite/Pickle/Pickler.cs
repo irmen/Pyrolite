@@ -55,6 +55,9 @@ public class Pickler : IDisposable {
 
 	/**
 	 * Register additional object picklers for custom classes.
+	 * If you register an interface or abstract base class, it means the pickler is used for 
+	 * the whole inheritance tree of all classes ultimately implementing that interface or abstract base class.
+	 * If you register a normal concrete class, the pickler is only used for objects of exactly that particular class.
 	 */
 	public static void registerCustomPickler(Type clazz, IObjectPickler pickler) {
 		customPicklers[clazz]=pickler;
@@ -239,8 +242,8 @@ public class Pickler : IDisposable {
 		}
 		
 		// check registry
-		if(customPicklers.ContainsKey(t)) {
-			IObjectPickler custompickler=customPicklers[t];
+		IObjectPickler custompickler = getCustomPickler(t);
+		if(custompickler!=null) {
 			custompickler.pickle(o, this.outs, this);
 			WriteMemo(o);
 			return true;
@@ -291,6 +294,23 @@ public class Pickler : IDisposable {
 		return false;
 	}
 	
+	protected IObjectPickler getCustomPickler(Type t)
+	{
+		IObjectPickler pickler;
+		if(customPicklers.TryGetValue(t, out pickler))
+			return pickler;		// exact match
+		
+		// check if there's a custom pickler registered for an interface or abstract base class
+		// that this object implements or inherits from.
+		foreach(var x in customPicklers) {
+			if(x.Key.IsAssignableFrom(t)) {
+				return x.Value;
+			}
+		}
+
+		return null;
+	}
+
 	bool hasPublicProperties(object o)
 	{
 		PropertyInfo[] props=o.GetType().GetProperties();
