@@ -673,4 +673,21 @@ public class PicklerTests {
 	}	
 }
 
+/// <summary>
+/// Miscellaneous tests.
+/// </summary>
+[TestFixture]
+public class MiscellaneousTests {
+	[Test]
+	public void testPythonExceptionType()
+	{
+		var ex=new PythonException("hello");
+		var type = ex.GetType();
+		var prop = type.GetProperty("PythonExceptionType");
+		Assert.IsNotNull(prop, "python exception class has to have a property PythonExceptionType, it is used in constructor classes");
+		prop = type.GetProperty("_pyroTraceback");
+		Assert.IsNotNull(prop, "python exception class has to have a property _pyroTraceback, it is used in constructor classes");
+	}
+}
+
 }

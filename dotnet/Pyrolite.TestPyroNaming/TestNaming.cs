@@ -31,6 +31,8 @@ public class TestNaming {
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
 		setConfig();
+		// Config.SERIALIZER = Config.SerializerType.pickle;
+		
 		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
 		if(Config.SERIALIZER==Config.SerializerType.serpent)
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");

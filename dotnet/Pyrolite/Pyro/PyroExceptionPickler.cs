@@ -54,12 +54,24 @@ public class PyroExceptionPickler : IObjectPickler {
 	public static object FromSerpentDict(IDictionary dict)
 	{
 		object[] args = (object[]) dict["args"];
+		
+		string pythonExceptionType = (string) dict["__class__"];
 		PyroException ex;
-		if(args.Length==0)
-			ex = new PyroException();
-		else
-			ex = new PyroException((string)args[0]);
-		ex._pythonExceptionType = (string) dict["__class__"];
+		if(args.Length==0) {
+			if(string.IsNullOrEmpty(pythonExceptionType))
+				ex = new PyroException();
+			else
+				ex = new PyroException("["+pythonExceptionType+"]");
+		}
+		else {
+			if(string.IsNullOrEmpty(pythonExceptionType))
+				ex = new PyroException((string)args[0]);
+			else
+				ex = new PyroException(string.Format("[{0}] {1}", pythonExceptionType, args[0]));
+		}
+		
+		ex.PythonExceptionType = pythonExceptionType;
+
 		IDictionary attrs = (IDictionary)dict["attributes"];
 		foreach(DictionaryEntry entry in attrs)
 		{

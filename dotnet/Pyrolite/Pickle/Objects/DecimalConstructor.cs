@@ -2,7 +2,6 @@
 
 using System;
 using System.Globalization;
-using System.Reflection;
 
 namespace Razorvine.Pickle.Objects
 {

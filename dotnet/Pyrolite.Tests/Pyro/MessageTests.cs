@@ -19,7 +19,7 @@ public class MessageTestsHmac {
 	ushort serializer_id = new PickleSerializer().serializer_id;
 	
 	[Test]
-	public void TestMessage()
+	public void testMessage()
 	{
 		byte[] hmac = Encoding.UTF8.GetBytes("secret");
 		
@@ -84,7 +84,7 @@ public class MessageTestsHmac {
 	}
 	
 	[Test]
-	public void TestAnnotations()
+	public void testAnnotations()
 	{
 		byte[] hmac=Encoding.UTF8.GetBytes("secret");
 		

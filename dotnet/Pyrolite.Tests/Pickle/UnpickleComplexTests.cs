@@ -222,21 +222,26 @@ public class UnpickleComplexTests
 	public void testUnpickleException() {
 		// python 2.x
 		PythonException x = (PythonException) U("cexceptions\nZeroDivisionError\np0\n(S'hello'\np1\ntp2\nRp3\n.");
-		Assert.AreEqual("hello", x.Message);
+		Assert.AreEqual("[exceptions.ZeroDivisionError] hello", x.Message);
+		Assert.AreEqual("exceptions.ZeroDivisionError", x.PythonExceptionType);
 		// python 3.x
 		x = (PythonException) U("c__builtin__\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
-		Assert.AreEqual("hello", x.Message);
+		Assert.AreEqual("[__builtin__.ZeroDivisionError] hello", x.Message);
+		Assert.AreEqual("__builtin__.ZeroDivisionError", x.PythonExceptionType);
 		x = (PythonException) U("cbuiltins\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
-		Assert.AreEqual("hello", x.Message);
+		Assert.AreEqual("[builtins.ZeroDivisionError] hello", x.Message);
+		Assert.AreEqual("builtins.ZeroDivisionError", x.PythonExceptionType);
 
 		// python 2.x
 		x = (PythonException) U("cexceptions\nGeneratorExit\np0\n(tRp1\n.");
 		Assert.IsNull(x.InnerException);
+		Assert.AreEqual("exceptions.GeneratorExit", x.PythonExceptionType);
+	
 		// python 3.x
 		x = (PythonException) U("c__builtin__\nGeneratorExit\np0\n(tRp1\n.");
-		Assert.AreEqual("Exception of type 'Razorvine.Pickle.PythonException' was thrown.", x.Message);
+		Assert.AreEqual("[__builtin__.GeneratorExit]", x.Message);
 		x = (PythonException) U("cbuiltins\nGeneratorExit\np0\n(tRp1\n.");
-		Assert.AreEqual("Exception of type 'Razorvine.Pickle.PythonException' was thrown.", x.Message);
+		Assert.AreEqual("[builtins.GeneratorExit]", x.Message);
 	}
 }
 }

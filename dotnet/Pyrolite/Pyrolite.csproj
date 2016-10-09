@@ -112,6 +112,7 @@
     <Compile Include="Pickle\Objects\DateTimeConstructor.cs" />
     <Compile Include="Pickle\Objects\DecimalConstructor.cs" />
     <Compile Include="Pickle\Objects\ClassDictConstructor.cs" />
+    <Compile Include="Pickle\Objects\ExceptionConstructor.cs" />
     <Compile Include="Pickle\Objects\SetConstructor.cs" />
     <Compile Include="Pickle\Objects\StringConstructor.cs" />
     <Compile Include="Pickle\Opcodes.cs" />

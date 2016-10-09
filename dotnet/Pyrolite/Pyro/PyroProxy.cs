@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using Razorvine.Pickle;
 
 namespace Razorvine.Pyro
 {
@@ -287,7 +288,15 @@ public class PyroProxy : DynamicObject, IDisposable {
 			if (rx is PyroException) {
 				throw (PyroException) rx;
 			} else {
-				PyroException px = new PyroException("remote exception occurred", rx);
+				PyroException px;
+				PythonException pyx = rx as PythonException;
+				if(pyx==null) {
+					px = new PyroException(null, rx);
+				} else {
+				    px = new PyroException(rx.Message, rx);	
+					px.PythonExceptionType = pyx.PythonExceptionType;
+				}
+				
 				PropertyInfo remotetbProperty=rx.GetType().GetProperty("_pyroTraceback");
 				if(remotetbProperty!=null) {
 					string remotetb=(string)remotetbProperty.GetValue(rx,null);
@@ -450,6 +459,17 @@ public class PyroProxy : DynamicObject, IDisposable {
 			this.streamId = streamId;
 			this.proxy = proxy;
 		}
+		
+		private readonly string[] stopIterationExceptions = {
+			"builtins.StopIteration",
+			"builtins.StopAsyncIteration",
+			"__builtin__.StopIteration",
+			"__builtin__.StopAsyncIteration",
+			"exceptions.StopIteration",
+			"builtins.GeneratorExit",
+			"__builtin__.GeneratorExit",
+			"exceptions.GeneratorExit"
+		};
 
 		public IEnumerator GetEnumerator()
 		{
@@ -461,9 +481,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 				try {
 					value = this.proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, new [] {this.streamId});
 				} catch (PyroException x) {
-					if(x._pythonExceptionType=="builtins.StopIteration" || x._pythonExceptionType=="exceptions.StopIteration" ||
-					   x._pythonExceptionType=="builtins.StopAsyncIteration" || 
-					   x._pythonExceptionType=="builtins.GeneratorExit" || x._pythonExceptionType=="exceptions.GeneratorExit") {
+					if(stopIterationExceptions.Contains(x.PythonExceptionType)) {
 						// iterator ended normally.
 						this.Dispose();
 						yield break;

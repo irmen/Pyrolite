@@ -39,6 +39,8 @@ public class TestEcho {
 		Console.WriteLine("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
+		Config.SERIALIZER = Config.SerializerType.pickle;
+		
 		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
 		if(Config.SERIALIZER==Config.SerializerType.serpent)
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");

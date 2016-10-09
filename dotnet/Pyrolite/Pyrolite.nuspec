@@ -13,7 +13,10 @@
 Also includes Pickle/Unpickle.
 More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
-    <releaseNotes>Support for iterator result item streaming added. Fixed type casting crash in proxy metadata retrieval.</releaseNotes>
+    <releaseNotes>Support for iterator result item streaming added.
+Fixed type casting crash in proxy metadata retrieval.
+Shows python exception type better in .net exception messages.
+</releaseNotes>
     <copyright>Copyright 2015, 2016</copyright>
     <tags>pyro python rpc remote-objects</tags>
 	  <dependencies>

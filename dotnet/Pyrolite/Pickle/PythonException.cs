@@ -12,7 +12,8 @@ namespace Razorvine.Pickle
 	/// </summary>
 	public class PythonException : Exception, ISerializable
 	{
-		public String _pyroTraceback {get;set;}
+		public string _pyroTraceback {get;set;}
+		public string PythonExceptionType {get; set;}
 
 		public PythonException()
 		{

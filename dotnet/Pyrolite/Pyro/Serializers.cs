@@ -82,16 +82,16 @@ namespace Razorvine.Pyro
 		}
 		
 		static PickleSerializer() {
-			Unpickler.registerConstructor("Pyro4.errors", "PyroError", new AnyClassConstructor(typeof(PyroException)));
-			Unpickler.registerConstructor("Pyro4.errors", "CommunicationError", new AnyClassConstructor(typeof(PyroException)));
-			Unpickler.registerConstructor("Pyro4.errors", "ConnectionClosedError", new AnyClassConstructor(typeof(PyroException)));
-			Unpickler.registerConstructor("Pyro4.errors", "TimeoutError", new AnyClassConstructor(typeof(PyroException)));
-			Unpickler.registerConstructor("Pyro4.errors", "ProtocolError", new AnyClassConstructor(typeof(PyroException)));
-			Unpickler.registerConstructor("Pyro4.errors", "NamingError", new AnyClassConstructor(typeof(PyroException)));
-			Unpickler.registerConstructor("Pyro4.errors", "DaemonError", new AnyClassConstructor(typeof(PyroException)));
-			Unpickler.registerConstructor("Pyro4.errors", "SecurityError", new AnyClassConstructor(typeof(PyroException)));
-			Unpickler.registerConstructor("Pyro4.errors", "SerializeError",	new AnyClassConstructor(typeof(PyroException)));
-			Unpickler.registerConstructor("Pyro4.errors", "MessageTooLargeError", new AnyClassConstructor(typeof(PyroException)));
+			Unpickler.registerConstructor("Pyro4.errors", "PyroError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "PyroError"));
+			Unpickler.registerConstructor("Pyro4.errors", "CommunicationError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "CommunicationError"));
+			Unpickler.registerConstructor("Pyro4.errors", "ConnectionClosedError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "ConnectionClosedError"));
+			Unpickler.registerConstructor("Pyro4.errors", "TimeoutError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "TimeoutError"));
+			Unpickler.registerConstructor("Pyro4.errors", "ProtocolError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "ProtocolError"));
+			Unpickler.registerConstructor("Pyro4.errors", "NamingError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "NamingError"));
+			Unpickler.registerConstructor("Pyro4.errors", "DaemonError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "DaemonError"));
+			Unpickler.registerConstructor("Pyro4.errors", "SecurityError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "SecurityError"));
+			Unpickler.registerConstructor("Pyro4.errors", "SerializeError",	new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "SerializeError"));
+			Unpickler.registerConstructor("Pyro4.errors", "MessageTooLargeError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "MessageTooLargeError"));
 			Unpickler.registerConstructor("Pyro4.core", "Proxy", new ProxyClassConstructor());
 			Unpickler.registerConstructor("Pyro4.util", "Serializer", new AnyClassConstructor(typeof(DummyPyroSerializer)));
 			Unpickler.registerConstructor("Pyro4.utils.flame", "FlameBuiltin", new AnyClassConstructor(typeof(FlameBuiltin)));

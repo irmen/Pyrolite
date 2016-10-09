@@ -13,7 +13,7 @@ public class TestStreaming {
 
 	static protected byte[] hmacKey = null;
 
-	public static void XXXXXXMain(String[] args)  {
+	public static void XXXXXXXMain(String[] args)  {
 		try {
 			Test();
 		} catch (Exception x) {
@@ -66,13 +66,9 @@ public class TestStreaming {
 				foreach(int i in result)
 				{
 					Console.WriteLine(i);
-					if(i>5) {
-						p.Dispose();
-					}
 				}
 			}
 		}
-
 	}
 	
 	static void setConfig()
