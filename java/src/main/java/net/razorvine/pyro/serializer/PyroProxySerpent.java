@@ -77,7 +77,8 @@ public class PyroProxySerpent implements IClassSerializer {
 		}
 		
 		proxy.pyroHandshake = state[6];
-		// maxretries is not used/supported in pyrolite, so simply ignore it
+		// maxretries (state[7]) is not used/supported in pyrolite, so simply ignore it
+		// custom pickler (state[8]) is also not supported
 
 		return proxy;
 	}

@@ -9,9 +9,10 @@ import java.util.List;
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class PythonException extends RuntimeException {
-	private static final long serialVersionUID = 5104356795835969838L;
+	private static final long serialVersionUID = 5104356796885969838L;
 
 	public String _pyroTraceback;
+	public String pythonExceptionType;
 
 	public PythonException(String message, Throwable cause) {
 		super(message, cause);

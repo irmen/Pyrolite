@@ -10,8 +10,13 @@ import java.util.List;
  */
 public class PyroException extends RuntimeException {
 
-	private static final long serialVersionUID = 5164503665621511957L;
+	private static final long serialVersionUID = 5164514665621511957L;
 	public String _pyroTraceback;
+	public String pythonExceptionType;
+
+	public PyroException() {
+		super();
+	}
 
 	public PyroException(String message, Throwable cause) {
 		super(message, cause);

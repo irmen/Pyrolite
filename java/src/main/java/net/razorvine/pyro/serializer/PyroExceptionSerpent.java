@@ -17,7 +17,12 @@ public class PyroExceptionSerpent implements IClassSerializer {
 	@SuppressWarnings("unchecked")
 	public static Object FromSerpentDict(Map<Object, Object> dict) {
 		Object[] args = (Object[]) dict.get("args");
-		PyroException ex = new PyroException((String)args[0]);
+		PyroException ex;
+		if(args.length==0) {
+			ex = new PyroException();
+		} else {
+			ex = new PyroException((String)args[0]);
+		}
 		Map<String, Object> attrs = (Map<String, Object>)dict.get("attributes");
 		// we can only deal with a possible _pyroTraceback attribute
 		if(attrs.containsKey("_pyroTraceback"))

@@ -261,6 +261,12 @@ public class PyroProxy implements Serializable {
 		if ((resultmsg.flags & Message.FLAGS_COMPRESSED) != 0) {
 			_decompressMessageData(resultmsg);
 		}
+		if ((resultmsg.flags & Message.FLAGS_ITEMSTREAMRESULT) != 0) {
+			byte[] streamId = resultmsg.annotations.get("STRM");
+			if(streamId==null)
+				throw new PyroException("result of call is an iterator, but the server is not configured to allow streaming");
+			return new PyroProxy.StreamResultIterable(new String(streamId), this);
+		}
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
 			Throwable rx = (Throwable) ser.deserializeData(resultmsg.data);
 			if (rx instanceof PyroException) {
@@ -438,4 +444,116 @@ public class PyroProxy implements Serializable {
 		// pyromaxretries (args[7]) is not yet used/supported by pyrolite
 		// custom serializer (args[8]) is not yet supported by pyrolite
 	}	
+
+	private static final HashSet<String> stopIterationExceptions;
+	
+	static {
+		stopIterationExceptions = new HashSet<String>();
+		stopIterationExceptions.add("builtins.StopIteration");
+		stopIterationExceptions.add("builtins.StopAsyncIteration");
+		stopIterationExceptions.add("__builtin__.StopIteration");
+		stopIterationExceptions.add("__builtin__.StopAsyncIteration");
+		stopIterationExceptions.add("exceptions.StopIteration");
+		stopIterationExceptions.add("builtins.GeneratorExit");
+		stopIterationExceptions.add("__builtin__.GeneratorExit");
+		stopIterationExceptions.add("exceptions.GeneratorExit");
+	}
+	
+	public class StreamResultIterable implements Iterable<Object>
+	{
+		private String streamId;
+		private PyroProxy proxy;
+		
+		public StreamResultIterable(String streamId, PyroProxy proxy)
+		{
+			this.streamId = streamId;
+			this.proxy = proxy;
+		}
+	
+		@Override
+		public Iterator<Object> iterator() {
+			return new StreamResultIterator(this.streamId, this.proxy);
+		}
+	
+		private class StreamResultIterator implements Iterator<Object>
+		{
+			private String streamId;
+			private PyroProxy proxy;
+			private Object nextValue;
+			private Boolean getRemoteNext;
+			private Boolean exhausted;
+			
+			public StreamResultIterator(String streamId, PyroProxy proxy)
+			{
+				this.streamId = streamId;
+				this.proxy = proxy;
+				this.getRemoteNext = true;
+				this.exhausted = false;
+			}
+			
+			@Override
+			public boolean hasNext() {
+				if(exhausted)
+					return false;
+				if(getRemoteNext) {
+					nextValue = get_next();
+					getRemoteNext = false;
+				}
+				return nextValue!=null;
+			}
+
+			@Override
+			public Object next()
+			{
+				if(hasNext()) {
+					getRemoteNext = true;
+					return nextValue;
+				}
+				exhausted=true;
+				throw new NoSuchElementException("iterator exhausted");
+			}
+
+			protected Object get_next()
+			{
+				if(proxy.sock ==null) {
+					throw new PyroException("the proxy for this stream result has been closed");
+				}
+				Object value = null;
+				try {
+					value = proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, streamId);
+				} catch (PyroException x) {
+					close();
+					if(stopIterationExceptions.contains(x.pythonExceptionType)) {
+						// iterator ended normally.
+						this.close();
+						exhausted=true;
+						return null;
+					}
+					throw x;
+				} catch (IOException x) {
+					close();
+					throw new PyroException("I/O error while getting next iter element", x);
+				}
+				return value;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException("cannot remove things from pyro iter");
+			}
+	
+			public void close() throws PyroException
+			{
+				if(this.proxy!=null && this.proxy.sock!=null) {
+					try {
+						this.proxy.internal_call("close_stream", Config.DAEMON_NAME, Message.FLAGS_ONEWAY, false, this.streamId);
+					} catch (PickleException|IOException x) {
+						// meh
+					}
+				}
+				this.proxy = null;
+				this.nextValue = null;
+			}
+		}
+	}
 }
