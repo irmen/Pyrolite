@@ -16,7 +16,7 @@ namespace Pyrolite.TestPyroEcho
 			if(args.Length==1)
 				test = args[0].ToLowerInvariant()[0];
 			else{
-				Console.WriteLine("Which test to run ([e]cho, [h]andshake)?");
+				Console.WriteLine("Which test to run ([e]cho, [h]andshake, [s]treaming)?");
 				test = Console.ReadLine().Trim().ToLowerInvariant()[0];
 			}
 			
@@ -31,6 +31,10 @@ namespace Pyrolite.TestPyroEcho
 					case 'h':
 						Console.WriteLine("\r\nRunning HANDSHAKE test.\r\n");
 						new TestHandshake().Run();
+						break;
+					case 's':
+						Console.WriteLine("\r\nRunning STREAMING test.\r\n");
+						new TestStreaming().Run();
 						break;
 					default:
 						Console.Error.WriteLine("invalid choice");

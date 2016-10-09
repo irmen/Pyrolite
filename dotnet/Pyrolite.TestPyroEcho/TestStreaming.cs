@@ -3,7 +3,7 @@
 using System;
 using Razorvine.Pyro;
 
-namespace Pyrolite.TestPyroStreaming
+namespace Pyrolite.TestPyroEcho
 {
 
 /// <summary>
@@ -13,16 +13,8 @@ public class TestStreaming {
 
 	static protected byte[] hmacKey = null;
 
-	public static void XXXXXXXMain(String[] args)  {
-		try {
-			Test();
-		} catch (Exception x) {
-			Console.WriteLine("unhandled exception: {0}",x);
-		}
-		Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
-	}
 	
-	public static void Test() {
+	public void Run() {
 
 		setConfig();
 		// Config.SERIALIZER = Config.SerializerType.pickle;
