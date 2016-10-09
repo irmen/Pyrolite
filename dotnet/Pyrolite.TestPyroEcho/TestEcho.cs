@@ -102,7 +102,7 @@ public class TestEcho {
 			Console.WriteLine("response proxy: " + p2);
 			Debug.Assert(p2.objectid=="test.echoserver");
 			Debug.Assert((string)p2.pyroHandshake == "banana");
-			Debug.Assert(p2.pyroMethods.Count == 7);
+			Debug.Assert(p2.pyroMethods.Contains("echo"));
 			if(p2.pyroHmacKey!=null) {
 				string hmac2 = Encoding.UTF8.GetString(p2.pyroHmacKey);
 				Debug.Assert(hmac2==Encoding.UTF8.GetString(hmacKey));
@@ -111,6 +111,13 @@ public class TestEcho {
 			Console.WriteLine("error test.");
 			try {
 				result=p.error();
+			} catch (PyroException e) {
+				Console.WriteLine("Pyro Exception (expected)! {0}",e.Message);
+				Console.WriteLine("Pyro Exception cause: {0}",e.InnerException);
+				Console.WriteLine("Pyro Exception remote traceback:\n>>>\n{0}<<<",e._pyroTraceback);
+			}
+			try {
+				result=p.error_with_text();
 			} catch (PyroException e) {
 				Console.WriteLine("Pyro Exception (expected)! {0}",e.Message);
 				Console.WriteLine("Pyro Exception cause: {0}",e.InnerException);

@@ -26,10 +26,13 @@ public class EchoExample {
 		System.out.println("Pyrolite version: "+Config.PYROLITE_VERSION);
 
 		setConfig();
+		// Config.SERIALIZER = Config.SerializerType.pickle;
+
 
 		NameServerProxy ns = NameServerProxy.locateNS(null, hmacKey);
 		PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
 		p.pyroHmacKey = hmacKey;
+		p.pyroHandshake = "banana";
 		ns.close();
 		
 		// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
@@ -54,17 +57,24 @@ public class EchoExample {
 		result = p.call("echo", p);
 		PyroProxy p2 = (PyroProxy) result;
 		System.out.println("response proxy: " + p2);
-		assert (p2.objectid=="test.echoserver");
-		assert ((String)p2.pyroHandshake == "banana");
-		assert (p2.pyroMethods.size() == 8);
+		if(!p2.objectid.equals("test.echoserver")) throw new AssertionError("objectid");
+		if(!((String)p2.pyroHandshake).equals("banana")) throw new AssertionError("handshake");
+		if(!p2.pyroMethods.contains("echo")) throw new AssertionError("methods");
 		if(p2.pyroHmacKey!=null) {
 			String hmac2 = new String(p2.pyroHmacKey);
-			assert (hmac2==new String(hmacKey));
+			if(!hmac2.equals(new String(hmacKey))) throw new AssertionError("hmac");
 		}
 
 		System.out.println("error test.");
 		try {
 			result=p.call("error");
+		} catch (PyroException e) {
+			System.out.println("Pyro Exception (expected)! "+e.getMessage());
+			System.out.println("Pyro Exception cause: "+e.getCause());
+			System.out.println("Pyro Exception remote traceback:\n>>>\n"+e._pyroTraceback+"<<<");
+		}
+		try {
+			result=p.call("error_with_text");
 		} catch (PyroException e) {
 			System.out.println("Pyro Exception (expected)! "+e.getMessage());
 			System.out.println("Pyro Exception cause: "+e.getCause());
