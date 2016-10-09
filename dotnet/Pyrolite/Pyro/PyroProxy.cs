@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
 
 namespace Razorvine.Pyro
 {
@@ -139,8 +140,12 @@ public class PyroProxy : DynamicObject, IDisposable {
 			return result1;
 		
 		// another collection, convert to set of strings.
-		var result = (IEnumerable<object>)strings;
-		return new HashSet<string>(result.Select(o=>o.ToString()));
+		var result2 = (IEnumerable) strings;
+		var stringset = new HashSet<string>();
+		foreach(object s in result2) {
+			stringset.Add(s.ToString());
+		}
+		return stringset;
 	}
 
 	/// <summary>
@@ -269,6 +274,14 @@ public class PyroProxy : DynamicObject, IDisposable {
 			_decompressMessageData(resultmsg);
 		}
 
+		if ((resultmsg.flags & Message.FLAGS_ITEMSTREAMRESULT) != 0) {
+			byte[] streamId = null;
+			if(!resultmsg.annotations.TryGetValue("STRM", out streamId)) {
+				throw new PyroException("result of call is an iterator, but the server is not configured to allow streaming");
+			}
+			return new PyroProxy.StreamResultIterator(Encoding.UTF8.GetString(streamId), this);
+		}
+		
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
 			Exception rx = (Exception) ser.deserializeData(resultmsg.data);
 			if (rx is PyroException) {
@@ -427,6 +440,48 @@ public class PyroProxy : DynamicObject, IDisposable {
 		this.pyroHandshake = args[6];
 		// maxretries is not yet supported/used in pyrolite
 	}	
+	
+	public class StreamResultIterator: IEnumerable, IDisposable
+	{
+		private string streamId;
+		private PyroProxy proxy;
+		public StreamResultIterator(string streamId, PyroProxy proxy)
+		{
+			this.streamId = streamId;
+			this.proxy = proxy;
+		}
+
+		public IEnumerator GetEnumerator()
+		{
+			while(true) {
+				if(this.proxy.sock ==null) {
+					throw new PyroException("the proxy for this stream result has been closed");
+				}
+				object value = null;
+				try {
+					value = this.proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, new [] {this.streamId});
+				} catch (PyroException x) {
+					if(x._pythonExceptionType=="builtins.StopIteration" || x._pythonExceptionType=="exceptions.StopIteration" ||
+					   x._pythonExceptionType=="builtins.StopAsyncIteration" || 
+					   x._pythonExceptionType=="builtins.GeneratorExit" || x._pythonExceptionType=="exceptions.GeneratorExit") {
+						// iterator ended normally.
+						this.Dispose();
+						yield break;
+					}
+					throw;  
+				}
+				yield return value;
+			}
+		}
+		
+		public void Dispose()
+		{
+			if(this.proxy!=null && this.proxy.sock!=null) {
+				this.proxy.internal_call("close_stream", Config.DAEMON_NAME, Message.FLAGS_ONEWAY, false, new [] {this.streamId});
+			}
+			this.proxy = null;
+		}
+	}
 }
 
 }

@@ -29,6 +29,7 @@ public class Message
 	public const ushort FLAGS_ONEWAY = 1<<2;
 	public const ushort FLAGS_BATCH = 1<<3;
 	public const ushort FLAGS_META_ON_CONNECT = 1<<4;
+	public const ushort FLAGS_ITEMSTREAMRESULT = 1 << 5;
 	public const ushort SERIALIZER_SERPENT = 1;
 	public const ushort SERIALIZER_JSON = 2;
 	public const ushort SERIALIZER_MARSHAL = 3;

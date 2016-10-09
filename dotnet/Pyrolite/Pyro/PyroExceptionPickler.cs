@@ -41,7 +41,10 @@ public class PyroExceptionPickler : IObjectPickler {
 		// {'attributes':{},'__exception__':True,'args':('hello',),'__class__':'PyroError'}
 		dict["__class__"] = "PyroError";
 		dict["__exception__"] = true;
-		dict["args"] = new object[] {ex.Message};
+		if(ex.Message != null)
+			dict["args"] = new object[1] {ex.Message};
+		else
+			dict["args"] = new object[0];
 		if(!string.IsNullOrEmpty(ex._pyroTraceback))
 			ex.Data["_pyroTraceback"] = new string[] { ex._pyroTraceback } ;    	// transform single string back into list
 		dict["attributes"] = ex.Data;
@@ -51,7 +54,12 @@ public class PyroExceptionPickler : IObjectPickler {
 	public static object FromSerpentDict(IDictionary dict)
 	{
 		object[] args = (object[]) dict["args"];
-		PyroException ex = new PyroException((string)args[0]);
+		PyroException ex;
+		if(args.Length==0)
+			ex = new PyroException();
+		else
+			ex = new PyroException((string)args[0]);
+		ex._pythonExceptionType = (string) dict["__class__"];
 		IDictionary attrs = (IDictionary)dict["attributes"];
 		foreach(DictionaryEntry entry in attrs)
 		{

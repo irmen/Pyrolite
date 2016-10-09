@@ -8,12 +8,13 @@ using System.Text;
 namespace Razorvine.Pyro
 {
 	/// <summary>
-	/// Exception thrown when something is wrong in Pyro.
+	/// Exception thrown when something is wrong in Pyro, or an exception was returned from a remote call.
 	/// </summary>
 	[Serializable]
 	public class PyroException : Exception, ISerializable
 	{
 		public String _pyroTraceback {get;set;}
+		public String _pythonExceptionType {get;set;}
 
 		public PyroException()
 		{
@@ -31,6 +32,16 @@ namespace Razorvine.Pyro
 		protected PyroException(SerializationInfo info, StreamingContext context) : base(info, context)
 		{
 		}
+		
+		public override string ToString()
+		{
+			if(!string.IsNullOrEmpty(this._pythonExceptionType))
+			{
+				return string.Format("[remote python exception: {0}] {1}", this._pythonExceptionType, base.ToString());
+			}
+			return base.ToString();
+		}
+
 		
 		/// <summary>
 		/// for the unpickler to restore state
