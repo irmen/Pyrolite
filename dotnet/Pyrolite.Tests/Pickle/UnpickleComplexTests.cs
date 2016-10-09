@@ -76,6 +76,12 @@ public class UnpickleComplexTests
 	}
 
 	[Test]
+	public void testUnpickleRealProxy2old() {
+		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p2old.dat");
+		unpickleRealProxy(pickled_proxy);
+	}
+
+	[Test]
 	public void testUnpickleRealProxy3() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p3.dat");
 		unpickleRealProxy(pickled_proxy);
@@ -105,7 +111,8 @@ public class UnpickleComplexTests
 		expectedSet.Add("list");
 		expectedSet.Add("count");
 		expectedSet.Add("set_metadata");
-		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroMethods);
+		proxy.pyroMethods.ExceptWith(expectedSet);
+		Assert.AreEqual(0, proxy.pyroMethods.Count, "something is wrong with the expected exposed methods");
 		expectedSet = new HashSet<string>();
 		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroOneway);
 	}

@@ -106,6 +106,9 @@
     <None Include="pickled_nameserver_proxy_p2.dat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="pickled_nameserver_proxy_p2old.dat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="pickled_nameserver_proxy_p3.dat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
