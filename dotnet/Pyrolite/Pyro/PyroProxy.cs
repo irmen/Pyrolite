@@ -289,6 +289,8 @@ public class PyroProxy : DynamicObject, IDisposable {
 				throw (PyroException) rx;
 			} else {
 				PyroException px;
+				
+				// if the source was a PythonException, copy its message and python exception type
 				PythonException pyx = rx as PythonException;
 				if(pyx==null) {
 					px = new PyroException(null, rx);

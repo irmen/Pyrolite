@@ -14,6 +14,7 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 import net.razorvine.pickle.PickleException;
+import net.razorvine.pickle.PythonException;
 import net.razorvine.pyro.serializer.PyroSerializer;
 
 /**
@@ -272,7 +273,17 @@ public class PyroProxy implements Serializable {
 			if (rx instanceof PyroException) {
 				throw (PyroException) rx;
 			} else {
-				PyroException px = new PyroException("remote exception occurred", rx);
+				PyroException px;
+
+				// if the source was a PythonException, copy its message and python exception type
+				if(rx instanceof PythonException) {
+					PythonException rxp = (PythonException)rx;
+					px = new PyroException(rxp.getMessage(), rxp);
+					px.pythonExceptionType = rxp.pythonExceptionType;
+				} else {
+					px = new PyroException(null, rx);
+				}
+				
 				try {
 					Field remotetbField = rx.getClass().getDeclaredField("_pyroTraceback");
 					String remotetb = (String) remotetbField.get(rx);
@@ -523,10 +534,9 @@ public class PyroProxy implements Serializable {
 					value = proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, streamId);
 				} catch (PyroException x) {
 					close();
+					exhausted=true;
 					if(stopIterationExceptions.contains(x.pythonExceptionType)) {
 						// iterator ended normally.
-						this.close();
-						exhausted=true;
 						return null;
 					}
 					throw x;
