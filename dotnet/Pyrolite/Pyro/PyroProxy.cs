@@ -422,9 +422,9 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <summary>
 	/// called by the Unpickler to restore state.
 	/// </summary>
-	/// <param name="args">args(8): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake, pyroMaxRetries</param>
+	/// <param name="args">args(8 or 9): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake, pyroMaxRetries, [pyroSerializer]</param>
 	public void __setstate__(object[] args) {
-		if(args.Length != 8) {
+		if(args.Length != 8 && args.Length !=9) {
 			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
 		}
 		PyroURI uri=(PyroURI)args[0];
@@ -447,7 +447,8 @@ public class PyroProxy : DynamicObject, IDisposable {
 
 		this.pyroHmacKey = (byte[])args[5];
 		this.pyroHandshake = args[6];
-		// maxretries is not yet supported/used in pyrolite
+		// XXX maxretries (args[7]) is not yet supported/used in pyrolite
+		// XXX custom serializer (args[8]) is not yet supported in pyrolite
 	}	
 	
 	public class StreamResultIterator: IEnumerable, IDisposable

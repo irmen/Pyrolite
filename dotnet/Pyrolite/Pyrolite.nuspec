@@ -13,7 +13,9 @@
 Also includes Pickle/Unpickle.
 More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
-    <releaseNotes>Support for iterator result item streaming added.
+    <releaseNotes>
+Support for protocol changes introduced in Pyro 4.48.
+Support for iterator result item streaming added (introduced in Pyro 4.49).
 Fixed type casting crash in proxy metadata retrieval.
 Shows python exception type better in .net exception messages.
 </releaseNotes>

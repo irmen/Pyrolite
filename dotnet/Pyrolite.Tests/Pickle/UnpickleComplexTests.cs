@@ -104,6 +104,7 @@ public class UnpickleComplexTests
 		expectedSet.Add("remove");
 		expectedSet.Add("list");
 		expectedSet.Add("count");
+		expectedSet.Add("set_metadata");
 		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroMethods);
 		expectedSet = new HashSet<string>();
 		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroOneway);
