@@ -76,6 +76,11 @@ public class UnpicklerComplexTest {
 	}
 
 	@Test
+	public void testUnpickleRealProxy2old() throws IOException {
+		unpickleRealProxy("pickled_nameserver_proxy_p2old.dat");
+	}
+
+	@Test
 	public void testUnpickleRealProxy3() throws IOException {
 		unpickleRealProxy("pickled_nameserver_proxy_p3.dat");
 	}
@@ -110,7 +115,10 @@ public class UnpicklerComplexTest {
 		expectedSet.add("remove");
 		expectedSet.add("list");
 		expectedSet.add("count");
-		assertEquals(expectedSet, proxy.pyroMethods);
+		expectedSet.add("set_metadata");
+		proxy.pyroMethods.removeAll(expectedSet);
+		
+		assertEquals(0, proxy.pyroMethods.size());
 		expectedSet = new HashSet<String>();
 		assertEquals(expectedSet, proxy.pyroOneway);
 	}

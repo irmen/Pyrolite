@@ -26,8 +26,8 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.3</version>
 					<configuration>
-						<source>1.6</source>
-						<target>1.6</target>
+						<source>1.7</source>
+						<target>1.7</target>
 						<compilerArgument>-Xlint:unchecked</compilerArgument>
 					</configuration>
 				</plugin>
@@ -93,5 +93,9 @@
 	<description>This library allows your Java program to interface very easily with the Python world. It uses the Pyro protocol to call methods on remote objects. (See https://github.com/irmen/Pyro4). To that end, it also contains and uses a feature complete pickle protocol implementation -read and write- to exchange data with Pyro/Python.
 
 Pyrolite only implements part of the client side Pyro library, hence its name 'lite'...  But because Pyrolite has no dependencies, it is a much lighter way to use Pyro from Java/.NET than a solution with jython+pyro or IronPython+Pyro would provide. So if you don't need Pyro's full feature set, and don't require your Java/.NET code to host Pyro objects itself, Pyrolite may be a good choice to connect java or .NET and python.
-Version 4.13 can now register a custom pickler for inheritance tree of interfaces or abstract base class.</description>
+
+Version 4.14 changes:
+Java 7 or newer is now required to build (jdk 1.7+).
+Support for protocol changes introduced in Pyro 4.48.
+</description>
 </project>
