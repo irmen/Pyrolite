@@ -1,14 +1,13 @@
 ﻿/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace Razorvine.Pickle.Objects
 {
 
 /// <summary>
-/// This creates PythonException instances. 
+/// This creates Python Exception instances. 
 /// It keeps track of the original Python exception type name as well.
 /// </summary>
 public class ExceptionConstructor : IObjectConstructor {

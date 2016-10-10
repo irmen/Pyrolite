@@ -248,8 +248,10 @@ public class UnpickleComplexTests
 		// python 3.x
 		x = (PythonException) U("c__builtin__\nGeneratorExit\np0\n(tRp1\n.");
 		Assert.AreEqual("[__builtin__.GeneratorExit]", x.Message);
+		Assert.AreEqual("__builtin__.GeneratorExit", x.PythonExceptionType);
 		x = (PythonException) U("cbuiltins\nGeneratorExit\np0\n(tRp1\n.");
 		Assert.AreEqual("[builtins.GeneratorExit]", x.Message);
+		Assert.AreEqual("builtins.GeneratorExit", x.PythonExceptionType);
 	}
 }
 }
