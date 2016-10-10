@@ -68,7 +68,7 @@ public class SerializePyroTest {
 		s = pickler.serializeData(ex);
 		x = pickler.deserializeData(s);
 		PyroException ex2 = (PyroException) x;
-		assertEquals(ex.getMessage(), ex2.getMessage());
+		assertEquals("[Pyro4.errors.PyroError] error", ex2.getMessage());
 		assertEquals("traceback", ex2._pyroTraceback);
 	}
 	
@@ -104,14 +104,14 @@ public class SerializePyroTest {
 		s = ser.serializeData(ex);
 		x = ser.deserializeData(s);
 		PyroException ex2 = (PyroException) x;
-		assertEquals(ex.getMessage(), ex2.getMessage());
+		assertEquals("[PyroError] error", ex2.getMessage());
 		assertNull(ex._pyroTraceback);
 		
 		// try another kind of pyro exception
 		s = "{'attributes':{'tb': 'traceback', '_pyroTraceback': ['line1', 'line2']},'__exception__':True,'args':('hello',42),'__class__':'CommunicationError'}".getBytes();
 		x = ser.deserializeData(s);
 		ex2 = (PyroException) x;
-		assertEquals("hello", ex2.getMessage());
+		assertEquals("[CommunicationError] hello", ex2.getMessage());
 		assertEquals("line1line2", ex2._pyroTraceback);
 	}
 	

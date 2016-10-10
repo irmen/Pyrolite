@@ -270,20 +270,27 @@ public class UnpicklerComplexTest {
 
 		// python 2.x
 		PythonException x = (PythonException) ser.deserializeData("cexceptions\nZeroDivisionError\np0\n(S'hello'\np1\ntp2\nRp3\n.".getBytes());
-		assertEquals("hello", x.getMessage());
+		assertEquals("[exceptions.ZeroDivisionError] hello", x.getMessage());
+		assertEquals("exceptions.ZeroDivisionError", x.pythonExceptionType);
+
 		// python 3.x
 		x = (PythonException) ser.deserializeData("c__builtin__\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.".getBytes());
-		assertEquals("hello", x.getMessage());
+		assertEquals("[__builtin__.ZeroDivisionError] hello", x.getMessage());
+		assertEquals("__builtin__.ZeroDivisionError", x.pythonExceptionType);
 		x = (PythonException) ser.deserializeData("cbuiltins\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.".getBytes());
-		assertEquals("hello", x.getMessage());
+		assertEquals("[builtins.ZeroDivisionError] hello", x.getMessage());
+		assertEquals("builtins.ZeroDivisionError", x.pythonExceptionType);
 
 		// python 2.x
 		x = (PythonException) ser.deserializeData("cexceptions\nGeneratorExit\np0\n(tRp1\n.".getBytes());
-		assertNull(x.getMessage());
+		assertEquals("[exceptions.GeneratorExit]", x.getMessage());
+		assertEquals("exceptions.GeneratorExit", x.pythonExceptionType);
 		// python 3.x
 		x = (PythonException) ser.deserializeData("c__builtin__\nGeneratorExit\np0\n(tRp1\n.".getBytes());
-		assertNull(x.getMessage());
+		assertEquals("[__builtin__.GeneratorExit]", x.getMessage());
+		assertEquals("__builtin__.GeneratorExit", x.pythonExceptionType);
 		x = (PythonException) ser.deserializeData("cbuiltins\nGeneratorExit\np0\n(tRp1\n.".getBytes());
-		assertNull(x.getMessage());
+		assertEquals("[builtins.GeneratorExit]", x.getMessage());
+		assertEquals("builtins.GeneratorExit", x.pythonExceptionType);
 	}
 }

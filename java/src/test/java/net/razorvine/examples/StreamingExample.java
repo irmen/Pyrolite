@@ -21,7 +21,7 @@ public class StreamingExample {
 	public static void main(String[] args) throws IOException {
 
 		setConfig();
-		// Config.SERIALIZER = Config.SerializerType.pickle; // XXX
+		/// Config.SERIALIZER = Config.SerializerType.pickle;
 
 		System.out.println("Testing Pyro iterator item streaming");
 		System.out.println("Pyrolite version: "+Config.PYROLITE_VERSION);
