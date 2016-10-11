@@ -140,6 +140,7 @@ namespace Razorvine.Pyro
 		private static MethodInfo serializeMethod;
 		private static MethodInfo parseMethod;
 		private static MethodInfo astGetDataMethod;
+		private static MethodInfo tobytesMethod;
 		private static Type serpentSerializerType;
 		private static Type serpentParserType;
 
@@ -163,6 +164,7 @@ namespace Razorvine.Pyro
 			
 			serializeMethod = serpentSerializerType.GetMethod("Serialize", new Type[] {typeof(object)});
 			parseMethod = serpentParserType.GetMethod("Parse", new Type[] {typeof(byte[])});
+			tobytesMethod = serpentParserType.GetMethod("ToBytes", new Type[] {typeof(object)});
 
 			astGetDataMethod = astType.GetMethod("GetData", new Type[]{typeof(Func<IDictionary, object>)});
 			
@@ -220,5 +222,22 @@ namespace Razorvine.Pyro
 			Func<IDictionary, object> dictToInstanceFunc = DictToInstance;
 			return astGetDataMethod.Invoke(ast, new object[] {dictToInstanceFunc});
 		}
+		
+		/**
+		 * Utility function to convert obj back to actual bytes if it is a serpent-encoded bytes dictionary
+		 * (a IDictionary with base-64 encoded 'data' in it and 'encoding'='base64').
+		 * If obj is already a byte array, return obj unmodified.
+		 * If it is something else, throw an IllegalArgumentException
+		 * (implementation used of net.razorvine.serpent.Parser)
+		 */
+		public static byte[] ToBytes(object obj) {
+			try {
+				return (byte[]) tobytesMethod.Invoke(null, new Object[] {obj});
+			} catch(TargetInvocationException x) {
+				if(x.InnerException != null)
+					throw x.InnerException;
+				throw;
+			}
+		}		
 	}
 }

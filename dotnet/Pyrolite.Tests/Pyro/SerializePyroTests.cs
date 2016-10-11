@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -152,6 +153,33 @@ namespace Pyrolite.Tests.Pyro
 			Assert.AreEqual("[Pyro4.errors.PyroError] error", ex2.Message);
 			Assert.IsNull(ex._pyroTraceback);
 		}		
+
+
+		[Test]
+		public void TestBytes()
+		{
+			byte[] bytes = new byte[] { 97, 98, 99, 100, 101, 102 };	// abcdef
+			var dict = new Dictionary<string, string>();
+			dict.Add("data", "YWJjZGVm");
+			dict.Add("encoding", "base64");
+	
+	        byte[] bytes2 = SerpentSerializer.ToBytes(dict);
+	        Assert.AreEqual(bytes, bytes2);
+	        
+	        var hashtable = new Hashtable();
+			hashtable.Add("data", "YWJjZGVm");
+			hashtable.Add("encoding", "base64");
+	
+	        bytes2 = SerpentSerializer.ToBytes(hashtable);
+	        Assert.AreEqual(bytes, bytes2);
+
+	        try {
+	        	SerpentSerializer.ToBytes(12345);
+	        	Assert.Fail("error expected");
+	        } catch (ArgumentException) {
+	        	//
+	        }
+		}
 	}
 
 	/// <summary>
@@ -168,5 +196,5 @@ namespace Pyrolite.Tests.Pyro
 			Assert.IsNotNull(prop, "pyro exception class has to have a property PythonExceptionType, it is used in constructor classes");
 			prop = type.GetProperty("_pyroTraceback");
 			Assert.IsNotNull(prop, "pyro exception class has to have a property _pyroTraceback, it is used in constructor classes");
-		}
+		}		
 	}}

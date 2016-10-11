@@ -96,5 +96,25 @@ namespace Pyrolite.Tests.Pyro
 			HashSet<object> s2 = (HashSet<object>) ser.deserializeData(data);
 			Assert.AreEqual(s, s2);
 		}
+		
+		[Test]
+		public void TestSerpentBytes()
+		{
+			byte[] bytes = Encoding.ASCII.GetBytes("hello");
+			SerpentSerializer ser = new SerpentSerializer();
+			byte[] data = ser.serializeData(bytes);
+			
+			string str = Encoding.ASCII.GetString(data);
+			Assert.IsTrue(str.Contains("base64"));
+			
+			Razorvine.Serpent.Parser p = new Razorvine.Serpent.Parser();
+			Object data2 = p.Parse(data).GetData();
+			
+			Console.WriteLine(data2);
+			
+			byte[] bytes2 = SerpentSerializer.ToBytes(data2);
+			
+			Assert.AreEqual(Encoding.ASCII.GetBytes("hello"), bytes2);
+		}		
 	}
 }
