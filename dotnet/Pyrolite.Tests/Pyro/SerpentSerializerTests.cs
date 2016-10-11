@@ -109,11 +109,7 @@ namespace Pyrolite.Tests.Pyro
 			
 			Razorvine.Serpent.Parser p = new Razorvine.Serpent.Parser();
 			Object data2 = p.Parse(data).GetData();
-			
-			Console.WriteLine(data2);
-			
 			byte[] bytes2 = SerpentSerializer.ToBytes(data2);
-			
 			Assert.AreEqual(Encoding.ASCII.GetBytes("hello"), bytes2);
 		}		
 	}
