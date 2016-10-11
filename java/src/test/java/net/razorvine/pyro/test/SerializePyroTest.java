@@ -175,4 +175,24 @@ public class SerializePyroTest {
 		assertEquals(1, PickleSerializer.compareLibraryVersions("2", "1.2"));
 		assertEquals(1, PickleSerializer.compareLibraryVersions("2.54.66", "1.2.3.4.99"));
 	}
+	
+	@Test
+	public void testBytes()
+	{
+		byte[] bytes = new byte[] { 97, 98, 99, 100, 101, 102 };	// abcdef
+		Map<String,String> dict = new HashMap<String, String>();
+		dict.put("data", "YWJjZGVm");
+		dict.put("encoding", "base64");
+
+        byte[] bytes2 = SerpentSerializer.toBytes(dict);
+        assertArrayEquals(bytes, bytes2);
+        
+        try {
+        	SerpentSerializer.toBytes(12345);
+        	fail("error expected");
+        } catch (IllegalArgumentException x) {
+        	//
+        }
+	}
+	
 }

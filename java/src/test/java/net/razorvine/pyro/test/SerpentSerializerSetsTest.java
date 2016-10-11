@@ -8,6 +8,7 @@ import java.util.Set;
 
 import net.razorvine.pyro.Config;
 import net.razorvine.pyro.serializer.PyroSerializer;
+import net.razorvine.pyro.serializer.SerpentSerializer;
 
 import org.junit.After;
 import org.junit.Before;
@@ -41,5 +42,21 @@ public class SerpentSerializerSetsTest {
 		Set<Object> s2 = (HashSet<Object>) ser.deserializeData(data);
 		assertEquals(s, s2);
 	}
-
+	
+	@Test
+	public void testSerpentBytes() throws IOException
+	{
+		byte[] bytes = "hello".getBytes();
+		SerpentSerializer ser = new SerpentSerializer();
+		byte[] data = ser.serializeData(bytes);
+		
+		String str = new String(data);
+		assertTrue(str.contains("base64"));
+		
+		net.razorvine.serpent.Parser p = new net.razorvine.serpent.Parser();
+		Object data2 = p.parse(data).getData();
+		byte[] bytes2 = SerpentSerializer.toBytes(data2);
+		
+		assertArrayEquals("hello".getBytes(), bytes2);
+	}
 }

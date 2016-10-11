@@ -65,5 +65,15 @@ public class SerpentSerializer extends PyroSerializer {
 				return null;
 		}
 	}
-
+	
+	/**
+	 * Utility function to convert obj back to actual bytes if it is a serpent-encoded bytes dictionary
+	 * (a IDictionary with base-64 encoded 'data' in it and 'encoding'='base64').
+	 * If obj is already a byte array, return obj unmodified.
+	 * If it is something else, throw an IllegalArgumentException
+	 * (implementation used of net.razorvine.serpent.Parser)
+	 */
+	public static byte[] toBytes(Object obj) {
+		return net.razorvine.serpent.Parser.toBytes(obj);
+	}
 }
