@@ -64,6 +64,12 @@ public class EchoExample {
 			String hmac2 = new String(p2.pyroHmacKey);
 			if(!hmac2.equals(new String(hmacKey))) throw new AssertionError("hmac");
 		}
+		
+		System.out.println("remote iterator test.");
+		Iterable<String> iter = (Iterable<String>)p.call("generator");
+		for(String item: iter) {
+			System.out.println("  got item: "+item);
+		}
 
 		System.out.println("error test.");
 		try {

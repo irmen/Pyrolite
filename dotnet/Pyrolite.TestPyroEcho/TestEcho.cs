@@ -107,6 +107,12 @@ public class TestEcho {
 				string hmac2 = Encoding.UTF8.GetString(p2.pyroHmacKey);
 				Debug.Assert(hmac2==Encoding.UTF8.GetString(hmacKey));
 			}
+
+			Console.WriteLine("remote iterator test.");
+			var iter = p.generator();
+			foreach(var item in iter) {
+				Console.WriteLine("  got item: "+item);
+			}
 			
 			Console.WriteLine("error test.");
 			try {
