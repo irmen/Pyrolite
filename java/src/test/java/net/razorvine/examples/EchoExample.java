@@ -66,6 +66,7 @@ public class EchoExample {
 		}
 		
 		System.out.println("remote iterator test.");
+		@SuppressWarnings("unchecked")
 		Iterable<String> iter = (Iterable<String>)p.call("generator");
 		for(String item: iter) {
 			System.out.println("  got item: "+item);
