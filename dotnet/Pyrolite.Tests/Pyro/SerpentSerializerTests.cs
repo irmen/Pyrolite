@@ -14,7 +14,7 @@ namespace Pyrolite.Tests.Pyro
 		public void TestSerpentVersion()
 		{
 			Version serpentVersion = new Version(LibraryVersion.Version);
-			Assert.IsTrue(serpentVersion >= new Version(1, 5));
+			Assert.IsTrue(serpentVersion >= new Version(1, 16));
 		}
 		
 		[Test]
