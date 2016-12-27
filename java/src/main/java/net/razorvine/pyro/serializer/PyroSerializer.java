@@ -39,7 +39,7 @@ public abstract class PyroSerializer
 						// try loading it
 						try {
 							serpentSerializer = new SerpentSerializer();
-							final String requiredSerpentVersion = "1.5";
+							final String requiredSerpentVersion = "1.16";
 							if(compareLibraryVersions(net.razorvine.serpent.LibraryVersion.VERSION, requiredSerpentVersion) < 0)
 							{
 								throw new java.lang.RuntimeException("serpent version "+requiredSerpentVersion+" (or newer) is required");
