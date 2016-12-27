@@ -14,8 +14,8 @@ Also includes Pickle/Unpickle.
 More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
     <releaseNotes>
-Serpent serialization fixes. 
-Requires Razorvine.Serpent library version 1.16 or newer.
+Fixed possible error when processing serialized byte data.
+Requires Razorvine.Serpent library version 1.16 or newer (to fix complex number parsing errors)
 </releaseNotes>
     <copyright>Copyright 2015, 2016</copyright>
     <tags>pyro python rpc remote-objects</tags>
