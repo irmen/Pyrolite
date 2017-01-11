@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Razorvine.Pyrolite</id>
-    <version>4.15.0.0</version>
+    <version>4.16.0.0</version>
     <title>Razorvine.Pyrolite</title>
     <authors>Irmen de Jong</authors>
     <owners>Irmen de Jong</owners>
@@ -14,8 +14,7 @@ Also includes Pickle/Unpickle.
 More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
     <releaseNotes>
-Fixed possible error when processing serialized byte data.
-Requires Razorvine.Serpent library version 1.16 or newer (to fix complex number parsing errors)
+Fixed handshake type cast error that prevented the library from working at all (was caused by modified serpent deserializer protocol in new serpent library)
 </releaseNotes>
     <copyright>Copyright 2015, 2016</copyright>
     <tags>pyro python rpc remote-objects</tags>

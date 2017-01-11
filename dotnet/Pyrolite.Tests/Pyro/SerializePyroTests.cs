@@ -197,4 +197,17 @@ namespace Pyrolite.Tests.Pyro
 			prop = type.GetProperty("_pyroTraceback");
 			Assert.IsNotNull(prop, "pyro exception class has to have a property _pyroTraceback, it is used in constructor classes");
 		}		
+		
+		[Test]
+		public void testSerpentDictType()
+		{
+			Hashtable ht = new Hashtable();
+			ht["key"]="value";
+			var ser = new SerpentSerializer();
+			var data = ser.serializeData(ht);
+			var result = ser.deserializeData(data);
+			Assert.IsAssignableFrom(typeof(Dictionary<object,object>), result, "in recent serpent versions, hashtables/dicts must be deserialized as IDictionary<object,object> rather than Hashtable");
+			var dict = (IDictionary<object,object>)result;
+			Assert.AreEqual("value", dict["key"]);
+		}
 	}}

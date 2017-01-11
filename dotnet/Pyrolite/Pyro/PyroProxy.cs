@@ -107,17 +107,17 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 	
 		//  invoke the get_metadata method on the daemon
-		Hashtable result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new [] {objectId}) as Hashtable;
+		object result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new [] {objectId});
 		if(result==null)
 			return;
-		_processMetadata(result);
+		_processMetadata((IDictionary<object,object>)result);
 	}
 
 	/// <summary>
 	/// Extract meta data and store it in the relevant properties on the proxy.
 	/// If no attribute or method is exposed at all, throw an exception.
 	/// </summary>
-	private void _processMetadata(Hashtable result)
+	private void _processMetadata(IDictionary<object, object> result)
 	{
 		// the collections in the result can be either an object[] or a HashSet<object> or List<object>, 
 		// depending on the serializer and Pyro version that is used
@@ -382,8 +382,8 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 		if(msg.type==Message.MSG_CONNECTOK) {
 			if((msg.flags & Message.FLAGS_META_ON_CONNECT) != 0) {
-				var response_dict = (Hashtable)handshake_response;
-				_processMetadata(response_dict["meta"] as Hashtable);
+				var response_dict = (IDictionary<object,object>)handshake_response;
+				_processMetadata((IDictionary<object,object>)response_dict["meta"]);
 				handshake_response = response_dict["handshake"];
 				try {
 					validateHandshake(handshake_response);
