@@ -20,13 +20,13 @@ namespace Razorvine.Pickle
 /// </summary>
 public class Unpickler : IDisposable {
 
-	private const int HIGHEST_PROTOCOL = 4;
+	protected const int HIGHEST_PROTOCOL = 4;
 
-	private IDictionary<int, object> memo;
+	protected IDictionary<int, object> memo;
 	protected UnpickleStack stack;
-	private Stream input;
-	private static IDictionary<string, IObjectConstructor> objectConstructors;
-	private static readonly object NO_RETURN_VALUE = new object();
+	protected Stream input;
+	protected static IDictionary<string, IObjectConstructor> objectConstructors;
+	protected static readonly object NO_RETURN_VALUE = new object();
 
 	static Unpickler() {
 		objectConstructors = new Dictionary<string, IObjectConstructor>();

@@ -34,14 +34,14 @@ import net.razorvine.pickle.objects.SetConstructor;
  */
 public class Unpickler {
 
-	private static final Object NO_RETURN_VALUE = new Object();
+	protected static final Object NO_RETURN_VALUE = new Object();
 
-	private final int HIGHEST_PROTOCOL = 4;
+	protected final int HIGHEST_PROTOCOL = 4;
 
-	private Map<Integer, Object> memo;
+	protected Map<Integer, Object> memo;
 	protected UnpickleStack stack;
-	private InputStream input;
-	private static Map<String, IObjectConstructor> objectConstructors;
+	protected InputStream input;
+	protected static Map<String, IObjectConstructor> objectConstructors;
 
 	static {
 		objectConstructors = new HashMap<String, IObjectConstructor>();
