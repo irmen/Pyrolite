@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Security.Cryptography;
 
 using NUnit.Framework;
 using Razorvine.Pickle;
@@ -91,6 +92,21 @@ public class UnpickleComplexTests
 	public void testUnpickleRealProxy4() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p4.dat");
 		unpickleRealProxy(pickled_proxy);
+	}
+
+	[Test]
+	public void testUnpickleProto0Bytes() {
+		byte[] pickle = File.ReadAllBytes("pickled_bytes_level0.dat");
+
+		PickleSerializer ser = new PickleSerializer();
+		string x = (string)ser.deserializeData(pickle);
+		Assert.AreEqual(2496, x.Length);
+		
+		// validate that the bytes in the string are what we expect (based on md5 hash)
+		var m = SHA1.Create();
+		byte[] hashb = m.ComputeHash(Encoding.UTF8.GetBytes(x));
+		string digest = BitConverter.ToString(hashb);
+		Assert.AreEqual("22-f4-5b-87-63-83-c9-1b-1c-b2-0a-fe-51-ee-3b-30-f5-a8-5d-4c", digest.ToLowerInvariant());
 	}
 
 	private void unpickleRealProxy(byte[] pickled_proxy) {

@@ -221,6 +221,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual("", U("S\"\"\n."));
 		Assert.AreEqual("a", U("S'a'\n."));
 		Assert.AreEqual("a", U("S\"a\"\n."));
+		Assert.AreEqual("'", U("S'\\''\n."));
 		Assert.AreEqual("\u00a1\u00a2\u00a3", U("S'\\xa1\\xa2\\xa3'\n."));
 		Assert.AreEqual("a\\x00y", U("S'a\\\\x00y'\n."));
 		

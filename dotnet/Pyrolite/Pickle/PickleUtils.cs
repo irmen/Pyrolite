@@ -285,8 +285,13 @@ public static class PickleUtils {
 					case 't':
 						sb.Append('\t');
 						break;
+					case '\'':
+						sb.Append('\'');   			// sometimes occurs in protocol level 0 strings
+						break;
 					default:
-						throw new PickleException("invalid escape sequence in string");
+						if(str.Length>80)
+							str=str.Substring(0, 80);
+						throw new PickleException("invalid escape sequence char \'"+(c2)+"\' in string \""+str+" [...]\" (possibly truncated)");
 				}
 			} else {
 				sb.Append(str[i]);
@@ -331,7 +336,9 @@ public static class PickleUtils {
 						sb.Append('\t');
 						break;
 					default:
-						throw new PickleException("invalid escape sequence in string");
+						if(str.Length>80)
+							str=str.Substring(0, 80);
+						throw new PickleException("invalid escape sequence char \'"+(c2)+"\' in string \""+str+" [...]\" (possibly truncated)");
 				}
 			} else {
 				sb.Append(str[i]);

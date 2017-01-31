@@ -258,6 +258,7 @@ public class PickleUtilsTest {
 		Assert.AreEqual("a\nc", PickleUtils.decode_escaped("a\\nc"));
 		Assert.AreEqual("a\tc", PickleUtils.decode_escaped("a\\tc"));
 		Assert.AreEqual("a\rc", PickleUtils.decode_escaped("a\\rc"));
+		Assert.AreEqual("a'c", PickleUtils.decode_escaped("a\\'c"));
 	}
 	
 	[Test]
