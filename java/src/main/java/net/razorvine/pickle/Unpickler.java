@@ -169,9 +169,11 @@ public class Unpickler {
 			load_none();
 			break;
 		case Opcodes.PERSID:
-			throw new InvalidOpcodeException("opcode not implemented: PERSID");
+			load_persid();
+			break;
 		case Opcodes.BINPERSID:
-			throw new InvalidOpcodeException("opcode not implemented: BINPERSID");
+			load_binpersid();
+			break;
 		case Opcodes.REDUCE:
 			load_reduce();
 			break;
@@ -725,5 +727,23 @@ public class Unpickler {
 	void load_frame() throws IOException {
 		// for now we simply skip the frame opcode and its length
 		PickleUtils.readbytes(input, 8);
+	}
+	
+	void load_persid() throws IOException {
+		// the persistent id is taken from the argument
+		String pid = PickleUtils.readline(input);
+		stack.add(persistentLoad(pid));
+	}	
+
+	void load_binpersid() throws IOException {
+		// the persistent id is taken from the stack
+		String pid = stack.pop().toString();
+		stack.add(persistentLoad(pid));
+	}	
+	
+	
+	protected Object persistentLoad(String pid)
+	{
+		throw new PickleException("A load persistent id instruction was encountered, but no persistentLoad function was specified. (implement it in custom Unpickler subclass)");
 	}
 }

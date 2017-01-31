@@ -193,16 +193,55 @@ public class UnpickleOpcodesTest {
 		assertEquals(null, U("N."));
 	}
 
-	@Test(expected=InvalidOpcodeException.class)
-	public void testPERSID() throws PickleException, IOException {
+	@Test(expected=PickleException.class)
+	public void testPERSIDfail() throws PickleException, IOException {
 		//PERSID         = b'P'   # push persistent object; id is taken from string arg
-		U("Pbla\n."); // this opcode is not implemented and should raise an exception
+		byte[] pickle = PickleUtils.str2bytes("(lp0\nI42\naP9999\na.");
+		u.loads(pickle);
 	}
 
-	@Test(expected=InvalidOpcodeException.class)
+	@Test(expected=PickleException.class)
+	public void testBINPERSIDfail() throws PickleException, IOException {
+		//BINPERSID      = b'Q'   # push persistent object; id is taken from stack
+		byte[] pickle = PickleUtils.str2bytes("\u0080\u0004\u0095\u000f\u0000\u0000\u0000\u0000\u0000\u0000\u0000]\u0094(K*\u008c\u00049999\u0094Qe.");
+		u.loads(pickle);
+	}
+
+	
+	class PersistentIdUnpickler extends Unpickler
+	{
+		@Override
+		protected Object persistentLoad(String pid)
+		{
+			if("9999".equals(pid))
+				return "PersistentObject";
+			else
+				throw new IllegalArgumentException("unknown persistent_id "+pid);
+		}
+	}
+		
+	@Test
+	public void testPERSID() throws PickleException, IOException {
+		//PERSID         = b'P'   # push persistent object; id is taken from string arg
+		byte[] pickle = PickleUtils.str2bytes("(lp0\nI42\naP9999\na.");
+		Unpickler u = new PersistentIdUnpickler();
+		@SuppressWarnings("unchecked")
+		List<Object> result = (List<Object>)u.loads(pickle);
+		assertEquals(2, result.size());
+		assertEquals(42, result.get(0));
+		assertEquals("PersistentObject", result.get(1));
+	}
+
+	@Test
 	public void testBINPERSID() throws PickleException, IOException {
-		//BINPERSID      = b'Q'   #  "       "         "  ;  "  "   "     "  stack
-		U("I42\nQ."); // this opcode is not implemented and should raise an exception
+		//BINPERSID      = b'Q'   # push persistent object; id is taken from stack
+		byte[] pickle = PickleUtils.str2bytes("\u0080\u0004\u0095\u000f\u0000\u0000\u0000\u0000\u0000\u0000\u0000]\u0094(K*\u008c\u00049999\u0094Qe.");
+		Unpickler u = new PersistentIdUnpickler();
+		@SuppressWarnings("unchecked")
+		List<Object> result = (List<Object>)u.loads(pickle);
+		assertEquals(2, result.size());
+		assertEquals(42, result.get(0));
+		assertEquals("PersistentObject", result.get(1));
 	}
 
 	@Test
