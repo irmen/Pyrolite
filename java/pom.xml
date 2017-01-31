@@ -94,7 +94,6 @@
 
 Pyrolite only implements part of the client side Pyro library, hence its name 'lite'...  But because Pyrolite has no dependencies, it is a much lighter way to use Pyro from Java/.NET than a solution with jython+pyro or IronPython+Pyro would provide. So if you don't need Pyro's full feature set, and don't require your Java/.NET code to host Pyro objects itself, Pyrolite may be a good choice to connect java or .NET and python.
 
-Version 4.15 changes: requires Serpent 1.16 to fix a floating point number serialization issue
-Version 4.16 changes: version number strings are correct again.
+Version 4.17 changes: fixed decode crash of escaped single quote (\') that sometimes occurs in protocol level 0 pickled strings
 </description>
 </project>

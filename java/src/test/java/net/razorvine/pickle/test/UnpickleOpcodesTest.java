@@ -221,6 +221,7 @@ public class UnpickleOpcodesTest {
 		assertEquals("", U("S\"\"\n."));
 		assertEquals("a", U("S'a'\n."));
 		assertEquals("a", U("S\"a\"\n."));
+		assertEquals("'", U("S'\\''\n."));
 		assertEquals("\u00a1\u00a2\u00a3", U("S'\\xa1\\xa2\\xa3'\n."));
 		assertEquals("a\\x00y", U("S'a\\\\x00y'\n."));
 		

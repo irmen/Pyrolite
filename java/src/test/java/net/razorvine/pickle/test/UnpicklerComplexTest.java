@@ -5,6 +5,9 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -88,6 +91,26 @@ public class UnpicklerComplexTest {
 	@Test
 	public void testUnpickleRealProxy4() throws IOException {
 		unpickleRealProxy("pickled_nameserver_proxy_p4.dat");
+	}
+
+	@Test
+	public void testUnpickleProto0Bytes() throws IOException, NoSuchAlgorithmException {
+		InputStream is = this.getClass().getResourceAsStream("pickled_bytes_level0.dat");
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		int c;
+		while((c = is.read())>=0) bos.write(c);
+		is.close();
+		byte[] pickle = bos.toByteArray();
+
+		PickleSerializer ser = new PickleSerializer();
+		String x = (String)ser.deserializeData(pickle);
+		assertEquals(2496, x.length());
+		
+		// validate that the bytes in the string are what we expect (based on md5 hash)
+		MessageDigest m = MessageDigest.getInstance("SHA1");
+		m.update(x.getBytes("utf-8"));
+		BigInteger digest = new BigInteger(1, m.digest());
+		assertEquals("22f45b876383c91b1cb20afe51ee3b30f5a85d4c", digest.toString(16));
 	}
 
 	private void unpickleRealProxy(String pickle_name) throws IOException

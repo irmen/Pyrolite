@@ -275,6 +275,7 @@ public class PickleUtilsTest {
 		assertEquals("a\nc", PickleUtils.decode_escaped("a\\nc"));
 		assertEquals("a\tc", PickleUtils.decode_escaped("a\\tc"));
 		assertEquals("a\rc", PickleUtils.decode_escaped("a\\rc"));
+		assertEquals("a'c", PickleUtils.decode_escaped("a\\'c"));
 	}
 	
 	@Test

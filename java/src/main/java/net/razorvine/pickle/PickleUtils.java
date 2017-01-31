@@ -340,8 +340,13 @@ public abstract class PickleUtils {
 					case 't':
 						sb.append('\t');
 						break;
+					case '\'':
+						sb.append('\'');		// sometimes occurs in protocol level 0 strings
+						break;
 					default:
-						throw new PickleException("invalid escape sequence in string");
+						if(str.length()>80)
+							str=str.substring(0, 80);
+						throw new PickleException("invalid escape sequence char \'"+ (c2) + "\' in string \"" + str + " [...]\" (possibly truncated)");
 				}
 			} else {
 				sb.append(str.charAt(i));
@@ -386,7 +391,9 @@ public abstract class PickleUtils {
 						sb.append('\t');
 						break;
 					default:
-						throw new PickleException("invalid escape sequence in string");
+						if(str.length()>80)
+							str=str.substring(0, 80);
+						throw new PickleException("invalid escape sequence char \'"+ (c2) + "\' in string \"" + str + " [...]\" (possibly truncated)");
 				}
 			} else {
 				sb.append(str.charAt(i));
