@@ -193,18 +193,51 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(null, U("N."));
 	}
 
-	[Test, ExpectedException(typeof(InvalidOpcodeException))]
+	[Test, ExpectedException(typeof(PickleException))]
+	public void testPERSIDfail() {
+		//PERSID         = b'P'   # push persistent object; id is taken from string arg
+		U("Pbla\n.");
+	}
+
+	[Test, ExpectedException(typeof(PickleException))]
+	public void testBINPERSIDfail() {
+		//BINPERSID      = b'Q'   #  push persistent object; id is taken from stack
+		U("I42\nQ.");
+	}
+
+	class PersistentIdUnpickler : Unpickler
+	{
+		protected override Object persistentLoad(string pid)
+		{
+			if(pid=="9999")
+				return "PersistentObject";
+			else
+				throw new ArgumentException("unknown persistent_id "+pid);
+		}
+	}
+	
+	[Test]
 	public void testPERSID() {
 		//PERSID         = b'P'   # push persistent object; id is taken from string arg
-		U("Pbla\n."); // this opcode is not implemented and should raise an exception
+		byte[] pickle = PickleUtils.str2bytes("(lp0\nI42\naP9999\na.");
+		Unpickler u = new PersistentIdUnpickler();
+		IList result = (IList)u.loads(pickle);
+		Assert.AreEqual(2, result.Count);
+		Assert.AreEqual(42, result[0]);
+		Assert.AreEqual("PersistentObject", result[1]);
 	}
 
-	[Test, ExpectedException(typeof(InvalidOpcodeException))]
+	[Test]
 	public void testBINPERSID() {
-		//BINPERSID      = b'Q'   #  "       "         "  ;  "  "   "     "  stack
-		U("I42\nQ."); // this opcode is not implemented and should raise an exception
+		//BINPERSID      = b'Q'   #  push persistent object; id is taken from stack
+		byte[] pickle = PickleUtils.str2bytes("\u0080\u0004\u0095\u000f\u0000\u0000\u0000\u0000\u0000\u0000\u0000]\u0094(K*\u008c\u00049999\u0094Qe.");
+		Unpickler u = new PersistentIdUnpickler();
+		IList result = (IList)u.loads(pickle);
+		Assert.AreEqual(2, result.Count);
+		Assert.AreEqual(42, result[0]);
+		Assert.AreEqual("PersistentObject", result[1]);
 	}
-
+	
 	[Test]
 	public void testREDUCE_and_GLOBAL() {
 		//GLOBAL         = b'c'   # push self.find_class(modname, name); 2 string args

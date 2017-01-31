@@ -138,9 +138,11 @@ public class Unpickler : IDisposable {
 			load_none();
 			break;
 		case Opcodes.PERSID:
-			throw new InvalidOpcodeException("opcode not implemented: PERSID");
+			load_persid();
+			break;
 		case Opcodes.BINPERSID:
-			throw new InvalidOpcodeException("opcode not implemented: BINPERSID");
+			load_binpersid();
+			break;
 		case Opcodes.REDUCE:
 			load_reduce();
 			break;
@@ -707,6 +709,23 @@ public class Unpickler : IDisposable {
 	void load_frame() {
 		// for now we simply skip the frame opcode and its length
 		PickleUtils.readbytes(input, 8);
+	}
+	
+	void load_persid() {
+		// the persistent id is taken from the argument
+		string pid = PickleUtils.readline(input);
+		stack.add(persistentLoad(pid));
+	}
+	
+	void load_binpersid() {
+		// the persistent id is taken from the stack
+		string pid = stack.pop().ToString();
+		stack.add(persistentLoad(pid));
+	}
+	
+	protected virtual Object persistentLoad(string pid)
+	{
+		throw new PickleException("A load persistent id instruction was encountered, but no persistentLoad function was specified. (implement it in custom Unpickler subclass)");
 	}
 	
 	public void Dispose()
