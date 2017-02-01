@@ -3,6 +3,7 @@ package net.razorvine.pickle.test;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.razorvine.pickle.UnpickleStack;
 
@@ -26,8 +27,8 @@ public class UnpickleStackTest {
 		s.add_mark();
 		s.add("e");
 		s.add("f");
-		ArrayList<Object> top=s.pop_all_since_marker();
-		ArrayList<Object> expected=new ArrayList<Object>();
+		List<Object> top=s.pop_all_since_marker();
+		List<Object> expected=new ArrayList<Object>();
 		expected.add("e");
 		expected.add("f");
 		assertEquals(expected, top);

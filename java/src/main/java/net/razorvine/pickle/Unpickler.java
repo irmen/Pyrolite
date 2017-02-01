@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import net.razorvine.pickle.objects.AnyClassConstructor;
@@ -217,7 +218,8 @@ public class Unpickler {
 			load_binget();
 			break;
 		case Opcodes.INST:
-			throw new InvalidOpcodeException("opcode not implemented: INST");
+			load_inst();
+			break;
 		case Opcodes.LONG_BINGET:
 			load_long_binget();
 			break;
@@ -228,7 +230,8 @@ public class Unpickler {
 			load_empty_list();
 			break;
 		case Opcodes.OBJ:
-			throw new InvalidOpcodeException("opcode not implemented: OBJ");
+			load_obj();
+			break;
 		case Opcodes.PUT:
 			load_put();
 			break;
@@ -262,11 +265,9 @@ public class Unpickler {
 			load_newobj();
 			break;
 		case Opcodes.EXT1:
-			throw new InvalidOpcodeException("opcode not implemented: EXT1");
 		case Opcodes.EXT2:
-			throw new InvalidOpcodeException("opcode not implemented: EXT2");
 		case Opcodes.EXT4:
-			throw new InvalidOpcodeException("opcode not implemented: EXT4");
+			throw new PickleException("Unimplemented opcode EXT1/EXT2/EXT4 encountered. Don't use extension codes when pickling via copyreg.add_extension() to avoid this error.");
 		case Opcodes.TUPLE1:
 			load_tuple1();
 			break;
@@ -501,7 +502,7 @@ public class Unpickler {
 	}
 
 	void load_tuple() {
-		ArrayList<Object> top = stack.pop_all_since_marker();
+		List<Object> top = stack.pop_all_since_marker();
 		stack.add(top.toArray());
 	}
 
@@ -539,12 +540,12 @@ public class Unpickler {
 	}
 
 	void load_list() {
-		ArrayList<Object> top = stack.pop_all_since_marker();
+		List<Object> top = stack.pop_all_since_marker();
 		stack.add(top); // simply add the top items as a list to the stack again
 	}
 
 	void load_dict() {
-		ArrayList<Object> top = stack.pop_all_since_marker();
+		List<Object> top = stack.pop_all_since_marker();
 		HashMap<Object, Object> map = new HashMap<Object, Object>(top.size());
 		for (int i = 0; i < top.size(); i += 2) {
 			Object key = top.get(i);
@@ -555,14 +556,14 @@ public class Unpickler {
 	}
 
 	void load_frozenset() {
-		ArrayList<Object> top = stack.pop_all_since_marker();
+		List<Object> top = stack.pop_all_since_marker();
 		HashSet<Object> set = new HashSet<Object>();
 		set.addAll(top);
 		stack.add(set);
 	}
 	
 	void load_additems() {
-		ArrayList<Object> top = stack.pop_all_since_marker();
+		List<Object> top = stack.pop_all_since_marker();
 		@SuppressWarnings("unchecked")
 		HashSet<Object> set = (HashSet<Object>) stack.pop();
 		set.addAll(top);
@@ -671,7 +672,7 @@ public class Unpickler {
 	}
 
 	void load_appends() {
-		ArrayList<Object> top = stack.pop_all_since_marker();
+		List<Object> top = stack.pop_all_since_marker();
 		@SuppressWarnings("unchecked")
 		ArrayList<Object> list = (ArrayList<Object>) stack.peek();
 		list.addAll(top);
@@ -741,6 +742,27 @@ public class Unpickler {
 		stack.add(persistentLoad(pid));
 	}	
 	
+	void load_obj() throws IOException {
+		List<Object> args = stack.pop_all_since_marker();
+		IObjectConstructor constructor = (IObjectConstructor)args.get(0);
+		args = args.subList(1, args.size());
+		Object object = constructor.construct(args.toArray());
+		stack.add(object);
+	}
+
+	void load_inst() throws IOException {
+		String module = PickleUtils.readline(input);
+		String classname = PickleUtils.readline(input);
+		List<Object> args = stack.pop_all_since_marker();
+		IObjectConstructor constructor = objectConstructors.get(module + "." + classname);
+		if (constructor == null) { 
+			constructor = new ClassDictConstructor(module, classname);
+			args.clear();  // classdict doesn't have constructor args... so we may lose info here, hmm.
+		}
+		Object object = constructor.construct(args.toArray());
+		stack.add(object);
+	}
+
 	
 	protected Object persistentLoad(String pid)
 	{

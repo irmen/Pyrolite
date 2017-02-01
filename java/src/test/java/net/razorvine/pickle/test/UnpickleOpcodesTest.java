@@ -19,11 +19,13 @@ import net.razorvine.pickle.PickleException;
 import net.razorvine.pickle.PickleUtils;
 import net.razorvine.pickle.Unpickler;
 import net.razorvine.pickle.objects.ByteArrayConstructor;
+import net.razorvine.pickle.objects.ClassDict;
 import net.razorvine.pickle.objects.DateTimeConstructor;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 
 /**
  * Unit tests for Unpickling every pickle opcode (all protocols).
@@ -444,10 +446,12 @@ public class UnpickleOpcodesTest {
 		}
 	}
 
-	@Test(expected=InvalidOpcodeException.class)
+	@Test
 	public void testINST() throws PickleException, IOException {
 		//INST           = b'i'   # build & push class instance
-		U("i.");
+		ClassDict result = (ClassDict) U("(i__main__\nThing\n(dS'value'\nI32\nsb.");
+		assertEquals("__main__.Thing", result.getClassName());
+		assertEquals(32, result.get("value"));
 	}
 
 	@Test
@@ -487,10 +491,12 @@ public class UnpickleOpcodesTest {
 		assertEquals(Collections.EMPTY_LIST, U("]."));
 	}
 
-	@Test(expected=InvalidOpcodeException.class)
+	@Test
 	public void testOBJ() throws PickleException, IOException {
 		//OBJ            = b'o'   # build & push class instance
-		U("o.");
+		ClassDict result = (ClassDict)U("\u0080\u0002(c__main__\nThing\no}U\u0005valueK sb.");
+		assertEquals("__main__.Thing", result.getClassName());
+		assertEquals(32, result.get("value"));
 	}
 
 	@Test
@@ -619,20 +625,20 @@ public class UnpickleOpcodesTest {
 		}
 	}
 
-	@Test(expected=InvalidOpcodeException.class)
-	public void testEXT1() throws PickleException, IOException {
+	@Test(expected=PickleException.class)
+	public void testEXT1fail() throws PickleException, IOException {
 		//EXT1           = b'\x82'  # push object from extension registry; 1-byte index
 		U("\u0082\u0001."); // not implemented
 	}
 
-	@Test(expected=InvalidOpcodeException.class)
-	public void testEXT2() throws PickleException, IOException {
+	@Test(expected=PickleException.class)
+	public void testEXT2fail() throws PickleException, IOException {
 		//EXT2           = b'\x83'  # ditto, but 2-byte index
 		U("\u0083\u0001\u0002."); // not implemented
 	}
 
-	@Test(expected=InvalidOpcodeException.class)
-	public void testEXT4() throws PickleException, IOException {
+	@Test(expected=PickleException.class)
+	public void testEXT4fail() throws PickleException, IOException {
 		//EXT4           = b'\x84'  # ditto, but 4-byte index
 		U("\u0084\u0001\u0002\u0003\u0004."); // not implemented
 	}

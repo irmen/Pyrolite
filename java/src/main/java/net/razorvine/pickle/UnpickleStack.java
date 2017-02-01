@@ -3,6 +3,7 @@ package net.razorvine.pickle;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Helper type that represents the unpickler working stack.
@@ -34,7 +35,7 @@ public class UnpickleStack implements Serializable {
 		return result;
 	}
 
-	public ArrayList<Object> pop_all_since_marker() {
+	public List<Object> pop_all_since_marker() {
 		ArrayList<Object> result = new ArrayList<Object>();
 		Object o = pop();
 		while (o != this.MARKER) {
