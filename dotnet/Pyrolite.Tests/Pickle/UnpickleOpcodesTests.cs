@@ -437,10 +437,12 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test, ExpectedException(typeof(InvalidOpcodeException))]
+	[Test]
 	public void testINST() {
 		//INST           = b'i'   # build & push class instance
-		U("i.");
+		ClassDict result = (ClassDict) U("(i__main__\nThing\n(dS'value'\nI32\nsb.");
+		Assert.AreEqual("__main__.Thing", result.ClassName);
+		Assert.AreEqual(32, result["value"]);
 	}
 
 	[Test]
@@ -480,10 +482,12 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(new ArrayList(), U("]."));
 	}
 
-	[Test, ExpectedException(typeof(InvalidOpcodeException))]
+	[Test]
 	public void testOBJ() {
 		//OBJ            = b'o'   # build & push class instance
-		U("o.");
+		ClassDict result = (ClassDict) U("\u0080\u0002(c__main__\nThing\no}U\u0005valueK sb.");
+		Assert.AreEqual("__main__.Thing", result.ClassName);
+		Assert.AreEqual(32, result["value"]);
 	}
 
 	[Test]
@@ -613,19 +617,19 @@ public class UnpickleOpcodesTests {
 	}
 
 	
-	[Test, ExpectedException(typeof(InvalidOpcodeException))]
+	[Test, ExpectedException(typeof(PickleException))]
 	public void testEXT1() {
 		//EXT1           = b'\x82'  # push object from extension registry; 1-byte index
 		U("\u0082\u0001."); // not implemented
 	}
 
-	[Test, ExpectedException(typeof(InvalidOpcodeException))]
+	[Test, ExpectedException(typeof(PickleException))]
 	public void testEXT2() {
 		//EXT2           = b'\x83'  # ditto, but 2-byte index
 		U("\u0083\u0001\u0002."); // not implemented
 	}
 
-	[Test, ExpectedException(typeof(InvalidOpcodeException))]
+	[Test, ExpectedException(typeof(PickleException))]
 	public void testEXT4() {
 		//EXT4           = b'\x84'  # ditto, but 4-byte index
 		U("\u0084\u0001\u0002\u0003\u0004."); // not implemented

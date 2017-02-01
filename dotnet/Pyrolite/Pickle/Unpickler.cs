@@ -186,7 +186,8 @@ public class Unpickler : IDisposable {
 			load_binget();
 			break;
 		case Opcodes.INST:
-			throw new InvalidOpcodeException("opcode not implemented: INST");
+			load_inst();
+			break;
 		case Opcodes.LONG_BINGET:
 			load_long_binget();
 			break;
@@ -197,7 +198,8 @@ public class Unpickler : IDisposable {
 			load_empty_list();
 			break;
 		case Opcodes.OBJ:
-			throw new InvalidOpcodeException("opcode not implemented: OBJ");
+			load_obj();
+			break;
 		case Opcodes.PUT:
 			load_put();
 			break;
@@ -231,11 +233,9 @@ public class Unpickler : IDisposable {
 			load_newobj();
 			break;
 		case Opcodes.EXT1:
-			throw new InvalidOpcodeException("opcode not implemented: EXT1");
 		case Opcodes.EXT2:
-			throw new InvalidOpcodeException("opcode not implemented: EXT2");
 		case Opcodes.EXT4:
-			throw new InvalidOpcodeException("opcode not implemented: EXT4");
+			throw new PickleException("Unimplemented opcode EXT1/EXT2/EXT4 encountered. Don't use extension codes when pickling via copyreg.add_extension() to avoid this error.");
 		case Opcodes.TUPLE1:
 			load_tuple1();
 			break;
@@ -721,6 +721,30 @@ public class Unpickler : IDisposable {
 		// the persistent id is taken from the stack
 		string pid = stack.pop().ToString();
 		stack.add(persistentLoad(pid));
+	}
+	
+	void load_obj() {
+		ArrayList args = stack.pop_all_since_marker();
+		IObjectConstructor constructor = (IObjectConstructor)args[0];
+		args = args.GetRange(1, args.Count-1);
+		object obj = constructor.construct(args.ToArray());
+		stack.add(obj);
+	}
+
+	void load_inst() {
+		string module = PickleUtils.readline(input);
+		string classname = PickleUtils.readline(input);
+		ArrayList args = stack.pop_all_since_marker();
+		IObjectConstructor constructor;
+		if(objectConstructors.ContainsKey(module+"."+classname)) {
+			constructor = objectConstructors[module + "." + classname];
+		}
+		else {
+			constructor = new ClassDictConstructor(module, classname);
+			args.Clear();  // classdict doesn't have constructor args... so we may lose info here, hmm.
+		}
+		object obj = constructor.construct(args.ToArray());
+		stack.add(obj);
 	}
 	
 	protected virtual Object persistentLoad(string pid)

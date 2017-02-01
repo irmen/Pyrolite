@@ -17,6 +17,7 @@ More info about Pyro: http://pythonhosted.org/Pyro4/</description>
 Fixed decode crash of escaped single quote (\') that sometimes occurs in protocol level 0 pickled strings.
 Made even more fields of the Unpickler class protected so they can be accessed in a subclass.
 Implemented pickle's persistent ID functionality via the new persistentLoad method on the Unpickler, and the PERSID/BINPERSID opcodes.
+Implemented pickle opcodes OBJ and INST (rarely encountered, but still).
 </releaseNotes>
     <copyright>Copyright 2015, 2016</copyright>
     <tags>pyro python rpc remote-objects</tags>
