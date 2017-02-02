@@ -35,13 +35,34 @@ import net.razorvine.pickle.objects.SetConstructor;
  */
 public class Unpickler {
 
+	/**
+	 * Used as return value for {@link Unpickler.dispatch} in the general case (because the object graph is built on the stack)
+	 */
 	protected static final Object NO_RETURN_VALUE = new Object();
 
+	/**
+	 * The highest Python Pickle protocol version supported by this library.
+	 */
 	protected final int HIGHEST_PROTOCOL = 4;
 
+	/**
+	 * Internal cache of memoized objects. 
+	 */
 	protected Map<Integer, Object> memo;
+	
+	/**
+	 * The stack that is used for building the resulting object graph.
+	 */
 	protected UnpickleStack stack;
+	
+	/**
+	 * The stream where the pickle data is read from.
+	 */
 	protected InputStream input;
+	
+	/**
+	 * Registry of object constructors that are used to create the appropriate Java objects for the given Python module.typename references.
+	 */
 	protected static Map<String, IObjectConstructor> objectConstructors;
 
 	static {
@@ -763,7 +784,12 @@ public class Unpickler {
 		stack.add(object);
 	}
 
-	
+	/**
+	 * Hook for the persistent id feature where an id is replaced externally by the appropriate object.
+	 * @param pid the persistent id from the pickle
+	 * @return the actual object that belongs to that id. The default implementation throws a PickleException,
+	 *     telling you that you should implement this function yourself in a subclass of the Unpickler. 
+	 */
 	protected Object persistentLoad(String pid)
 	{
 		throw new PickleException("A load persistent id instruction was encountered, but no persistentLoad function was specified. (implement it in custom Unpickler subclass)");

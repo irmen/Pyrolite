@@ -33,8 +33,14 @@ import net.razorvine.pyro.Config;
  */
 public class Pickler {
 
+	/**
+	 * The highest Python pickle protocol supported by this Pickler.
+	 */
 	public static int HIGHEST_PROTOCOL = 2;
 
+	/**
+	 * A memoized object.
+	 */
 	protected static class Memo {
 		public Object obj;
 		public int index;
@@ -45,12 +51,40 @@ public class Pickler {
 		}
 	}
 
+	/**
+	 * Limit on the recursion depth to avoid stack overflows.
+	 */
 	protected static int MAX_RECURSE_DEPTH = 1000;
+	
+	/**
+	 * Current recursion level.
+	 */
 	protected int recurse = 0;  // recursion level
+	
+	/**
+	 * Output where the pickle data is written to.
+	 */
 	protected OutputStream out;
+	
+	/**
+	 * The Python pickle protocol version of the pickles created by this library.
+	 */
 	protected int PROTOCOL = 2;
+	
+	/**
+	 * Registry of picklers for custom classes, to be able to not just pickle simple built in datatypes.
+	 * You can add to this via {@link Pickler.registerCustomPickler}
+	 */
 	protected static Map<Class<?>, IObjectPickler> customPicklers=new HashMap<Class<?>, IObjectPickler>();
+	
+	/**
+	 * Use memoization or not. This saves pickle size, but can only create pickles of objects that are hashable. 
+	 */
 	protected boolean useMemo=true;
+	
+	/**
+	 * The memoization cache.
+	 */
 	protected HashMap<Integer, Memo> memo;  // maps object's identity hash to (object, memo index)
 	
 	/**
@@ -332,6 +366,12 @@ public class Pickler {
 		return false;
 	}
 
+	/**
+	 * Get the custom pickler fot the given class, to be able to pickle not just built in collection types.
+	 * A custom pickler is matched on the interface or abstract base class that the object implements or inherits from.
+	 * @param t the class of the object to be pickled
+	 * @return null (if no custom pickler found) or a pickler registered for this class (via {@link Pickler.registerCustomPickler})
+	 */
 	protected IObjectPickler getCustomPickler(Class<?> t) {
 		IObjectPickler pickler = customPicklers.get(t);
 		if(pickler!=null) {
