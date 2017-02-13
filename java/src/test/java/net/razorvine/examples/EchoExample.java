@@ -88,8 +88,8 @@ public class EchoExample {
 			System.out.println("Pyro Exception remote traceback:\n>>>\n"+e._pyroTraceback+"<<<");
 		}
 
-		System.out.println("shutting down the test echo server.");
-		p.call("shutdown");
+//		System.out.println("shutting down the test echo server.");
+//		p.call("shutdown");
 		
 		// tidy up:
 		p.close();

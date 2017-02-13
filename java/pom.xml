@@ -94,10 +94,7 @@
 
 Pyrolite only implements part of the client side Pyro library, hence its name 'lite'...  But because Pyrolite has no dependencies, it is a much lighter way to use Pyro from Java/.NET than a solution with jython+pyro or IronPython+Pyro would provide. So if you don't need Pyro's full feature set, and don't require your Java/.NET code to host Pyro objects itself, Pyrolite may be a good choice to connect java or .NET and python.
 
-Version 4.17 changes:
-PICKLE FIXES:
-Fixed decode crash of escaped single quote (\') that sometimes occurs in protocol level 0 pickled strings.
-Made even more fields of the Unpickler class protected so they can be accessed in a subclass.
-Implemented pickle's persistent ID functionality via the new persistentLoad method on the Unpickler, and the PERSID/BINPERSID opcodes.
-Implemented pickle opcodes OBJ and INST (rarely encountered, but still).</description>
+Version 4.18 changes:
+@todo
+</description>
 </project>
