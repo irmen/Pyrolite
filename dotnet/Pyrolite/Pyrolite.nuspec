@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Razorvine.Pyrolite</id>
-    <version>4.17.0.0</version>
+    <version>4.18.0.0</version>
     <title>Razorvine.Pyrolite</title>
     <authors>Irmen de Jong</authors>
     <owners>Irmen de Jong</owners>
@@ -14,16 +14,12 @@ Also includes Pickle/Unpickle.
 More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
     <releaseNotes>
-PICKLE FIXES:
-Fixed decode crash of escaped single quote (\') that sometimes occurs in protocol level 0 pickled strings.
-Made even more fields of the Unpickler class protected so they can be accessed in a subclass.
-Implemented pickle's persistent ID functionality via the new persistentLoad method on the Unpickler, and the PERSID/BINPERSID opcodes.
-Implemented pickle opcodes OBJ and INST (rarely encountered, but still).
+Require Serpent library 1.17 because of critical fixes regarding serialization and parsing of strings.
 </releaseNotes>
     <copyright>Copyright 2015, 2016, 2017</copyright>
     <tags>pyro python rpc remote-objects</tags>
 	  <dependencies>
-	  	<dependency id="Razorvine.Serpent" version="1.16" />
+	  	<dependency id="Razorvine.Serpent" version="1.17" />
   	</dependencies>
   </metadata>
   <files>
