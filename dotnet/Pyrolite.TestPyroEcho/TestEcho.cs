@@ -130,8 +130,8 @@ public class TestEcho {
 				Console.WriteLine("Pyro Exception remote traceback:\n>>>\n{0}<<<",e._pyroTraceback);
 			}
 	
-			Console.WriteLine("shutting down the test echo server.");
-			p.shutdown();
+//			Console.WriteLine("shutting down the test echo server.");
+//			p.shutdown();
 		}
 	}
 }

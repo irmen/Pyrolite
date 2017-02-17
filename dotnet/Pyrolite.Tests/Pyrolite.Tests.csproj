@@ -103,7 +103,6 @@
     <Compile Include="Testrunner.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="pickled_bytes_level0.dat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

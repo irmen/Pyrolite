@@ -100,9 +100,6 @@
     <Compile Include="TestStreaming.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Pyrolite\Pyrolite.csproj">
       <Project>{E6EAC69D-D42A-4A86-AFBE-18A1013BFDAB}</Project>
       <Name>Pyrolite</Name>
