@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
@@ -671,6 +672,70 @@ public class PicklerTests {
 		data = p.dumps(sub);
 		Assert.IsTrue(S(data).Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+SubClassWithInterface]"));
 	}	
+	
+	
+	[Serializable]
+	class SerializableThing
+	{
+		[NonSerialized]
+		public string NotThisOne;
+		
+		public string TakeThisOne;
+		
+		public int TakeThisInt {get;set;}
+	}
+	
+	[DataContract(Name="CustomContractName", Namespace="http://namespace")]
+	class DataContractThing
+	{
+		public string NotThisOne;
+		
+		[DataMember(Name="CustomMemberName")]
+		public string TakeThisOne;
+		[DataMember]
+		public int TakeThisIntToo {get;set;}
+		
+		public int NotThisInt;
+		public int NotThisIntEither {get;set;}
+	}
+	
+	[Test]
+	public void TestSerializableAttr()
+	{
+		var obj = new SerializableThing();
+		obj.NotThisOne = "apple";
+		obj.TakeThisOne = "banana";
+		obj.TakeThisInt = 42;
+		
+		var p = new Pickler();
+		byte[] data = p.dumps(obj);
+
+		var u = new Unpickler();
+		IDictionary value = (IDictionary) u.loads(data);
+		Assert.AreEqual(3, value.Count);
+		Assert.AreEqual("Pyrolite.Tests.Pickle.PicklerTests+SerializableThing", value["__class__"]);
+		Assert.AreEqual(42, value["TakeThisInt"]);
+		Assert.AreEqual("banana", value["TakeThisOne"]);
+	}
+
+	[Test]
+	public void TestDatacontractAttr()
+	{
+		var obj = new DataContractThing();
+		obj.NotThisOne = "apple";
+		obj.TakeThisOne = "banana";
+		obj.TakeThisIntToo = 42;
+		
+		var p = new Pickler();
+		byte[] data = p.dumps(obj);
+
+		var u = new Unpickler();
+		IDictionary value = (IDictionary) u.loads(data);
+		Assert.AreEqual(3, value.Count);
+		Assert.AreEqual("CustomContractName", value["__class__"]);
+		Assert.AreEqual(42, value["TakeThisIntToo"]);
+		Assert.AreEqual("banana", value["CustomMemberName"]);
+	}
 }
 
 /// <summary>

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace Razorvine.Pickle
@@ -286,6 +287,19 @@ public class Pickler : IDisposable {
 			put_string(o.ToString());
 			return true;
 		}
+		
+		DataContractAttribute dca = (DataContractAttribute) Attribute.GetCustomAttribute(t, typeof(DataContractAttribute));
+		if(dca!=null) {
+			put_datacontract(t, o, dca);
+			return true;
+		}
+		
+		SerializableAttribute sa = (SerializableAttribute) Attribute.GetCustomAttribute(t, typeof(SerializableAttribute));
+		if(sa!=null) {
+			put_serializable(t, o);
+			return true;
+		}
+		
 		if(hasPublicProperties(o)) {
 			put_objwithproperties(o);
 			return true;
@@ -621,7 +635,7 @@ public class Pickler : IDisposable {
 				try {
 					map[name]=propinfo.GetValue(o, null);
 				} catch (Exception x) {
-					throw new PickleException("cannot pickle ISerializable:",x);
+					throw new PickleException("cannot pickle object:",x);
 				}
 			}
 		}
@@ -632,7 +646,78 @@ public class Pickler : IDisposable {
 
 		save(map);
 	}
-	
+
+	void put_serializable(Type t, object o)
+	{
+		var map=new Dictionary<string, object>();
+		FieldInfo[] fields = t.GetFields();
+		foreach(var field in fields) {
+			if(field.GetCustomAttribute(typeof(NonSerializedAttribute))==null) {
+				string name=field.Name;
+				try {
+					map[name]=field.GetValue(o);
+				} catch (Exception x) {
+					throw new PickleException("cannot pickle [Serializable] object:",x);
+				}
+			}
+		}
+		PropertyInfo[] properties=t.GetProperties();
+		foreach(var propinfo in properties) {
+			if(propinfo.CanRead) {
+				string name=propinfo.Name;
+				try {
+					map[name]=propinfo.GetValue(o, null);
+				} catch (Exception x) {
+					throw new PickleException("cannot pickle [Serializable] object:",x);
+				}
+			}
+		}
+
+		// if we're dealing with an anonymous type, don't output the type name.
+		if(!o.GetType().Name.StartsWith("<>"))
+			map["__class__"]=o.GetType().FullName;
+
+		save(map);
+	}
+
+	void put_datacontract(Type t, object o, DataContractAttribute dca)
+	{
+		FieldInfo[] fields = t.GetFields();
+		var map=new Dictionary<string, object>();
+		foreach(var field in fields) {
+			DataMemberAttribute dma = (DataMemberAttribute) field.GetCustomAttribute(typeof(DataMemberAttribute));
+			if(dma!=null) {
+				string name=dma.Name;
+				try {
+					map[name]=field.GetValue(o);
+				} catch (Exception x) {
+					throw new PickleException("cannot pickle [DataContract] object:",x);
+				}
+			}
+		}
+		PropertyInfo[] properties=t.GetProperties();
+		foreach(var propinfo in properties) {
+			if(propinfo.CanRead && propinfo.GetCustomAttribute(typeof(DataMemberAttribute))!=null) {
+				string name=propinfo.Name;
+				try {
+					map[name]=propinfo.GetValue(o, null);
+				} catch (Exception x) {
+					throw new PickleException("cannot pickle [DataContract] object:",x);
+				}
+			}
+		}
+
+		if(string.IsNullOrEmpty(dca.Name)) {
+			// if we're dealing with an anonymous type, don't output the type name.
+			if(!o.GetType().Name.StartsWith("<>"))
+				map["__class__"]=o.GetType().FullName;
+		} else {
+			map["__class__"] = dca.Name;
+		}
+
+		save(map);
+	}
+		
 	public void Dispose()
 	{
 		this.close();

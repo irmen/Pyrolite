@@ -15,6 +15,7 @@ More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
     <releaseNotes>
 Require Serpent library 1.17 because of critical fixes regarding serialization and parsing of strings.
+Now recognises classes with [Serializable] or [DataContract] attributes an serializes their fields accordingly.
 </releaseNotes>
     <copyright>Copyright 2015, 2016, 2017</copyright>
     <tags>pyro python rpc remote-objects</tags>
