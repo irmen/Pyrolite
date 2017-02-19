@@ -678,34 +678,31 @@ public class PicklerTests {
 	class SerializableThing
 	{
 		[NonSerialized]
-		public string NotThisOne;
+		public string NotThisOne = "apple";
 		
-		public string TakeThisOne;
+		public string TakeThisOne = "banana";
 		
-		public int TakeThisInt {get;set;}
+		public int TakeThisInt {get { return 42;} }
 	}
 	
 	[DataContract(Name="CustomContractName", Namespace="http://namespace")]
 	class DataContractThing
 	{
-		public string NotThisOne;
+		public string NotThisOne = "apple";
 		
 		[DataMember(Name="CustomMemberName")]
-		public string TakeThisOne;
+		public string TakeThisOne = "banana";
 		[DataMember]
-		public int TakeThisIntToo {get;set;}
+		public int TakeThisIntToo {get { return 42; }}
 		
-		public int NotThisInt;
-		public int NotThisIntEither {get;set;}
+		public int NotThisInt = 999;
+		public int NotThisIntEither {get { return 99; }}
 	}
 	
 	[Test]
 	public void TestSerializableAttr()
 	{
 		var obj = new SerializableThing();
-		obj.NotThisOne = "apple";
-		obj.TakeThisOne = "banana";
-		obj.TakeThisInt = 42;
 		
 		var p = new Pickler();
 		byte[] data = p.dumps(obj);
@@ -722,9 +719,6 @@ public class PicklerTests {
 	public void TestDatacontractAttr()
 	{
 		var obj = new DataContractThing();
-		obj.NotThisOne = "apple";
-		obj.TakeThisOne = "banana";
-		obj.TakeThisIntToo = 42;
 		
 		var p = new Pickler();
 		byte[] data = p.dumps(obj);
