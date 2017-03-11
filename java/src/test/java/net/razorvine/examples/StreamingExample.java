@@ -1,10 +1,12 @@
 package net.razorvine.examples;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Scanner;
 
 import net.razorvine.pyro.Config;
 import net.razorvine.pyro.PyroProxy;
+import net.razorvine.pyro.PyroProxy.StreamResultIterable;
 import net.razorvine.pyro.PyroURI;
 
 /**
@@ -60,6 +62,19 @@ public class StreamingExample {
 		for(int i: iter) {
 			System.out.println(i);
 		}
+		
+		System.out.println("STOPPING GENERATOR HALFWAY:");
+		result = p.call("slow_generator");
+		Iterable<Integer> iterable = (Iterable<Integer>) result;
+		Iterator<Integer> iterator = iterable.iterator();
+		System.out.println(iterator.next());
+		System.out.println(iterator.next());
+		System.out.println("...stopping...");
+		// the call below is a rather nasty way to force the iterator to close before reaching the end
+		((StreamResultIterable.StreamResultIterator) iterator).close();
+		
+		iterable = null;
+		iterator = null;
 
 		// tidy up:
 		p.close();

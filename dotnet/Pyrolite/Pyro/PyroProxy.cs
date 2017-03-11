@@ -476,6 +476,9 @@ public class PyroProxy : DynamicObject, IDisposable {
 
 		public IEnumerator GetEnumerator()
 		{
+			if(this.proxy==null)
+				yield break;
+
 			while(true) {
 				if(this.proxy.sock ==null) {
 					throw new PyroException("the proxy for this stream result has been closed");
@@ -485,10 +488,11 @@ public class PyroProxy : DynamicObject, IDisposable {
 					value = this.proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, new [] {this.streamId});
 				} catch (PyroException x) {
 					if(stopIterationExceptions.Contains(x.PythonExceptionType)) {
-						// iterator ended normally.
-						this.Dispose();
+						// iterator ended normally. no need to call close_stream, server will have closed the stream on its side already.
+						this.proxy = null;
 						yield break;
 					}
+					Dispose();
 					throw;  
 				}
 				yield return value;

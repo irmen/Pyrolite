@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Razorvine.Pyrolite</id>
-    <version>4.18.0.0</version>
+    <version>4.19.0.0</version>
     <title>Razorvine.Pyrolite</title>
     <authors>Irmen de Jong</authors>
     <owners>Irmen de Jong</owners>
@@ -14,13 +14,13 @@ Also includes Pickle/Unpickle.
 More info about Pyro: http://pythonhosted.org/Pyro4/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
     <releaseNotes>
-Require Serpent library 1.17 because of critical fixes regarding serialization and parsing of strings.
-Now recognises classes with [Serializable] or [DataContract] attributes an serializes their fields accordingly.
+Remote iterators no longer perform unnecessary close calls when their iteration has completed.
+Razorvine.Serpent library dependency updated to 1.18.
 </releaseNotes>
     <copyright>Copyright 2015, 2016, 2017</copyright>
     <tags>pyro python rpc remote-objects</tags>
 	  <dependencies>
-	  	<dependency id="Razorvine.Serpent" version="1.17" />
+	  	<dependency id="Razorvine.Serpent" version="1.18" />
   	</dependencies>
   </metadata>
   <files>

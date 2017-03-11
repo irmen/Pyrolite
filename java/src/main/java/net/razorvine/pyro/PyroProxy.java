@@ -483,10 +483,10 @@ public class PyroProxy implements Serializable {
 	
 		@Override
 		public Iterator<Object> iterator() {
-			return new StreamResultIterator(this.streamId, this.proxy);
+			return new StreamResultIterator<Object>(this.streamId, this.proxy);
 		}
 	
-		private class StreamResultIterator implements Iterator<Object>
+		public class StreamResultIterator<T> implements Iterator<Object>
 		{
 			private String streamId;
 			private PyroProxy proxy;
@@ -516,6 +516,11 @@ public class PyroProxy implements Serializable {
 			@Override
 			public Object next()
 			{
+				if(proxy==null) {
+					exhausted = true;
+					throw new NoSuchElementException("no proxy connected anymore");
+				}
+				
 				if(hasNext()) {
 					getRemoteNext = true;
 					return nextValue;
@@ -533,12 +538,13 @@ public class PyroProxy implements Serializable {
 				try {
 					value = proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, streamId);
 				} catch (PyroException x) {
-					close();
 					exhausted=true;
 					if(stopIterationExceptions.contains(x.pythonExceptionType)) {
-						// iterator ended normally.
+						// iterator ended normally. no need to call close_stream, server will have closed the stream on its side already.
+						proxy = null;
 						return null;
 					}
+					close();
 					throw x;
 				} catch (IOException x) {
 					close();

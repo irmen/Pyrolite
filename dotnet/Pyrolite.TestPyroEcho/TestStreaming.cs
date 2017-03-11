@@ -1,6 +1,7 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
+using System.Collections;
 using Razorvine.Pyro;
 
 namespace Pyrolite.TestPyroEcho
@@ -54,11 +55,21 @@ public class TestStreaming {
 			Console.WriteLine("SLOW GENERATOR:");
 			using(result = p.slow_generator())
 			{
-				Console.WriteLine(result);
 				foreach(int i in result)
 				{
 					Console.WriteLine(i);
 				}
+			}
+			
+			Console.WriteLine("STOPPING GENERATOR HALFWAY:");
+			using(result=p.generator())
+			{
+				IEnumerator enumerator = result.GetEnumerator();
+				enumerator.MoveNext();
+				Console.WriteLine(enumerator.Current);
+				enumerator.MoveNext();
+				Console.WriteLine(enumerator.Current);
+				Console.WriteLine("...stopping...");
 			}
 		}
 	}
