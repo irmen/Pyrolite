@@ -26,9 +26,10 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.3</version>
 					<configuration>
-						<source>1.7</source>
-						<target>1.7</target>
+						<source>1.8</source>
+						<target>1.8</target>
 						<compilerArgument>-Xlint:unchecked</compilerArgument>
+						<compilerArgument>-Xlint:deprecation</compilerArgument>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -61,7 +62,7 @@
 		<dependency>
 			<groupId>net.razorvine</groupId>
 			<artifactId>serpent</artifactId>
-			<version>1.18</version>
+			<version>1.23</version>
 		</dependency>
 	</dependencies>
 	<scm>
@@ -94,8 +95,8 @@
 
 Pyrolite only implements part of the client side Pyro library, hence its name 'lite'...  But because Pyrolite has no dependencies, it is a much lighter way to use Pyro from Java/.NET than a solution with jython+pyro or IronPython+Pyro would provide. So if you don't need Pyro's full feature set, and don't require your Java/.NET code to host Pyro objects itself, Pyrolite may be a good choice to connect java or .NET and python.
 
-Version 4.19 changes:
-Remote iterators no longer perform unnecessary close calls when their iteration has completed.
-Require Serpent library 1.18.
+Version 4.20 changes:
+Now requires Java 8 (JDK 1.8) minimum to run.
+Require Serpent library 1.23.
 </description>
 </project>
