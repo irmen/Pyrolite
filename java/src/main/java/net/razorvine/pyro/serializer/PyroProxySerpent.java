@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-
-import javax.xml.bind.DatatypeConverter;
+import java.util.Base64;
 
 import net.razorvine.pyro.PyroException;
 import net.razorvine.pyro.PyroProxy;
@@ -70,7 +69,7 @@ public class PyroProxySerpent implements IClassSerializer {
 		if(state[5]!=null) {
 			String encodedHmac = (String)state[5];
 			if(encodedHmac.startsWith("b64:")) {
-				proxy.pyroHmacKey = DatatypeConverter.parseBase64Binary(encodedHmac.substring(4));
+				proxy.pyroHmacKey = Base64.getDecoder().decode(encodedHmac.substring(4));
 			} else {
 				throw new PyroException("hmac encoding error");
 			}		
@@ -91,7 +90,7 @@ public class PyroProxySerpent implements IClassSerializer {
 		Map<String, Object> dict = new HashMap<String, Object>();
 		String uri = String.format("PYRO:%s@%s:%d", proxy.objectid, proxy.hostname, proxy.port);
 
-		String encodedHmac = proxy.pyroHmacKey!=null? "b64:"+DatatypeConverter.printBase64Binary(proxy.pyroHmacKey) : null;
+		String encodedHmac = proxy.pyroHmacKey!=null? "b64:"+Base64.getEncoder().encodeToString(proxy.pyroHmacKey) : null;
 		dict.put("state", new Object[]{
 			uri,
 			proxy.pyroOneway,

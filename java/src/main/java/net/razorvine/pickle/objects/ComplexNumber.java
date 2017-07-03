@@ -78,6 +78,6 @@ public class ComplexNumber implements Serializable {
 	}
 
 	public int hashCode() {
-		return (new Double(r).hashCode()) ^ (new Double(i).hashCode());
+		return (Double.valueOf(r).hashCode()) ^ (Double.valueOf(i).hashCode());
 	}
 }

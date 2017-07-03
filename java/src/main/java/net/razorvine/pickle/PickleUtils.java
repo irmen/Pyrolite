@@ -207,7 +207,7 @@ public abstract class PickleUtils {
 			result <<= 8;
 			result |= bytes[7+offset] & 0xff;
 			return Double.longBitsToDouble(result);
-		} catch (ArrayIndexOutOfBoundsException x) {
+		} catch (IndexOutOfBoundsException x) {
 			throw new PickleException("decoding double: too few bytes");
 		}
 	}
@@ -225,7 +225,7 @@ public abstract class PickleUtils {
 			result <<= 8;
 			result |= bytes[3+offset] & 0xff;
 			return Float.intBitsToFloat(result);
-		} catch (ArrayIndexOutOfBoundsException x) {
+		} catch (IndexOutOfBoundsException x) {
 			throw new PickleException("decoding float: too few bytes");
 		}
 	}	

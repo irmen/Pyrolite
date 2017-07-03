@@ -338,11 +338,6 @@ public class PyroProxy implements Serializable {
 			}
 	}
 
-	public void finalize() {
-		close();
-		pyroHmacKey = null;
-	}
-
 	/**
 	 * Perform the Pyro protocol connection handshake with the Pyro daemon.
 	 */

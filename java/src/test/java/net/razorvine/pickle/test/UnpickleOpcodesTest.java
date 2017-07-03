@@ -82,7 +82,7 @@ public class UnpickleOpcodesTest {
 		assertNull(U("(((N."));
 	}
 
-	@Test(expected=ArrayIndexOutOfBoundsException.class)
+	@Test(expected=IndexOutOfBoundsException.class)
 	public void testSTOP() throws PickleException, IOException {
 		//STOP           = b'.'   # every pickle ends with STOP
 		U(".."); // a stop without any data on the stack will throw an array exception
