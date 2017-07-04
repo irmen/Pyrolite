@@ -100,7 +100,7 @@ couple of example programs in the java/test/ directory.
 
 Pyrolite speaks Pyro4 protocol version 48 only (Pyro 4.38 and later).
 (get an older version of Pyrolite if you need to connect to earlier Pyro versions) 
-The java library requires java 1.7 (jdk/jre 7) or newer.
+The java library requires java 8 (jdk/jre 1.8) or newer to compile and run.
 The .net library requires .net framework 4.0 or newer.
 The Java code was developed using Eclipse.
 The C#/.NET source was developed using mono, monodevelop and sharpdevelop.
