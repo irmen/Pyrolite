@@ -83,6 +83,12 @@ public class Pickler {
 	protected boolean useMemo=true;
 	
 	/**
+	 * When memoizing, compare objects by value. This saves pickle size, but can slow down pickling.
+	 * Alo, it should only be used if the object graph is immutable. Unused if useMemo is false.
+	 */
+	protected boolean valueCompare=true;
+	
+	/**
 	 * The memoization cache.
 	 */
 	protected HashMap<Integer, Memo> memo;  // maps object's identity hash to (object, memo index)
@@ -100,7 +106,17 @@ public class Pickler {
 	 * If you use a memo table, you can only pickle objects that are hashable.
 	 */
 	public Pickler(boolean useMemo) {
+		this(useMemo, false);
+	}
+	
+	/**
+	 * Create a Pickler. Also specify if it is to compare objects by value.
+	 * If you compare objects by value, the object graph might be altered,
+	 * as different instances with the same value will be unified.
+	 */
+	public Pickler(boolean useMemo, boolean valueCompare) {
 		this.useMemo=useMemo;
+		this.valueCompare=valueCompare;
 	}
 
 	/**
@@ -184,15 +200,15 @@ public class Pickler {
 	 * Write the object to the memo table and output a memo write opcode
 	 * Only works for hashable objects
 	 */
-    protected void writeMemo( Object obj ) throws IOException
-    {
+	protected void writeMemo( Object obj ) throws IOException
+	{
 		if(!this.useMemo)
 			return;
-		int idHash = System.identityHashCode(obj);
-		if(!memo.containsKey(idHash))
+		int hash = valueCompare ? obj.hashCode() : System.identityHashCode(obj);
+		if(!memo.containsKey(hash))
 		{
 			int memo_index = memo.size();
-			memo.put(idHash, new Memo(obj, memo_index));
+			memo.put(hash, new Memo(obj, memo_index));
 			if(memo_index<=0xFF)
 			{
 				out.write(Opcodes.BINPUT);
@@ -213,10 +229,10 @@ public class Pickler {
 	private boolean lookupMemo(Class<?> objectType, Object obj) throws IOException {
 		if(!this.useMemo)
 			return false;
-		int idHash = System.identityHashCode(obj);
 		if(!objectType.isPrimitive()) {
-			if(memo.containsKey(idHash) && memo.get(idHash).obj == obj) { // same object
-				int memo_index = memo.get(idHash).index;
+			int hash = valueCompare ? obj.hashCode() : System.identityHashCode(obj);
+			if(memo.containsKey(hash) && (valueCompare ? memo.get(hash).obj.equals(obj) : memo.get(hash).obj == obj)) { // same object or value
+				int memo_index = memo.get(hash).index;
 				if(memo_index <= 0xff) {
 					out.write(Opcodes.BINGET);
 					out.write((byte) memo_index);
