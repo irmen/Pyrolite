@@ -929,7 +929,7 @@ public class PicklerTest {
 
 		Random r = new Random();
 		String base = "bbbbbbbbbbbb";
-		Pickler p = new Pickler(true, true);
+		Pickler p = new Pickler(true);		// @todo set valuecompare to true as well
 		List<String> manystrings = new ArrayList<String>();
 		for(int i=0; i< 1000; ++i) {
 			double rd = r.nextDouble();
@@ -985,7 +985,7 @@ public class PicklerTest {
 
 		Random r = new Random();
 		String base = "bbbbbbbbbbbb";
-		Pickler p = new Pickler(true, true);
+		Pickler p = new Pickler(true);   // @todo set valuecompare to true as well
 		List<String> manystrings = new ArrayList<String>();
 		for(int i=0; i< 1000; ++i) {
 			manystrings.add(base + r.nextDouble() + "" + r.nextDouble() + "" + r.nextDouble());
