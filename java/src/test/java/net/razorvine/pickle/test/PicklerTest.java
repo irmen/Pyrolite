@@ -9,21 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
-import java.util.Stack;
-import java.util.Vector;
-import java.util.TimeZone;
+import java.util.*;
 
 import net.razorvine.pickle.IObjectPickler;
 import net.razorvine.pickle.Opcodes;
@@ -36,6 +22,7 @@ import net.razorvine.pickle.objects.TimeDelta;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -931,6 +918,58 @@ public class PicklerTest {
 		assertTrue(new String(data).contains("[class=net.razorvine.pickle.test.PicklerTest$BaseClassWithInterface]"));
 		data = p.dumps(sub);
 		assertTrue(new String(data).contains("[class=net.razorvine.pickle.test.PicklerTest$SubClassWithInterface]"));
+	}
+
+
+	@Test
+	@Ignore("performancetest")
+	public void testMemoizationStrings() throws PickleException, IOException
+	{
+		Random r = new Random();
+		String base = "bbbbbbbbbbbb";
+		Pickler p = new Pickler(true);
+		List<String> manystrings = new ArrayList<String>();
+		for(int i=0; i< 1000; ++i) {
+			double rd = r.nextDouble();
+			if(rd > 0.8) {
+				String s = base + "9999999999";
+				manystrings.add(s);
+			}
+			else if(rd > 0.6) {
+				String s = base + "8888888888";
+				manystrings.add(s);
+			}
+			else if(rd > 0.4) {
+				String s = base + "7777777777";
+				manystrings.add(s);
+			}
+			else if(rd > 0.2) {
+				String s = base + "6666666666";
+				manystrings.add(s);
+			}
+			else {
+				String s = base + "5555555555";
+				manystrings.add(s);
+			}
+		}
+
+		for(int i=0; i<500; ++i) {
+			p.dumps(manystrings);		// warm up
+		}
+		long start = System.currentTimeMillis();
+		for(int i=0; i<1000; ++i) {
+			p.dumps(manystrings);
+		}
+		long length = p.dumps(manystrings).length;
+		double duration = (System.currentTimeMillis() - start) / 1000.0;
+		System.out.println("pickle size: " + length);
+		System.out.println("pickling 1000 times took: " + duration);
+
+		/**
+		 * With the System.identityHashcode() being used for memoization keys:
+		 * pickle size: 31243
+		 * pickling 1000 times took: 0.592
+		 */
 	}
 
 	public static void main(String[] args) throws PickleException, IOException
