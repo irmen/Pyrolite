@@ -923,11 +923,13 @@ public class PicklerTest {
 
 	@Test
 	@Ignore("performancetest")
-	public void testMemoizationStrings() throws PickleException, IOException
+	public void testMemoizationStrings1() throws PickleException, IOException
 	{
+		// also see the "ValueCompareExample" in the examples directory.
+
 		Random r = new Random();
 		String base = "bbbbbbbbbbbb";
-		Pickler p = new Pickler(true);
+		Pickler p = new Pickler(true, true);
 		List<String> manystrings = new ArrayList<String>();
 		for(int i=0; i< 1000; ++i) {
 			double rd = r.nextDouble();
@@ -966,9 +968,48 @@ public class PicklerTest {
 		System.out.println("pickling 1000 times took: " + duration);
 
 		/**
-		 * With the System.identityHashcode() being used for memoization keys:
-		 * pickle size: 31243
-		 * pickling 1000 times took: 0.592
+		 * Without valuecompare:
+		 *  pickle size: 31243
+		 *  pickling 1000 times took: 0.61
+		 * With valuecompare:
+		 *  pickle size: 2143
+		 *  pickling 1000 times took: 0.13
+		 */
+	}
+
+	@Test
+	@Ignore("performancetest")
+	public void testMemoizationStrings2() throws PickleException, IOException
+	{
+		// also see the "ValueCompareExample" in the examples directory.
+
+		Random r = new Random();
+		String base = "bbbbbbbbbbbb";
+		Pickler p = new Pickler(true, true);
+		List<String> manystrings = new ArrayList<String>();
+		for(int i=0; i< 1000; ++i) {
+			manystrings.add(base + r.nextDouble() + "" + r.nextDouble() + "" + r.nextDouble());
+		}
+
+		for(int i=0; i<500; ++i) {
+			p.dumps(manystrings);		// warm up
+		}
+		long start = System.currentTimeMillis();
+		for(int i=0; i<1000; ++i) {
+			p.dumps(manystrings);
+		}
+		long length = p.dumps(manystrings).length;
+		double duration = (System.currentTimeMillis() - start) / 1000.0;
+		System.out.println("pickle size: " + length);
+		System.out.println("pickling 1000 times took: " + duration);
+
+		/**
+		 * Without valuecompare:
+		 *  pickle size: 76015
+		 *  pickling 1000 times took: 0.805
+		 * With valuecompare:
+		 *  pickle size: 76016
+		 *  pickling 1000 times took: 0.817
 		 */
 	}
 
