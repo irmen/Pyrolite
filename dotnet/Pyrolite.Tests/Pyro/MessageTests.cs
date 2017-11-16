@@ -1,4 +1,4 @@
-﻿/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
+/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
 using System.IO;
@@ -128,7 +128,7 @@ public class MessageTestsHmac {
 			var anno = new Dictionary<string, byte[]>();
 			anno["TOOLONG"] = new byte[]{10,20,30};
 			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, anno, null);
-			byte[]data = msg.to_bytes();
+			msg.to_bytes();
 			Assert.Fail("should fail, too long");
 		} catch(ArgumentException) {
 			//ok
@@ -137,7 +137,7 @@ public class MessageTestsHmac {
 			var anno = new Dictionary<string, byte[]>();
 			anno["QQ"] = new byte[]{10,20,30};
 			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.serializer_id, 0, 0, anno, null);
-			byte[] data = msg.to_bytes();
+			msg.to_bytes();
 			Assert.Fail("should fail, too short");
 		} catch (ArgumentException) {
 			//ok

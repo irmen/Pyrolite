@@ -477,7 +477,6 @@ public class PicklerTests {
 	[ExpectedException(ExpectedException=typeof(StackOverflowException))]
 	public void testMemoizationRecursiveNoMemo()  
 	{
-		byte[] o;
 		Pickler p=new Pickler(false);
 		
 		string reused = "reused";
@@ -485,7 +484,7 @@ public class PicklerTests {
 		list.Add(reused);
 		list.Add(reused);
 		list.Add(list);
-		o=p.dumps(list);
+		p.dumps(list);
 	}
 
 	[Test]
