@@ -1,4 +1,4 @@
-﻿/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
+/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
 using System.Globalization;
