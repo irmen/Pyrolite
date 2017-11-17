@@ -95,8 +95,7 @@
 
 Pyrolite only implements part of the client side Pyro library, hence its name 'lite'...  But because Pyrolite has no dependencies, it is a much lighter way to use Pyro from Java/.NET than a solution with jython+pyro or IronPython+Pyro would provide. So if you don't need Pyro's full feature set, and don't require your Java/.NET code to host Pyro objects itself, Pyrolite may be a good choice to connect java or .NET and python.
 
-Version 4.20 changes:
-Compatible with Java 9, but now requires Java 8 (JDK 1.8) minimum to run.
-Require Serpent library 1.23.
+Version 4.21 changes:
+@todo
 </description>
 </project>
