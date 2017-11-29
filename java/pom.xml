@@ -96,6 +96,7 @@
 Pyrolite only implements part of the client side Pyro library, hence its name 'lite'...  But because Pyrolite has no dependencies, it is a much lighter way to use Pyro from Java/.NET than a solution with jython+pyro or IronPython+Pyro would provide. So if you don't need Pyro's full feature set, and don't require your Java/.NET code to host Pyro objects itself, Pyrolite may be a good choice to connect java or .NET and python.
 
 Version 4.21 changes:
-@todo
+Pickle memoization uses regular obj.hashCode again (compare by value) rather than identityHashCode (compare by object identity).
+This can be configured via a new Pickler(useMemo, valueCompare) constructor.
 </description>
 </project>

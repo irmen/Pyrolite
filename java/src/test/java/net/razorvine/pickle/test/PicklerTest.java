@@ -452,8 +452,8 @@ public class PicklerTest {
 		Set<String> set = new HashSet<String>();
 		set.add("a");
 		Object[] array = new Object[] {set, set};
-		
-		Pickler p = new Pickler(true);
+
+		Pickler p = new Pickler(true);		// default = use comparison-by-value when memoizing
 		byte[] data = p.dumps(array);
 		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
 		
@@ -464,8 +464,29 @@ public class PicklerTest {
 		Object second = result[1];
 		assertTrue(first instanceof HashSet);
 		assertTrue(second instanceof HashSet);
-		assertSame(first, second);				// both objects should be the same memoized object
+		assertNotSame(first, second);		// because of comparison-by-value, they will not be the same object
+		set = (Set<String>) first;
+		assertEquals(1, set.size());
+		assertTrue(set.contains("a"));
+		set = (Set<String>) second;
+		assertEquals(1, set.size());
+		assertTrue(set.contains("a"));
 
+		// do the same thing again, but with comparison-by-value turned off
+		p = new Pickler(true, false);		// no comparison-by-value
+		data = p.dumps(array);
+		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
+		u = new Unpickler();
+		result = (Object[]) u.loads(data);
+		assertEquals(2, result.length);
+		first = result[0];
+		second = result[1];
+		assertTrue(first instanceof HashSet);
+		assertTrue(second instanceof HashSet);
+		assertSame(first, second);				// both objects should be the same memoized object now
+		set = (Set<String>) first;
+		assertEquals(1, set.size());
+		assertTrue(set.contains("a"));
 		set = (Set<String>) second;
 		assertEquals(1, set.size());
 		assertTrue(set.contains("a"));
@@ -922,14 +943,13 @@ public class PicklerTest {
 
 
 	@Test
-	@Ignore("performancetest")
-	public void testMemoizationStrings1() throws PickleException, IOException
+	public void testMemoizationPerformanceStrings1() throws PickleException, IOException
 	{
 		// also see the "ValueCompareExample" in the examples directory.
 
 		Random r = new Random();
 		String base = "bbbbbbbbbbbb";
-		Pickler p = new Pickler(true);		// @todo set valuecompare to true as well
+		Pickler p = new Pickler(true, true);
 		List<String> manystrings = new ArrayList<String>();
 		for(int i=0; i< 1000; ++i) {
 			double rd = r.nextDouble();
@@ -978,14 +998,13 @@ public class PicklerTest {
 	}
 
 	@Test
-	@Ignore("performancetest")
-	public void testMemoizationStrings2() throws PickleException, IOException
+	public void testMemoizationPerformanceStrings2() throws PickleException, IOException
 	{
 		// also see the "ValueCompareExample" in the examples directory.
 
 		Random r = new Random();
 		String base = "bbbbbbbbbbbb";
-		Pickler p = new Pickler(true);   // @todo set valuecompare to true as well
+		Pickler p = new Pickler(true, true);
 		List<String> manystrings = new ArrayList<String>();
 		for(int i=0; i< 1000; ++i) {
 			manystrings.add(base + r.nextDouble() + "" + r.nextDouble() + "" + r.nextDouble());

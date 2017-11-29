@@ -106,13 +106,15 @@ public class Pickler {
 	 * If you use a memo table, you can only pickle objects that are hashable.
 	 */
 	public Pickler(boolean useMemo) {
-		this(useMemo, false);
+		this(useMemo, true);
 	}
 	
 	/**
 	 * Create a Pickler. Also specify if it is to compare objects by value.
 	 * If you compare objects by value, the object graph might be altered,
 	 * as different instances with the same value will be unified.
+	 * (The default for valueCompare when creating a pickler is true,
+	 * so if this is problematic for you, you can turn it off here)
 	 */
 	public Pickler(boolean useMemo, boolean valueCompare) {
 		this.useMemo=useMemo;
