@@ -84,7 +84,7 @@ public class Pickler {
 	
 	/**
 	 * When memoizing, compare objects by value. This saves pickle size, but can slow down pickling.
-	 * Alo, it should only be used if the object graph is immutable. Unused if useMemo is false.
+	 * Also, it should only be used if the object graph is immutable. Unused if useMemo is false.
 	 */
 	protected boolean valueCompare=true;
 	

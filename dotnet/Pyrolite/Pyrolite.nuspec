@@ -17,7 +17,7 @@ More info about Pyro: http://pythonhosted.org/Pyro4/</description>
 Remote iterators no longer perform unnecessary close calls when their iteration has completed.
 Razorvine.Serpent library dependency updated to 1.18.
 </releaseNotes>
-    <copyright>Copyright 2015, 2016, 2017</copyright>
+    <copyright>Copyright 2015, 2016, 2017, 2018</copyright>
     <tags>pyro python rpc remote-objects</tags>
 	  <dependencies>
 	  	<dependency id="Razorvine.Serpent" version="1.18" />
