@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.IO;
 using System.Linq;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pickle;
 
 namespace Pyrolite.Tests.Pickle
@@ -16,14 +16,14 @@ namespace Pyrolite.Tests.Pickle
 /// <summary>
 /// Unit tests for the pickler. 
 /// </summary>
-[TestFixture]
+[TestClass]
 public class PicklerTests {
 
-	[TestFixtureSetUp]
+	[TestInitialize]
 	public void setUp() {
 	}
 
-	[TestFixtureTearDown]
+	[TestCleanup]
 	public void tearDown() {
 	}
 
@@ -50,7 +50,7 @@ public class PicklerTests {
 	    THURSDAY, FRIDAY, SATURDAY 
 	};
 	
-	[Test]
+	[TestMethod]
 	public void testSinglePrimitives() {
 		// protocol level 2
 		Pickler p=new Pickler(false);
@@ -92,7 +92,7 @@ public class PicklerTests {
 		Assert.AreEqual(B("X\u0009\u0000\u0000\u0000WEDNESDAY"),o);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testArrays() 
 	{
 		Pickler p = new Pickler(false);
@@ -124,8 +124,8 @@ public class PicklerTests {
 		Assert.AreEqual(B("carray\narray\nU\u0001d](G?\u00f1\u0099\u0099\u0099\u0099\u0099\u009aG@\u0001\u0099\u0099\u0099\u0099\u0099\u009aG@\nffffffe\u0086R"), o);
 	}
 	
-	[Test]
-	[ExpectedException(ExpectedException=typeof(PickleException), ExpectedMessage="recursive array not supported, use list")]
+	[TestMethod]
+	[ExpectedException(typeof(PickleException), "recursive array not supported, use list")]
 	public void TestRecursiveArray2()
 	{
 		Pickler p = new Pickler(false);
@@ -134,8 +134,8 @@ public class PicklerTests {
 		p.dumps(a);
 	}
 	
-	[Test]
-	[ExpectedException(ExpectedException=typeof(PickleException), ExpectedMessage="recursive array not supported, use list")]
+	[TestMethod]
+	[ExpectedException(typeof(PickleException), "recursive array not supported, use list")]
 	public void TestRecursiveArray6()
 	{
 		Pickler p = new Pickler(false);
@@ -144,7 +144,7 @@ public class PicklerTests {
 		p.dumps(a);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testDates() 
 	{
 		Pickler p=new Pickler(false);
@@ -161,7 +161,7 @@ public class PicklerTests {
 		Assert.AreEqual(date, unpickled);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testTimes() 
 	{
 		Pickler p=new Pickler(false);
@@ -174,7 +174,7 @@ public class PicklerTests {
 		Assert.AreEqual(B("cdatetime\ntimedelta\nK\u0002MX\u001bJ@\u00f5\u0006\u0000\u0087R"), o);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testSets() 
 	{
 		byte[] o;
@@ -198,7 +198,7 @@ public class PicklerTests {
 		AssertUtils.AssertEqual(stringset, resultset);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testMappings() 
 	{
 		byte[] o;
@@ -229,7 +229,7 @@ public class PicklerTests {
 		AssertUtils.AssertEqual(table, resultmap);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testLists()  
 	{
 		byte[] o;
@@ -264,7 +264,7 @@ public class PicklerTests {
 		Assert.AreEqual(B("](K\u0001K\u0002K\u0003e"), o);
  	}
 
-	[Test]
+	[TestMethod]
 	public void testMemoizationSet()
 	{
 		var set = new HashSet<string>();
@@ -289,7 +289,7 @@ public class PicklerTests {
 		Assert.IsTrue(theSet.Contains("a"));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testMemoizationMap()
 	{
 		var map = new Dictionary<string,string>();
@@ -314,7 +314,7 @@ public class PicklerTests {
 		Assert.AreEqual("value", theMap["key"]);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testMemoizationCollection()
 	{
 		ICollection<string> list = new List<string>();
@@ -339,7 +339,7 @@ public class PicklerTests {
 		Assert.IsTrue(theList.Contains("a"));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testMemoizationTimeStuff()
 	{
 		TimeSpan delta = new TimeSpan(1,2,3);
@@ -367,7 +367,7 @@ public class PicklerTests {
 		Assert.AreEqual(new DateTime(2014,11,20,1,2,3), time);
 }
 	
-	[Test]
+	[TestMethod]
 	public void testMemoizationDecimal()
 	{
 		decimal bigd = 12345678901234567890.99887766m;
@@ -389,7 +389,7 @@ public class PicklerTests {
 		Assert.AreEqual(12345678901234567890.99887766m, bigd);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testMemoizationString()
 	{
 		string str = "a";
@@ -412,7 +412,7 @@ public class PicklerTests {
 		Assert.AreEqual("a", str);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testMemoizationArray()
 	{
 		int[] arr = new int[] { 1, 2, 3};
@@ -435,7 +435,7 @@ public class PicklerTests {
 		CollectionAssert.AreEqual(new int[] {1, 2, 3}, arr)	;
 	}
 		
-	[Test]
+	[TestMethod]
 	public void testMemoizationList()  
 	{
 		byte[] o;
@@ -473,8 +473,8 @@ public class PicklerTests {
 		Assert.AreSame(s1, s5);
 	}
 		
-	[Test]
-	[ExpectedException(ExpectedException=typeof(StackOverflowException))]
+	[TestMethod]
+	[ExpectedException(typeof(StackOverflowException))]
 	public void testMemoizationRecursiveNoMemo()  
 	{
 		Pickler p=new Pickler(false);
@@ -487,7 +487,7 @@ public class PicklerTests {
 		p.dumps(list);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testMemoizationRecursiveMemo()  
 	{
 		byte[] o;
@@ -545,7 +545,7 @@ public class PicklerTests {
 	}
 
 
-	[Test]
+	[TestMethod]
 	public void testClass() 
 	{
 		Pickler p=new Pickler(false);
@@ -567,7 +567,8 @@ public class PicklerTests {
 		public int x;
 	}
 
-	[Test, ExpectedException(typeof(PickleException))]
+	[TestMethod]
+	[ExpectedException(typeof(PickleException))]
 	public void testFailure()
 	{
 		NotABean notabean=new NotABean();
@@ -586,7 +587,7 @@ public class PicklerTests {
 		}
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testCustomPickler() 
 	{
 		Pickler.registerCustomPickler(typeof(CustomClass), new CustomClassPickler());
@@ -599,7 +600,7 @@ public class PicklerTests {
 		Assert.AreEqual("customclassint=42", x);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testAnonType()
 	{
 		var x = new { Name="Harry", Country="UK", Age=34 };
@@ -630,7 +631,7 @@ public class PicklerTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testAbstractBaseClassHierarchyPickler()
 	{
 		ConcreteSubClass c = new ConcreteSubClass();
@@ -647,7 +648,7 @@ public class PicklerTests {
 		Assert.IsTrue(S(data).Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+ConcreteSubClass]"));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testInterfaceHierarchyPickler()
 	{
 		BaseClassWithInterface b = new BaseClassWithInterface();
@@ -698,7 +699,7 @@ public class PicklerTests {
 		public int NotThisIntEither {get { return 99; }}
 	}
 	
-	[Test]
+	[TestMethod]
 	public void TestSerializableAttr()
 	{
 		var obj = new SerializableThing();
@@ -714,7 +715,7 @@ public class PicklerTests {
 		Assert.AreEqual("banana", value["TakeThisOne"]);
 	}
 
-	[Test]
+	[TestMethod]
 	public void TestDatacontractAttr()
 	{
 		var obj = new DataContractThing();
@@ -734,9 +735,9 @@ public class PicklerTests {
 /// <summary>
 /// Miscellaneous tests.
 /// </summary>
-[TestFixture]
+[TestClass]
 public class MiscellaneousTests {
-	[Test]
+	[TestMethod]
 	public void testPythonExceptionType()
 	{
 		var ex=new PythonException("hello");

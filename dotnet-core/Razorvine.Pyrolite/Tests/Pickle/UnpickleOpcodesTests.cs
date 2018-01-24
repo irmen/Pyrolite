@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
 
@@ -16,7 +16,7 @@ namespace Pyrolite.Tests.Pickle
 /// <summary>
 /// Unit tests for Unpickling every pickle opcode (protocol 0,1,2,3). 
 /// </summary>
-[TestFixture]
+[TestClass]
 public class UnpickleOpcodesTests {
 
 	Unpickler u;
@@ -36,17 +36,17 @@ public class UnpickleOpcodesTests {
 		return u.loads(PickleUtils.str2bytes(strdata));
 	}
 	
-	[SetUp]
+	[TestInitialize]
 	public void setUp() {
 		u=new Unpickler();
 	}
 
-	[TearDown]
+	[TestCleanup]
 	public void tearDown() {
 		u.close();
 	}
 
-	[Test]
+	[TestMethod]
 	public void testStr2Bytes() {
 		byte[] bytes=PickleUtils.str2bytes(STRING256);
 		for(int i=0; i<256; ++i) {
@@ -56,44 +56,46 @@ public class UnpickleOpcodesTests {
 		}
 	}
 	
-	[Test, ExpectedException(typeof(InvalidOpcodeException))]
+	[TestMethod]
+	[ExpectedException(typeof(InvalidOpcodeException))]
 	public void testNotExisting() {
 		U("%.");  // non existing opcode '%' should crash
 	}
 
-	[Test]
+	[TestMethod]
 	public void testMARK() {
 		// MARK           = b'('   # push special markobject on stack
 		Assert.IsNull(U("(((N."));
 	}
 
-	[Test, ExpectedException(typeof(ArgumentOutOfRangeException))]
+	[TestMethod]
+	[ExpectedException(typeof(ArgumentOutOfRangeException))]
 	public void testSTOP() {
 		//STOP           = b'.'   # every pickle ends with STOP
 		U(".."); // a stop without any data on the stack will throw an array exception
 	}
 
-	[Test]
+	[TestMethod]
 	public void testPOP() {
 		//POP            = b'0'   # discard topmost stack item
 		Assert.IsNull(U("}N."));
 		Assert.AreEqual(new Hashtable(), U("}N0."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testPOPMARK() {
 		//POP_MARK       = b'1'   # discard stack top through topmost markobject
 		Assert.AreEqual(2, U("I1\n(I2\n(I3\nI4\n1."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testDUP() {
 		//DUP            = b'2'   # duplicate top stack item
 		object[] tuple=new object[] { 42,42};
 		Assert.AreEqual(tuple, (object[]) U("(I42\n2t."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testFLOAT() {
 		//FLOAT          = b'F'   # push float object; decimal string argument
 		Assert.AreEqual(0.0d, U("F0\n."));
@@ -111,7 +113,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testINT() {
 		//INT            = b'I'   # push integer or bool; decimal string argument
 		Assert.AreEqual(0, U("I0\n."));
@@ -135,7 +137,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBININT() {
 		//BININT         = b'J'   # push four-byte signed int (little endian)
 		Assert.AreEqual(0, U("J\u0000\u0000\u0000\u0000."));
@@ -145,7 +147,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(-251658255, U("J\u00f1\u00ff\u00ff\u00f0."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBININT1() {
 		//BININT1        = b'K'   # push 1-byte unsigned int
 		Assert.AreEqual(0, U("K\u0000."));
@@ -153,7 +155,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(255, U("K\u00ff."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testLONG() {
 		//LONG           = b'L'   # push long; decimal string argument
 		Assert.AreEqual(0L, U("L0\n."));
@@ -178,7 +180,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBININT2() {
 		//BININT2        = b'M'   # push 2-byte unsigned int (little endian)
 		Assert.AreEqual(0, U("M\u0000\u0000."));
@@ -187,19 +189,21 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(65535, U("M\u00ff\u00ff."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testNONE() {
 		//NONE           = b'N'   # push None
 		Assert.AreEqual(null, U("N."));
 	}
 
-	[Test, ExpectedException(typeof(PickleException))]
+	[TestMethod]
+	[ExpectedException(typeof(PickleException))]
 	public void testPERSIDfail() {
 		//PERSID         = b'P'   # push persistent object; id is taken from string arg
 		U("Pbla\n.");
 	}
 
-	[Test, ExpectedException(typeof(PickleException))]
+	[TestMethod]
+	[ExpectedException(typeof(PickleException))]
 	public void testBINPERSIDfail() {
 		//BINPERSID      = b'Q'   #  push persistent object; id is taken from stack
 		U("I42\nQ.");
@@ -216,7 +220,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testPERSID() {
 		//PERSID         = b'P'   # push persistent object; id is taken from string arg
 		byte[] pickle = PickleUtils.str2bytes("(lp0\nI42\naP9999\na.");
@@ -227,7 +231,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual("PersistentObject", result[1]);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBINPERSID() {
 		//BINPERSID      = b'Q'   #  push persistent object; id is taken from stack
 		byte[] pickle = PickleUtils.str2bytes("\u0080\u0004\u0095\u000f\u0000\u0000\u0000\u0000\u0000\u0000\u0000]\u0094(K*\u008c\u00049999\u0094Qe.");
@@ -238,7 +242,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual("PersistentObject", result[1]);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testREDUCE_and_GLOBAL() {
 		//GLOBAL         = b'c'   # push self.find_class(modname, name); 2 string args
 		//REDUCE         = b'R'   # apply callable to argtuple, both on stack
@@ -247,7 +251,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(dec, (decimal)U("cdecimal\nDecimal\n(V123.456\ntR."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testSTRING() {
 		//STRING         = b'S'   # push string; NL-terminated string argument
 		Assert.AreEqual("", U("S''\n."));
@@ -274,7 +278,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBINSTRING() {
 		//BINSTRING      = b'T'   # push string; counted binary string argument
 		Assert.AreEqual("", U("T\u0000\u0000\u0000\u0000."));
@@ -284,7 +288,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(STRING256+STRING256,U("T\u0000\u0002\u0000\u0000"+STRING256+STRING256+"."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testSHORT_BINSTRING() {
 		//SHORT_BINSTRING= b'U'   #  push string; counted binary string argument < 256 bytes
 		Assert.AreEqual("", U("U\u0000."));
@@ -293,7 +297,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(STRING255,U("U\u00ff"+STRING255+"."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testUNICODE() {
 		//UNICODE        = b'V'   # push Unicode string; raw-unicode-escaped'd argument
 		Assert.AreEqual("", U("V\n."));
@@ -303,7 +307,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual("\u0080\u00a1\u00a2", U("V\u0080\u00a1\u00a2\n."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBINUNICODE() {
 		//BINUNICODE     = b'X'   # push Unicode string; counted UTF-8 string argument
 		Assert.AreEqual("", U("X\u0000\u0000\u0000\u0000."));
@@ -311,7 +315,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual("\u20ac", u.loads(new byte[]{Opcodes.BINUNICODE, 0x03,0x00,0x00,0x00,(byte)0xe2,(byte)0x82,(byte)0xac,Opcodes.STOP}));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBINUNICODE8() {
 		//BINUNICODE8 = 0x8d;  // push very long string
 		Assert.AreEqual("", U("\u008d\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000."));
@@ -319,7 +323,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual("\u20ac", u.loads(new byte[]{Opcodes.BINUNICODE8, 0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x00,(byte)0xe2,(byte)0x82,(byte)0xac,Opcodes.STOP}));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testSHORTBINUNICODE() {
 		//SHORT_BINUNICODE = 0x8c;  // push short string; UTF-8 length < 256 bytes
 		Assert.AreEqual("", U("\u008c\u0000."));
@@ -334,7 +338,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testAPPEND() {
 		//APPEND         = b'a'   # append stack top to list below it
 		ArrayList list=new ArrayList();
@@ -360,7 +364,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBUILD() {
 		//BUILD          = b'b'   # call __setstate__ or __dict__.update()
 		Unpickler.registerConstructor("unittest", "Thingy", new ThingyConstructor());
@@ -370,7 +374,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual("foo",thingy.a);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testDICT() {
 		//DICT           = b'd'   # build a dict from stack items
 		var dict=new Hashtable();
@@ -379,13 +383,13 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(dict, U("(S'a'\nI42\nS'b'\nI99\nd."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testEMPTY_DICT() {
 		//EMPTY_DICT     = b'}'   # push empty dict
 		Assert.AreEqual(new Hashtable(), U("}."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testAPPENDS() {
 		//APPENDS        = b'e'   # extend list on stack by topmost stack slice
 		ArrayList list=new ArrayList();
@@ -394,7 +398,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(list, U("](I42\nI43\ne."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testGET_and_PUT() {
 		//GET            = b'g'   # push item from memo on stack; index is string arg
 		//PUT            = b'p'   # store stack top in memo; index is string arg
@@ -416,7 +420,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBINGET_and_BINPUT() {
 		//BINGET         = b'h'   # push item from memo on stack; index is 1-byte arg
 		//BINPUT         = b'q'   # store stack top in memo; index is 1-byte arg
@@ -437,7 +441,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testINST() {
 		//INST           = b'i'   # build & push class instance
 		ClassDict result = (ClassDict) U("(i__main__\nThing\n(dS'value'\nI32\nsb.");
@@ -445,7 +449,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(32, result["value"]);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testLONG_BINGET_and_LONG_BINPUT() {
 		//LONG_BINGET    = b'j'   # push item from memo on stack; index is 4-byte arg
 		//LONG_BINPUT    = b'r'   # store stack top in memo; index is 4-byte arg
@@ -467,7 +471,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testLIST() {
 		//LIST           = b'l'   # build list from topmost stack items
 		var list=new List<int>();
@@ -476,13 +480,13 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(list, U("(I1\nI2\nl."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testEMPTY_LIST() {
 		//EMPTY_LIST     = b']'   # push empty list
 		Assert.AreEqual(new ArrayList(), U("]."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testOBJ() {
 		//OBJ            = b'o'   # build & push class instance
 		ClassDict result = (ClassDict) U("\u0080\u0002(c__main__\nThing\no}U\u0005valueK sb.");
@@ -490,7 +494,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(32, result["value"]);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testSETITEM() {
 		//SETITEM        = b's'   # add key+value pair to dict
 		var dict=new Hashtable();
@@ -499,27 +503,27 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(dict, U("}S'a'\nI42\nsS'b'\nI43\ns."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testTUPLE() {
 		//TUPLE          = b't'   # build tuple from topmost stack items
 		object[] tuple=new object[] {1,2};
 		Assert.AreEqual(tuple, (object[]) U("(I1\nI2\nt."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testEMPTY_TUPLE() {
 		//EMPTY_TUPLE    = b')'   # push empty tuple
 		Assert.AreEqual(new object[0], (object[]) U(")."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testEMPTY_SET() {
 		//EMPTY_SET = 0x8f;  // push empty set on the stack
 		var value = new HashSet<object>();
 		Assert.AreEqual(value, u.loads(new byte[]{ 0x8f, Opcodes.STOP}));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testFROZENSET() {
 		//FROZENSET = 0x91;  // build frozenset from topmost stack items
 		var value = new HashSet<object>();
@@ -529,7 +533,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(value, u.loads(new byte[]{ Opcodes.MARK, Opcodes.BININT1, 42, Opcodes.SHORT_BINUNICODE, 1, 97, Opcodes.FROZENSET, Opcodes.STOP}));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testADDITEMS() {
 		//ADDITEMS = 0x90;  // modify set by adding topmost stack items
 		var value = new HashSet<object>();
@@ -539,7 +543,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(value, u.loads(new byte[]{ Opcodes.EMPTY_SET, Opcodes.MARK, Opcodes.BININT1, 42, Opcodes.SHORT_BINUNICODE, 1, 97, Opcodes.ADDITEMS, Opcodes.STOP}));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testSETITEMS() {
 		//SETITEMS       = b'u'   # modify dict by adding topmost key+value pairs
 		var dict=new Hashtable();
@@ -554,7 +558,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(dict, U("}S'a'\nI42\ns(S'b'\nI43\nS'c'\nI44\nu."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBINFLOAT() {
 		//BINFLOAT       = b'G'   # push float; arg is 8-byte float encoding
 		Assert.AreEqual(2.345e123, u.loads(new byte[]{Opcodes.BINFLOAT, 0x59,(byte)0x8c,0x60,(byte)0xfb,(byte)0x80,(byte)0xae,0x2f,(byte)0xbb, Opcodes.STOP}));
@@ -565,19 +569,19 @@ public class UnpickleOpcodesTests {
 	}
 	
 
-	[Test]
+	[TestMethod]
 	public void testTRUE() {
 		//TRUE           = b'I01\n'  # not an opcode; see INT docs in pickletools.py
 		Assert.IsTrue((bool) U("I01\n."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testFALSE() {
 		//FALSE          = b'I00\n'  # not an opcode; see INT docs in pickletools.py
 		Assert.IsFalse((bool) U("I00\n."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testPROTO() {
 		//PROTO          = b'\x80'  # identify pickle protocol
 		U("\u0080\u0000N.");
@@ -593,7 +597,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testNEWOBJ() {
 		//NEWOBJ         = b'\x81'  # build object by applying cls.__new__ to argtuple
 		//GLOBAL         = b'c'   # push self.find_class(modname, name); 2 string args
@@ -602,7 +606,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(dec, (decimal)U("cdecimal\nDecimal\n(V123.456\nt\u0081."));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testNEWOBJ_EX() {
 		//NEWOBJ_EX = 0x92;  // like NEWOBJ but work with keyword only arguments
 		decimal dec=123.456m;
@@ -617,58 +621,61 @@ public class UnpickleOpcodesTests {
 	}
 
 	
-	[Test, ExpectedException(typeof(PickleException))]
+	[TestMethod]
+	[ExpectedException(typeof(PickleException))]
 	public void testEXT1() {
 		//EXT1           = b'\x82'  # push object from extension registry; 1-byte index
 		U("\u0082\u0001."); // not implemented
 	}
 
-	[Test, ExpectedException(typeof(PickleException))]
+	[TestMethod]
+	[ExpectedException(typeof(PickleException))]
 	public void testEXT2() {
 		//EXT2           = b'\x83'  # ditto, but 2-byte index
 		U("\u0083\u0001\u0002."); // not implemented
 	}
 
-	[Test, ExpectedException(typeof(PickleException))]
+	[TestMethod]
+	[ExpectedException(typeof(PickleException))]
 	public void testEXT4() {
 		//EXT4           = b'\x84'  # ditto, but 4-byte index
 		U("\u0084\u0001\u0002\u0003\u0004."); // not implemented
 	}
 
-	[Test]
+	[TestMethod]
 	public void testTUPLE1() {
 		//TUPLE1         = b'\x85'  # build 1-tuple from stack top
 		object[] tuple=new object[] { 42 };
 		Assert.AreEqual(tuple, (object[]) U("I41\nI42\n\u0085."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testTUPLE2() {
 		//TUPLE2         = b'\x86'  # build 2-tuple from two topmost stack items
 		object[] tuple=new object[] { 42, 43 };
 		Assert.AreEqual(tuple, (object[]) U("I41\nI42\nI43\n\u0086."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testTUPLE3() {
 		//TUPLE3         = b'\x87'  # build 3-tuple from three topmost stack items
 		object[] tuple=new object[] { 42, 43, 44 };
 		Assert.AreEqual(tuple, (object[]) U("I41\nI42\nI43\nI44\n\u0087."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testNEWTRUE() {
 		//NEWTRUE        = b'\x88'  # push True
 		Assert.IsTrue((bool) U("\u0088."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testNEWFALSE() {
 		//NEWFALSE       = b'\x89'  # push False
 		Assert.IsFalse((bool) U("\u0089."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testLONG1() {
 		//LONG1          = b'\x8a'  # push long from < 256 bytes
 		Assert.AreEqual(0L, U("\u008a\u0000."));
@@ -695,7 +702,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testLONG4() {
 		//LONG4          = b'\x8b'  # push really big long
 		Assert.AreEqual(0L, u.loads(new byte[] {(byte)Opcodes.LONG4, 0x00, 0x00, 0x00, 0x00, Opcodes.STOP}));
@@ -722,7 +729,7 @@ public class UnpickleOpcodesTests {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBINBYTES() {
 		//BINBYTES       = b'B'   # push bytes; counted binary string argument
 		byte[] bytes;
@@ -740,7 +747,7 @@ public class UnpickleOpcodesTests {
 	}
 
 
-	[Test]
+	[TestMethod]
 	public void testBINBYTES8() {
 		//BINBYTES8 = 0x8e;  // push very long bytes string
 		byte[] bytes;
@@ -757,7 +764,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(bytes, (byte[]) U("\u008e\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000"+STRING256+STRING256+"."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testSHORT_BINBYTES() {
 		//SHORT_BINBYTES = b'C'   #  push bytes; counted binary string argument < 256 bytes
 		byte[] bytes;
@@ -774,7 +781,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(bytes, (byte[]) U("C\u00ff"+STRING255+"."));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testMEMOIZE() {
 		// MEMOIZE = 0x94;  // store top of the stack in memo
 		var value = new object[3] {1,2,2};
@@ -782,7 +789,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(value, result);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testFRAME() {
 		// FRAME = 0x95;  // indicate the beginning of a new frame
 		var result = u.loads(new byte[] { Opcodes.FRAME, 6,0,0,0,0,0,0,0, 
@@ -792,7 +799,7 @@ public class UnpickleOpcodesTests {
 		Assert.AreEqual(value, result);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testGLOBAL() {
 		//GLOBAL = (byte)'c'; // push self.find_class(modname, name); 2 string args
 		var result = U("cdatetime\ntime\n.");
@@ -801,7 +808,7 @@ public class UnpickleOpcodesTests {
 		Assert.IsInstanceOf(typeof(ByteArrayConstructor), result);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testSTACK_GLOBAL() {
 		//STACK_GLOBAL = 0x93;  // same as GLOBAL but using names on the stacks
 		var result = U("\u008c\u0008datetime\u008c\u0004time\u0093.");

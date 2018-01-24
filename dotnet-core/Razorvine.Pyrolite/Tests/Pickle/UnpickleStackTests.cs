@@ -1,7 +1,7 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System.Collections;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pickle;
 
 namespace Pyrolite.Tests.Pickle
@@ -10,10 +10,10 @@ namespace Pyrolite.Tests.Pickle
 /// <summary>
 /// Unit tests for the unpickler stack object. 
 /// </summary>
-[TestFixture]
+[TestClass]
 public class UnpickleStackTest {
 
-	[Test]
+	[TestMethod]
 	public void testPopSinceMarker() {
 		UnpickleStack s=new UnpickleStack();
 		s.add("a");
@@ -33,7 +33,7 @@ public class UnpickleStackTest {
 		Assert.AreEqual("c",s.pop());
 	}
 
-	[Test]
+	[TestMethod]
 	public void testAddPop() {
 		UnpickleStack s=new UnpickleStack();
 		Assert.AreEqual(0, s.size());
@@ -48,7 +48,7 @@ public class UnpickleStackTest {
 		Assert.AreEqual(0, s.size());
 	}
 
-	[Test]
+	[TestMethod]
 	public void testClear() {
 		UnpickleStack s=new UnpickleStack();
 		s.add("x");
@@ -58,7 +58,7 @@ public class UnpickleStackTest {
 		Assert.AreEqual(0, s.size());
 	}
 
-	[Test]
+	[TestMethod]
 	public void testTrim() {
 		UnpickleStack s=new UnpickleStack();
 		s.add("a");

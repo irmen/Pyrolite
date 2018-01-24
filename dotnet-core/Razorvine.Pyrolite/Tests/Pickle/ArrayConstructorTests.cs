@@ -2,7 +2,7 @@
 
 using System;
 
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
 
@@ -13,10 +13,10 @@ namespace Pyrolite.Tests.Pickle
 /// Unit tests for the unpickler of the special array construction
 /// (Python3's array_reconstructor.)
 /// </summary>
-[TestFixture]
+[TestClass]
 public class ArrayConstructorTest {
 
-    [Test]
+    [TestMethod]
 	public void testInvalidMachineTypes()
 	{
 		ArrayConstructor ac=new ArrayConstructor();
@@ -56,7 +56,7 @@ public class ArrayConstructorTest {
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testChars()
 	{
 		ArrayConstructor ac=new ArrayConstructor();
@@ -83,7 +83,7 @@ public class ArrayConstructorTest {
 		Assert.AreEqual(new byte[]{1,2,3,4,0xff,0xfe,0xfd,0xfc}, (byte[])ac.construct('B', 0, new byte[]{1,2,3,4,0xff,0xfe,0xfd,0xfc}));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testInts()
 	{
 		ArrayConstructor ac=new ArrayConstructor();
@@ -153,7 +153,7 @@ public class ArrayConstructorTest {
 		Assert.AreEqual(0xfffffffffffffffeUL, ((ulong[])ac.construct('L', 11, new byte[]{0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xfe}))[0]);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testFloats()
 	{
 		// f/d

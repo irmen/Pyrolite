@@ -7,7 +7,7 @@ using System.IO;
 using System.Text;
 using System.Security.Cryptography;
 
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
 using Razorvine.Pyro;
@@ -18,7 +18,7 @@ namespace Pyrolite.Tests.Pickle
 /// <summary>
 /// tests for more complex pickling/unpickling such as Proxy and URI objects.
 /// </summary>
-[TestFixture]
+[TestClass]
 public class UnpickleComplexTests
 {
 	object U(string strdata) 
@@ -33,15 +33,15 @@ public class UnpickleComplexTests
 		}
 	}
 
-	[TestFixtureSetUp]
+	[TestInitialize]
 	public void setUp() {
 	}
 
-	[TestFixtureTearDown]
+	[TestCleanup]
 	public void tearDown() {
 	}
 
-	[Test]
+	[TestMethod]
 	public void testPickleUnpickleURI() {
 		PyroURI uri=new PyroURI("PYRO:test@localhost:9999");
 		PyroSerializer ser = new PickleSerializer();
@@ -55,7 +55,7 @@ public class UnpickleComplexTests
 		Assert.AreEqual(uri,uri2);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testPickleUnpickleProxy() {
 		PyroProxy proxy=new PyroProxy("hostname",9999,"objectid");
 		proxy.pyroHmacKey = Encoding.UTF8.GetBytes("secret");
@@ -70,31 +70,31 @@ public class UnpickleComplexTests
 		Assert.AreEqual("apples", result.pyroHandshake);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testUnpickleRealProxy2() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p2.dat");
 		unpickleRealProxy(pickled_proxy);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testUnpickleRealProxy2old() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p2old.dat");
 		unpickleRealProxy(pickled_proxy);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testUnpickleRealProxy3() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p3.dat");
 		unpickleRealProxy(pickled_proxy);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testUnpickleRealProxy4() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p4.dat");
 		unpickleRealProxy(pickled_proxy);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testUnpickleProto0Bytes() {
 		byte[] pickle = File.ReadAllBytes("pickled_bytes_level0.dat");
 
@@ -133,7 +133,7 @@ public class UnpickleComplexTests
 		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroOneway);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testUnpickleMemo() {
 		// the pickle is of the following list: [65, 'hello', 'hello', {'recurse': [...]}, 'hello']
 		// i.e. the 4th element is a dict referring back to the list itself and the 'hello' strings are reused
@@ -151,7 +151,7 @@ public class UnpickleComplexTests
 	}
 		 
 	
-	[Test]
+	[TestMethod]
 	public void testUnpickleUnsupportedClass() {
 		// an unsupported class is mapped to a dictionary containing the class's attributes, and a __class__ attribute with the name of the class
 		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108, 97, 115, 115, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
@@ -206,7 +206,7 @@ public class UnpickleComplexTests
 		}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testUnpickleCustomClassAsClassDict() {
 		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 115, 115, 115, 115, 115, 97, 122, 122, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
 
@@ -217,7 +217,7 @@ public class UnpickleComplexTests
 		Assert.AreEqual(new ArrayList() {1,2,3}, cd["values"]);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testClassDictConstructorSetsClass() {
 		ClassDict cd = new ClassDict("module", "myclass");
 		Assert.AreEqual("module.myclass", cd["__class__"]);
@@ -229,7 +229,7 @@ public class UnpickleComplexTests
 		Assert.AreEqual("module.myclass", cd.ClassName);
 	}
 		
-	[Test]
+	[TestMethod]
 	public void testUnpickleCustomClass() {
 		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108, 97, 122, 122, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
 		
@@ -242,7 +242,7 @@ public class UnpickleComplexTests
 
 
 	
-	[Test]
+	[TestMethod]
 	public void testUnpickleException() {
 		// python 2.x
 		PythonException x = (PythonException) U("cexceptions\nZeroDivisionError\np0\n(S'hello'\np1\ntp2\nRp3\n.");

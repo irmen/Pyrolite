@@ -3,29 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pyro;
 
 namespace Pyrolite.Tests.Pyro
 {
-	[TestFixture]
+	[TestClass]
 	public class SerializePyroTests
 	{
-		[TestFixtureSetUp]
+		[TestInitialize]
 		public void Setup()
 		{
 			Config.SERPENT_INDENT=true;
 			Config.SERPENT_SET_LITERALS=true;
 		}
 		
-		[TestFixtureTearDown]
+		[TestCleanup]
 		public void Teardown()
 		{
 			Config.SERPENT_INDENT=false;
 			Config.SERPENT_SET_LITERALS=false;
 		}
 
-		[Test]
+		[TestMethod]
 		public void PyroClassesSerpent()
 		{
 			var ser = new SerpentSerializer();
@@ -70,7 +70,7 @@ namespace Pyrolite.Tests.Pyro
 			Assert.AreEqual("CommunicationError", ex2.PythonExceptionType);
 		}
 		
-		[Test]
+		[TestMethod]
 		public void PyroProxySerpent()
 		{
 			PyroURI uri = new PyroURI("PYRO:something@localhost:4444");
@@ -91,7 +91,7 @@ namespace Pyrolite.Tests.Pyro
 			Assert.AreEqual("apples", proxy2.pyroHandshake);
 		}
 		
-		[Test]
+		[TestMethod]
 		public void UnserpentProxy()
 		{
 			byte[] data = Encoding.UTF8.GetBytes("# serpent utf-8 python3.2\n" +
@@ -118,7 +118,7 @@ namespace Pyrolite.Tests.Pyro
 			CollectionAssert.AreEquivalent(methods, p.pyroMethods);
 		}
 	
-		[Test]
+		[TestMethod]
 		public void PyroClassesPickle()
 		{
 			var pickler = new PickleSerializer();
@@ -155,7 +155,7 @@ namespace Pyrolite.Tests.Pyro
 		}		
 
 
-		[Test]
+		[TestMethod]
 		public void TestBytes()
 		{
 			byte[] bytes = new byte[] { 97, 98, 99, 100, 101, 102 };	// abcdef
@@ -185,9 +185,9 @@ namespace Pyrolite.Tests.Pyro
 	/// <summary>
 	/// Miscellaneous tests.
 	/// </summary>
-	[TestFixture]
+	[TestClass]
 	public class MiscellaneousTests {
-		[Test]
+		[TestMethod]
 		public void testPyroExceptionType()
 		{
 			var ex=new PyroException("hello");
@@ -198,7 +198,7 @@ namespace Pyrolite.Tests.Pyro
 			Assert.IsNotNull(prop, "pyro exception class has to have a property _pyroTraceback, it is used in constructor classes");
 		}		
 		
-		[Test]
+		[TestMethod]
 		public void testSerpentDictType()
 		{
 			Hashtable ht = new Hashtable();

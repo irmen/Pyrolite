@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite", "Pyrolite\Pyrolite.csproj", "{8E242709-E766-421C-9D38-134F80A1690D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{6B1B68A3-2276-49B7-BA78-2CE766758123}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PickleExample", "PickleExample\PickleExample.csproj", "{1001B83A-1B0D-40C0-B1E5-A9C0D72108D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{8E242709-E766-421C-9D38-134F80A1690D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E242709-E766-421C-9D38-134F80A1690D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E242709-E766-421C-9D38-134F80A1690D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B1B68A3-2276-49B7-BA78-2CE766758123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B1B68A3-2276-49B7-BA78-2CE766758123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B1B68A3-2276-49B7-BA78-2CE766758123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B1B68A3-2276-49B7-BA78-2CE766758123}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1001B83A-1B0D-40C0-B1E5-A9C0D72108D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1001B83A-1B0D-40C0-B1E5-A9C0D72108D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1001B83A-1B0D-40C0-B1E5-A9C0D72108D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1001B83A-1B0D-40C0-B1E5-A9C0D72108D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

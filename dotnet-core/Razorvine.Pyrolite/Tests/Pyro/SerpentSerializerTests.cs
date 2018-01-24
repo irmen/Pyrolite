@@ -1,23 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pyro;
 using Razorvine.Serpent;
 
 namespace Pyrolite.Tests.Pyro
 {
-	[TestFixture]
+	[TestClass]
 	public class SerpentSerializerTestsNoSets
 	{
-		[Test]
+		[TestMethod]
 		public void TestSerpentVersion()
 		{
 			Version serpentVersion = new Version(LibraryVersion.Version);
 			Assert.IsTrue(serpentVersion >= new Version(1, 16));
 		}
 		
-		[Test]
+		[TestMethod]
 		public void TestSerializeData()
 		{
 			ICollection<object> list = new LinkedList<object>();
@@ -43,7 +43,7 @@ namespace Pyrolite.Tests.Pyro
 			Assert.AreEqual(s, array_obj);
 		}
 
-		[Test]
+		[TestMethod]
 		public void TestSerializeCall()
 		{
 			var ser = PyroSerializer.GetFor(Config.SerializerType.serpent);
@@ -68,21 +68,21 @@ namespace Pyrolite.Tests.Pyro
 		}
 	}
 
-	[TestFixture]
+	[TestClass]
 	public class SerpentSerializerTestsSets
 	{
-		[TestFixtureSetUp]
+		[TestInitialize]
 		public void Setup()
 		{
 			Config.SERPENT_SET_LITERALS=true;
 		}
-		[TestFixtureTearDown]
+		[TestCleanup]
 		public void Teardown()
 		{
 			Config.SERPENT_SET_LITERALS=false;
 		}
 
-		[Test]
+		[TestMethod]
 		public void TestSerializeData()
 		{
 			ISet<string> s = new HashSet<string>();
@@ -97,7 +97,7 @@ namespace Pyrolite.Tests.Pyro
 			Assert.AreEqual(s, s2);
 		}
 		
-		[Test]
+		[TestMethod]
 		public void TestSerpentBytes()
 		{
 			byte[] bytes = Encoding.ASCII.GetBytes("hello");

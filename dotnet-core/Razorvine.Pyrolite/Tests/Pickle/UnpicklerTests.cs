@@ -5,7 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
 
@@ -15,14 +15,14 @@ namespace Pyrolite.Tests.Pickle
 /// <summary>
 /// Unit tests for the unpickler. 
 /// </summary>
-[TestFixture]
+[TestClass]
 public class UnpicklerTests {
 
-	[TestFixtureSetUp]
+	[TestInitialize]
 	public void setUp()  {
 	}
 
-	[TestFixtureTearDown]
+	[TestCleanup]
 	public void tearDown() {
 	}
 
@@ -39,7 +39,7 @@ public class UnpicklerTests {
 	}
 	
 	
-	[Test]
+	[TestMethod]
 	public void testSinglePrimitives()  {
 		// protocol level 1
 		Assert.IsNull(U("N."));		// none
@@ -83,7 +83,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(new byte[]{65,66,67}, (byte[]) U("C\u0003ABC."));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testZeroToTwoFiveSix() {
 		byte[] bytes=new byte[256];
 		for(int b=0; b<256; ++b) {
@@ -133,7 +133,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(str, u.loads(output));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testUnicodeStrings() 
 	{
 		Assert.AreEqual("\u00ff", U("S'\\xff'\n."));
@@ -146,7 +146,7 @@ public class UnpicklerTests {
 		Assert.AreEqual("\u0007\u00db\u007f\u0080",U(new byte[]{(byte)'V',0x07,0xdb,0x7f,0x80,(byte)'\n',(byte)'.'}));  // string with non-ascii symbols
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testTuples() 
 	{
 		Assert.AreEqual(new object[0], (object[])U(")."));	// ()
@@ -156,7 +156,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(new object[]{97,98,99,100}, (object[])U("(KaKbKcKdt.")); // (97,98,99,100)
 	}
 
-	[Test]
+	[TestMethod]
 	public void testLists() 
 	{
 		IList<int> list=new List<int>(0);
@@ -170,7 +170,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(list, U("](KaKbKce."));	// [97,98,99]
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testDicts() 
 	{
 		Hashtable map=new Hashtable();
@@ -233,7 +233,7 @@ public class UnpicklerTests {
 		AssertUtils.AssertEqual(map, U("\u0080\u0002}q\u0000U\u0003abcq\u0001}q\u0002(h\u0001]q\u0003(KoKoeU\u0003defq\u0004h\u0003us.")); // {'abc': {'def': [111,111], abc: [111,111] }}
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testComplex() 
 	{
 		ComplexNumber c=new ComplexNumber(2.0, 4.0);
@@ -241,14 +241,14 @@ public class UnpicklerTests {
 		Assert.AreEqual(c, U("c__builtin__\ncomplex\nq\u0000G@\u0000\u0000\u0000\u0000\u0000\u0000\u0000G@\u0010\u0000\u0000\u0000\u0000\u0000\u0000\u0086q\u0001Rq\u0002."));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testDecimal() 
 	{
 		Assert.AreEqual(12345.6789m, U("cdecimal\nDecimal\np0\n(S'12345.6789'\np1\ntp2\nRp3\n."));
 		Assert.AreEqual(12345.6789m, U("\u0080\u0002cdecimal\nDecimal\nU\n12345.6789\u0085R."));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testDateTime() 
 	{
 		DateTime dt;
@@ -284,7 +284,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(new DateTime(2014, 7, 8, 10, 10, 1, 1), dt);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testDateTimePython3() 
 	{
 		DateTime dt;
@@ -303,7 +303,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(new TimeSpan(729, 0, 0, 53973, 456), ts);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testDateTimeStringEscaping()
 	{
 		DateTime dt=new DateTime(2011, 10, 10, 9, 13, 10, 10);
@@ -322,7 +322,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(dt, dt2);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testCodecBytes()
 	{
 		// this is a protocol 2 pickle that contains the way python3 encodes bytes
@@ -330,7 +330,7 @@ public class UnpicklerTests {
 		CollectionAssert.AreEqual(Encoding.ASCII.GetBytes("test"), data);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testBytesAndByteArray() 
 	{
 		byte[] bytes=new byte[]{1,2,127,(byte)128,(byte)255};
@@ -396,7 +396,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(Encoding.ASCII.GetBytes("ABCDEFGH"), (byte[])U(p3));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testArray() 
 	{
 		// c=char -->char
@@ -463,7 +463,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(testd,arrayd);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testArrayPython3() {
 		// python 3 array reconstructor
 		short[] testi=new short[]{1,2,3};
@@ -472,7 +472,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(testi, arrayi);
 	}
 	
-	[Test]
+	[TestMethod]
 	[ExpectedException(typeof(PickleException))]
 	public void testArrayPython26NotSupported() {
 		// python 2.6 array reconstructor not yet supported
@@ -480,7 +480,7 @@ public class UnpicklerTests {
 		Assert.Fail("should crash with pickle exception because not supported");
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testSet() 
 	{
 		var set=new HashSet<object>();
@@ -491,7 +491,7 @@ public class UnpicklerTests {
 		AssertUtils.AssertEqual(set, (HashSet<object>)U("c__builtin__\nset\np0\n((lp1\nI1\naI2\naS'abc'\np2\natp3\nRp4\n."));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testMemoing() 
 	{
 		ArrayList list=new ArrayList();
@@ -522,7 +522,7 @@ public class UnpicklerTests {
 		Assert.AreEqual("[[1, 2, 3, ], [[1, 2, 3, ], [1, 2, 3, ], ], ]", PrettyPrint.printToString(a));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testBinint2WithObject() 
 	{
 		Unpickler u=new Unpickler();
@@ -531,7 +531,7 @@ public class UnpicklerTests {
 		Assert.AreEqual(9090,result);
 	}
 
-	[Test]
+	[TestMethod]
 	[Ignore("performancetest")]
     public void testUnpicklingPerformance()
     {

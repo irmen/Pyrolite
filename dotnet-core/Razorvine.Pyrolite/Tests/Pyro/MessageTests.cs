@@ -7,24 +7,24 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pyro;
 
 namespace Pyrolite.Tests.Pyro
 {
 
-[TestFixture]
+[TestClass]
 public class MessageTestsHmac {
 	
 	ushort serializer_id = new PickleSerializer().serializer_id;
 	
-	[Test]
+	[TestMethod]
 	public void testMessage()
 	{
 		byte[] hmac = Encoding.UTF8.GetBytes("secret");
 		
 		new Message(99, new byte[0], this.serializer_id, 0, 0, null, hmac);  // doesn't check msg type here
-		Assert.Throws(typeof(PyroException), ()=>Message.from_header(Encoding.ASCII.GetBytes("FOOBAR")));
+		Assert.ThrowsException<PyroException>(()=>Message.from_header(Encoding.ASCII.GetBytes("FOOBAR")));
 		var msg = new Message(Message.MSG_CONNECT, Encoding.ASCII.GetBytes("hello"), this.serializer_id, 0, 0, null, hmac);
 		Assert.AreEqual(Message.MSG_CONNECT, msg.type);
 		Assert.AreEqual(5, msg.data_size);
@@ -69,7 +69,7 @@ public class MessageTestsHmac {
 		Assert.AreEqual(msg_bytes1.Length, msg_bytes2.Length);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testMessageHeaderDatasize()
 	{
 		var msg = new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 12345, 60006, 30003, null, null);
@@ -83,7 +83,7 @@ public class MessageTestsHmac {
 		Assert.AreEqual(30003, msg.seq);
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testAnnotations()
 	{
 		byte[] hmac=Encoding.UTF8.GetBytes("secret");
@@ -121,7 +121,7 @@ public class MessageTestsHmac {
 		Assert.AreNotEqual(msg.hmac(hmac), msg3.hmac(hmac));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testAnnotationsIdLength4()
 	{
 		try {
@@ -144,7 +144,7 @@ public class MessageTestsHmac {
 		}
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testRecvAnnotations()
 	{
 		var annotations = new Dictionary<string, byte[]>();
@@ -172,7 +172,7 @@ public class MessageTestsHmac {
 		}
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testProxyAnnotations()
 	{
 		var p = new CustomAnnProxy(new PyroURI("PYRO:dummy@localhost:50000"));
@@ -184,8 +184,8 @@ public class MessageTestsHmac {
 		Assert.IsTrue(annotations.ContainsKey("XYZZ"));
 	}
 	
-	[Test]
-	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 25455")]
+	[TestMethod]
+	[ExpectedException(typeof(PyroException), "invalid protocol version: 25455")]
 	public void testProtocolVersionKaputt()
 	{
 		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
@@ -194,8 +194,8 @@ public class MessageTestsHmac {
 		Message.from_header(msg);
 	}
 	
-	[Test]
-	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 47")]
+	[TestMethod]
+	[ExpectedException(typeof(PyroException), "invalid protocol version: 47")]
 	public void testProtocolVersionsNotSupported1()
 	{
 		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
@@ -204,8 +204,8 @@ public class MessageTestsHmac {
 		Message.from_header(msg);
 	}
 
-	[Test]
-	[ExpectedException(typeof(PyroException), ExpectedMessage="invalid protocol version: 49")]
+	[TestMethod]
+	[ExpectedException(typeof(PyroException), "invalid protocol version: 49")]
 	public void testProtocolVersionsNotSupported2()
 	{
 		byte[] msg = new Message(Message.MSG_RESULT, new byte[0], this.serializer_id, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
@@ -214,7 +214,7 @@ public class MessageTestsHmac {
 		Message.from_header(msg);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testHmac()
 	{
 		Stream c;
@@ -246,7 +246,7 @@ public class MessageTestsHmac {
 		}
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testChecksum()
 	{
 		var msg = new Message(Message.MSG_RESULT, new byte[]{1,2,3,4}, 42, 0, 1, null, null);
@@ -264,7 +264,7 @@ public class MessageTestsHmac {
 		}
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testProxyCorrelationId()
 	{
 		PyroProxy p = new PyroProxy(new PyroURI("PYRO:foo@localhost:55555"));
@@ -282,10 +282,10 @@ public class MessageTestsHmac {
 }
 
 
-[TestFixture]
+[TestClass]
 public class MessageTestsNoHmac {
 	
-	[Test]
+	[TestMethod]
 	public void testRecvNoAnnotations()
 	{
 		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, 42, 0, 0, null, null);

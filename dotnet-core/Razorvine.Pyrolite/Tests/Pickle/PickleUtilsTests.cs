@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Text;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razorvine.Pickle;
 
 namespace Pyrolite.Tests.Pickle
@@ -13,22 +13,22 @@ namespace Pyrolite.Tests.Pickle
 /// <summary>
 /// Unit tests for the pickler utils. 
 /// </summary>
-[TestFixture]
+[TestClass]
 public class PickleUtilsTest {
 
 	private byte[] filedata;
 
-	[TestFixtureSetUp]
+	[TestInitialize]
 	public void setUp() {
 		filedata=Encoding.UTF8.GetBytes("str1\nstr2  \n  str3  \nend");
 	}
 
-	[TestFixtureTearDown]
+	[TestCleanup]
 	public void tearDown() {
 	}
 	
 	
-	[Test]
+	[TestMethod]
 	public void testReadline() {
 		Stream bis = new MemoryStream(filedata);
 		Assert.AreEqual("str1", PickleUtils.readline(bis));
@@ -43,7 +43,7 @@ public class PickleUtilsTest {
 		catch(IOException) {}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testReadlineWithLF() {
 		Stream bis=new MemoryStream(filedata);
 		Assert.AreEqual("str1\n", PickleUtils.readline(bis, true));
@@ -58,7 +58,7 @@ public class PickleUtilsTest {
 		catch(IOException) {}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testReadbytes() {
 		Stream bis=new MemoryStream(filedata);
 		
@@ -74,7 +74,7 @@ public class PickleUtilsTest {
 		catch(IOException) {}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testReadbytes_into() {
 		Stream bis=new MemoryStream(filedata);
 		byte[] bytes = new byte[] {0,0,0,0,0,0,0,0,0,0};
@@ -84,7 +84,7 @@ public class PickleUtilsTest {
 		Assert.AreEqual(new byte[] {0,115,116,114,49,0,0,0,10,0}, bytes);
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBytes_to_integer() {
 		try {
 			PickleUtils.bytes_to_integer(new byte[] {});
@@ -110,7 +110,7 @@ public class PickleUtilsTest {
 		} catch (PickleException) {}
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBytes_to_uint() {
 		try {
 			PickleUtils.bytes_to_uint(new byte[] {},0);
@@ -126,7 +126,7 @@ public class PickleUtilsTest {
 		Assert.AreEqual(0x0eefffffeL, PickleUtils.bytes_to_uint(new byte[] {0xfe, 0xff, 0xff,0xee} ,0));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testBytes_to_long() {
 		try {
 			PickleUtils.bytes_to_long(new byte[] {}, 0);
@@ -147,7 +147,7 @@ public class PickleUtilsTest {
 		Assert.AreEqual(-2L, PickleUtils.bytes_to_long(new byte[] {0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff} ,0));
 	}
 		
-	[Test]
+	[TestMethod]
 	public void testInteger_to_bytes()
 	{
 		Assert.AreEqual(new byte[]{0,0,0,0}, PickleUtils.integer_to_bytes(0));
@@ -159,7 +159,7 @@ public class PickleUtilsTest {
 		Assert.AreEqual(new byte[]{0x02, 0xee, 0x01, 0xcc}, PickleUtils.integer_to_bytes(-872288766));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testBytes_to_double() {
 		try {
 			PickleUtils.bytes_bigendian_to_double(new byte[] {} ,0);
@@ -188,7 +188,7 @@ public class PickleUtilsTest {
 		Assert.AreEqual(1.23456789e300d, PickleUtils.bytes_bigendian_to_double(new byte[] {0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a,0,0,0} ,0));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testBytes_to_float() {
 		try {
 			PickleUtils.bytes_bigendian_to_float(new byte[] {}, 0);
@@ -210,7 +210,7 @@ public class PickleUtilsTest {
 		Assert.IsTrue(1234.5678f == PickleUtils.bytes_bigendian_to_float(new byte[] {0x44,0x9a,0x52,0x2b,0,0,0} ,0));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testDouble_to_bytes()
 	{
 		Assert.AreEqual(new byte[]{0,0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(0.0d));
@@ -225,7 +225,7 @@ public class PickleUtilsTest {
 		Assert.AreEqual(new byte[]{0xff,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(Double.NegativeInfinity));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testDecode_long()
 	{
 		Assert.AreEqual(0L, PickleUtils.decode_long(new byte[0]));
@@ -249,7 +249,7 @@ public class PickleUtilsTest {
 		Assert.AreEqual(0xf2345678L, PickleUtils.decode_long(new byte[]{0x78,0x56,0x34,0xf2,0x00}));
 	}
 
-	[Test]
+	[TestMethod]
 	public void testDecode_escaped()
 	{
 		Assert.AreEqual("abc", PickleUtils.decode_escaped("abc"));
@@ -261,7 +261,7 @@ public class PickleUtilsTest {
 		Assert.AreEqual("a'c", PickleUtils.decode_escaped("a\\'c"));
 	}
 	
-	[Test]
+	[TestMethod]
 	public void testDecode_unicode_escaped()
 	{
 		Assert.AreEqual("abc", PickleUtils.decode_unicode_escaped("abc"));
