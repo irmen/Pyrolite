@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Razorvine.Pyrolite</AssemblyName>
+    <RootNamespace>Razorvine</RootNamespace>
+    <LangVersion>6</LangVersion>
+
+    <Authors>Irmen de Jong</Authors>
+    <Product>Serpent Python literal expression serialization</Product>
+    <PackageId>Razorvine.Pyrolite</PackageId>
+    <Version>4.20.0</Version>
+    <AssemblyVersion>4.20.0.0</AssemblyVersion>
+    <FileVersion>4.20.0.0</FileVersion>
+    <Summary>Pyro (Python Remote Objects) client library</Summary>
+    <Description>Thin client-side communication library to connect to Python applications, using the Pyro protocol.
+Also includes Pickle/Unpickle.
+More info about Pyro: http://pythonhosted.org/Pyro4/</Description>
+    <Copyright>Copyright Irmen de Jong</Copyright>
+    <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/irmen/Pyrolite</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>pyro python rpc remote-objects</PackageTags>
+    <PackageReleaseNotes>Migrated to dotnet core and NetStandard 2.0</PackageReleaseNotes>
+
+  </PropertyGroup>
+</Project>
