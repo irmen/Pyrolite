@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Razorvine.Pyrolite</AssemblyName>
+    <RootNamespace>Razorvine</RootNamespace>
+    <LangVersion>6</LangVersion>
+  </PropertyGroup>
+</Project>
