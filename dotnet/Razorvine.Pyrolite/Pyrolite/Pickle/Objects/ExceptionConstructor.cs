@@ -28,11 +28,11 @@ public class ExceptionConstructor : IObjectConstructor {
 			if(!string.IsNullOrEmpty(pythonExceptionType)) {
 				// put the python exception type somewhere in the message
 				if(args==null || args.Length==0) {
-					args = new string[] { "["+pythonExceptionType+"]" };
+					args = new object[] { "["+pythonExceptionType+"]" };
 				} else {
 					string msg = (string)args[0];
 					msg = string.Format("[{0}] {1}", pythonExceptionType, msg);
-					args = new string[] {msg};
+					args = new object[] {msg};
 				}
 			}
 			object ex = Activator.CreateInstance(this.type, args);

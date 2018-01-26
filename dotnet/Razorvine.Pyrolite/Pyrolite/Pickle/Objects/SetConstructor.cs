@@ -7,12 +7,9 @@ namespace Razorvine.Pickle.Objects
 {
 
 /// <summary>
-/// This object constructor creates sets. (HashSet<object>)
+/// This object constructor creates sets. (HashSet&lt;object&gt;)
 /// </summary>
 public class SetConstructor : IObjectConstructor {
-
-	public SetConstructor() {
-	}
 
 	public object construct(object[] args) {
 		// create a HashSet, args=arraylist of stuff to put in it

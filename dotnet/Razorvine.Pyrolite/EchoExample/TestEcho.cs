@@ -6,6 +6,7 @@ using System.Text;
 using System.Collections.Generic;
 using Razorvine.Pickle;
 using Razorvine.Pyro;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.TestPyroEcho
 {
@@ -30,8 +31,7 @@ class CustomProxy : PyroProxy
 /// Test Pyro with the Pyro echo server. 
 /// </summary>
 public class TestEcho {
-
-	static protected byte[] hmacKey = null;  // Encoding.UTF8.GetBytes("foo");
+	private static readonly byte[] hmacKey = null;  // Encoding.UTF8.GetBytes("foo");
 	
 	
 	public void Run() {
@@ -116,14 +116,14 @@ public class TestEcho {
 			
 			Console.WriteLine("error test.");
 			try {
-				result=p.error();
+				var unused=p.error();
 			} catch (PyroException e) {
 				Console.WriteLine("Pyro Exception (expected)! {0}",e.Message);
 				Console.WriteLine("Pyro Exception cause: {0}",e.InnerException);
 				Console.WriteLine("Pyro Exception remote traceback:\n>>>\n{0}<<<",e._pyroTraceback);
 			}
 			try {
-				result=p.error_with_text();
+				var unused=p.error_with_text();
 			} catch (PyroException e) {
 				Console.WriteLine("Pyro Exception (expected)! {0}",e.Message);
 				Console.WriteLine("Pyro Exception cause: {0}",e.InnerException);

@@ -413,7 +413,7 @@ public class Unpickler : IDisposable {
 	void load_string() {
 		string rep = PickleUtils.readline(input);
 		bool quotesOk = false;
-		foreach (string q in new string[] { "\"", "'" }) // double or single quote
+		foreach (string q in new [] { "\"", "'" }) // double or single quote
 		{
 			if (rep.StartsWith(q)) {
 				if (!rep.EndsWith(q)) {
@@ -491,20 +491,20 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_tuple1() {
-		stack.add(new object[] { stack.pop() });
+		stack.add(new [] { stack.pop() });
 	}
 
 	void load_tuple2() {
 		object o2 = stack.pop();
 		object o1 = stack.pop();
-		stack.add(new object[] { o1, o2 });
+		stack.add(new [] { o1, o2 });
 	}
 
 	void load_tuple3() {
 		object o3 = stack.pop();
 		object o2 = stack.pop();
 		object o1 = stack.pop();
-		stack.add(new object[] { o1, o2, o3 });
+		stack.add(new [] { o1, o2, o3 });
 	}
 
 	void load_empty_list() {
@@ -599,7 +599,7 @@ public class Unpickler : IDisposable {
 	}
 
 	void load_pop_mark() {
-		object o = null;
+		object o;
 		do {
 			o = stack.pop();
 		} while (o != stack.MARKER);
@@ -619,7 +619,7 @@ public class Unpickler : IDisposable {
 	void load_binget() {
 		byte i = PickleUtils.readbyte(input);
 		if(!memo.ContainsKey(i)) throw new PickleException("invalid memo key");
-		stack.add(memo[(int)i]);
+		stack.add(memo[i]);
 	}
 
 	void load_long_binget() {
@@ -635,7 +635,7 @@ public class Unpickler : IDisposable {
 
 	void load_binput() {
 		byte i = PickleUtils.readbyte(input);
-		memo[(int)i]=stack.peek();
+		memo[i]=stack.peek();
 	}
 
 	void load_memoize() {

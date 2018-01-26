@@ -11,7 +11,7 @@ namespace Razorvine.Pyro
 	/// Exception thrown when something is wrong in Pyro, or an exception was returned from a remote call.
 	/// </summary>
 	[Serializable]
-	public class PyroException : Exception, ISerializable
+	public class PyroException : Exception
 	{
 		public String _pyroTraceback {get;set;}
 		public String PythonExceptionType {get;set;}

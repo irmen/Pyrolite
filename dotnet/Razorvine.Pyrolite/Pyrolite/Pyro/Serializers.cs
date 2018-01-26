@@ -7,6 +7,7 @@ using System.Reflection;
 
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace Razorvine.Pyro
 {
@@ -21,10 +22,11 @@ namespace Razorvine.Pyro
 		public abstract byte[] serializeData(object obj);
 		public abstract object deserializeData(byte[] data);
 
+		// ReSharper disable once UnusedMember.Global
 		protected static IDictionary<Config.SerializerType, PyroSerializer> AvailableSerializers = new Dictionary<Config.SerializerType, PyroSerializer>();
 		
 		protected static readonly PickleSerializer pickleSerializer = new PickleSerializer();
-		protected static SerpentSerializer serpentSerializer = null;
+		protected static SerpentSerializer serpentSerializer;
 		
 		public static PyroSerializer GetFor(Config.SerializerType type)
 		{
@@ -58,10 +60,8 @@ namespace Razorvine.Pyro
 
 		public static PyroSerializer GetFor(int serializer_id)
 		{
-			if(serpentSerializer!=null) {
-				if(serializer_id == serpentSerializer.serializer_id)
-					return serpentSerializer;
-			}
+			if(serializer_id == serpentSerializer?.serializer_id)
+				return serpentSerializer;
 			if(serializer_id==pickleSerializer.serializer_id)
 				return pickleSerializer;
 			
@@ -75,12 +75,8 @@ namespace Razorvine.Pyro
 	/// </summary>
 	public class PickleSerializer : PyroSerializer
 	{
-		public override ushort serializer_id {
-			get {
-				return Message.SERIALIZER_PICKLE;
-			}
-		}
-		
+		public override ushort serializer_id => Message.SERIALIZER_PICKLE;
+
 		static PickleSerializer() {
 			Unpickler.registerConstructor("Pyro4.errors", "PyroError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "PyroError"));
 			Unpickler.registerConstructor("Pyro4.errors", "CommunicationError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "CommunicationError"));
@@ -137,24 +133,20 @@ namespace Razorvine.Pyro
 	/// </summary>
 	public class SerpentSerializer : PyroSerializer
 	{
-		private static MethodInfo serializeMethod;
-		private static MethodInfo parseMethod;
-		private static MethodInfo astGetDataMethod;
-		private static MethodInfo tobytesMethod;
-		private static Type serpentSerializerType;
-		private static Type serpentParserType;
+		private static readonly MethodInfo serializeMethod;
+		private static readonly MethodInfo parseMethod;
+		private static readonly MethodInfo astGetDataMethod;
+		private static readonly MethodInfo tobytesMethod;
+		private static readonly Type serpentSerializerType;
+		private static readonly Type serpentParserType;
 
-		public override ushort serializer_id {
-			get {
-				return Message.SERIALIZER_SERPENT;
-			}
-		}
-		
+		public override ushort serializer_id => Message.SERIALIZER_SERPENT;
+
 		static SerpentSerializer()
 		{
 			Assembly serpentAssembly = Assembly.Load("Razorvine.Serpent");
 			Version serpentVersion = serpentAssembly.GetName().Version;
-			Version requiredSerpentVersion = new Version(1, 16);
+			Version requiredSerpentVersion = new Version(1, 20);
 			if(serpentVersion<requiredSerpentVersion)
 				throw new NotSupportedException("serpent version "+requiredSerpentVersion+" (or newer) is required");
 
@@ -162,11 +154,11 @@ namespace Razorvine.Pyro
 			serpentParserType = serpentAssembly.GetType("Razorvine.Serpent.Parser");
 			Type astType = serpentAssembly.GetType("Razorvine.Serpent.Ast");
 			
-			serializeMethod = serpentSerializerType.GetMethod("Serialize", new Type[] {typeof(object)});
-			parseMethod = serpentParserType.GetMethod("Parse", new Type[] {typeof(byte[])});
-			tobytesMethod = serpentParserType.GetMethod("ToBytes", new Type[] {typeof(object)});
+			serializeMethod = serpentSerializerType.GetMethod("Serialize", new [] {typeof(object)});
+			parseMethod = serpentParserType.GetMethod("Parse", new [] {typeof(byte[])});
+			tobytesMethod = serpentParserType.GetMethod("ToBytes", new [] {typeof(object)});
 
-			astGetDataMethod = astType.GetMethod("GetData", new Type[]{typeof(Func<IDictionary, object>)});
+			astGetDataMethod = astType.GetMethod("GetData", new []{typeof(Func<IDictionary, object>)});
 			
 			// register a few custom class-to-dict converters
 			MethodInfo registerMethod = serpentSerializerType.GetMethod("RegisterClass", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
@@ -201,23 +193,23 @@ namespace Razorvine.Pyro
 		public override byte[] serializeData(object obj)
 		{
 			// call the "Serialize" method, using reflection
-			object serializer = Activator.CreateInstance(serpentSerializerType, new object[] {Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true});
-			return (byte[]) serializeMethod.Invoke(serializer, new object[] {obj});
+			var serializer = Activator.CreateInstance(serpentSerializerType, Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true);
+			return (byte[]) serializeMethod.Invoke(serializer, new [] {obj});
 		}
 		
 		public override byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs)
 		{
 			object[] invokeparams = new object[] {objectId, method, vargs, kwargs};
 			// call the "Serialize" method, using reflection
-			object serializer = Activator.CreateInstance(serpentSerializerType, new object[] {Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true});
+			var serializer = Activator.CreateInstance(serpentSerializerType, Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true);
 			return (byte[]) serializeMethod.Invoke(serializer, new object[] {invokeparams});
 		}
 		
 		public override object deserializeData(byte[] data)
 		{
 			// call the "Parse" method, using reflection
-			object parser = Activator.CreateInstance(serpentParserType);
-			object ast = parseMethod.Invoke(parser, new object[] {data});
+			var parser = Activator.CreateInstance(serpentParserType);
+			var ast = parseMethod.Invoke(parser, new object[] {data});
 			// call the "GetData" method on the Ast, using reflection
 			Func<IDictionary, object> dictToInstanceFunc = DictToInstance;
 			return astGetDataMethod.Invoke(ast, new object[] {dictToInstanceFunc});
@@ -232,7 +224,7 @@ namespace Razorvine.Pyro
 		 */
 		public static byte[] ToBytes(object obj) {
 			try {
-				return (byte[]) tobytesMethod.Invoke(null, new Object[] {obj});
+				return (byte[]) tobytesMethod.Invoke(null, new [] {obj});
 			} catch(TargetInvocationException x) {
 				if(x.InnerException != null)
 					throw x.InnerException;

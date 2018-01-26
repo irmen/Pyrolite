@@ -4,6 +4,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using Razorvine.Pyro;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.TestPyroEcho
 {

@@ -1,8 +1,8 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
-using System.Text;
 using Razorvine.Pyro;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.TestPyroFlame
 {
@@ -10,9 +10,9 @@ namespace Pyrolite.TestPyroFlame
 /// <summary>
 /// Test Pyro with a Flame server
 /// </summary>
-public class TestFlame {
+public static class TestFlame {
 
-	static protected byte[] hmacKey = null;
+	static byte[] hmacKey = null;
 
 	public static void Main(String[] args) {
 		try {
@@ -37,7 +37,7 @@ public class TestFlame {
 			{
 				if(hmacKey!=null) r_max.pyroHmacKey = hmacKey;
 				
-				int maximum=(int)r_max(new int[]{22,99,1});		// invoke remote max() builtin function
+				int maximum=(int)r_max(new []{22,99,1});		// invoke remote max() builtin function
 				Console.WriteLine("maximum="+maximum);
 			}
 			

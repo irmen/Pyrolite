@@ -2,8 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyrolite", "Pyrolite\Pyrolite.csproj", "{8E242709-E766-421C-9D38-134F80A1690D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{6B1B68A3-2276-49B7-BA78-2CE766758123}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PickleExample", "PickleExample\PickleExample.csproj", "{1001B83A-1B0D-40C0-B1E5-A9C0D72108D5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebugHelper", "DebugHelper\DebugHelper.csproj", "{C117406F-6EC0-4E05-A799-A0FAA16230FB}"
@@ -13,6 +11,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoExample", "EchoExample\EchoExample.csproj", "{25712F63-473B-400E-9488-FCA4619B3B07}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NamingExample", "NamingExample\NamingExample.csproj", "{948E3EFB-1A53-4E54-99CD-3A1C1D45A398}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{59C33EFD-F2D7-4FC7-89FF-ACF808AE1109}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,10 +24,6 @@ Global
 		{8E242709-E766-421C-9D38-134F80A1690D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E242709-E766-421C-9D38-134F80A1690D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E242709-E766-421C-9D38-134F80A1690D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6B1B68A3-2276-49B7-BA78-2CE766758123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6B1B68A3-2276-49B7-BA78-2CE766758123}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6B1B68A3-2276-49B7-BA78-2CE766758123}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6B1B68A3-2276-49B7-BA78-2CE766758123}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1001B83A-1B0D-40C0-B1E5-A9C0D72108D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1001B83A-1B0D-40C0-B1E5-A9C0D72108D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1001B83A-1B0D-40C0-B1E5-A9C0D72108D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -48,5 +44,9 @@ Global
 		{948E3EFB-1A53-4E54-99CD-3A1C1D45A398}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{948E3EFB-1A53-4E54-99CD-3A1C1D45A398}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{948E3EFB-1A53-4E54-99CD-3A1C1D45A398}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59C33EFD-F2D7-4FC7-89FF-ACF808AE1109}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59C33EFD-F2D7-4FC7-89FF-ACF808AE1109}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59C33EFD-F2D7-4FC7-89FF-ACF808AE1109}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59C33EFD-F2D7-4FC7-89FF-ACF808AE1109}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

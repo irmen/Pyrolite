@@ -2,9 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Razorvine.Pickle;
 using Razorvine.Pyro;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.TestPyroNaming
 {
@@ -12,9 +11,9 @@ namespace Pyrolite.TestPyroNaming
 /// <summary>
 /// Test Pyro with the Pyro name server.
 /// </summary>
-public class TestNaming {
+public static class TestNaming {
 
-	static protected byte[] hmacKey = null;
+	static byte[] hmacKey = null;
 
 	public static void Main(String[] args)  {
 		try {

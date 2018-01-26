@@ -1,6 +1,5 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 	
-using System;
 using System.Collections;
 
 namespace Razorvine.Pyro

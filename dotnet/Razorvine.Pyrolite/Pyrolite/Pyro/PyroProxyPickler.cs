@@ -49,7 +49,7 @@ public class PyroProxyPickler : IObjectPickler {
 		var dict = new Hashtable();
 		string uri = string.Format("PYRO:{0}@{1}:{2}", proxy.objectid, proxy.hostname, proxy.port);
 		string encodedHmac = proxy.pyroHmacKey!=null? "b64:"+Convert.ToBase64String(proxy.pyroHmacKey) : null;
-		dict["state"] = new object[]{
+		dict["state"] = new []{
 			uri,
 			proxy.pyroOneway,
 			proxy.pyroMethods,

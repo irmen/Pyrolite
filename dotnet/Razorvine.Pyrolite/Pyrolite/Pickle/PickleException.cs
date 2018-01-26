@@ -8,7 +8,7 @@ namespace Razorvine.Pickle
 	/// <summary>
 	/// Exception thrown when something went wrong with pickling or unpickling.
 	/// </summary>
-	public class PickleException : Exception, ISerializable
+	public class PickleException : Exception
 	{
 		public PickleException()
 		{

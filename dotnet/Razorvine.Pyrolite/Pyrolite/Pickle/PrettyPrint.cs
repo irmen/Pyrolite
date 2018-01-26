@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.IO;
-using System.Text;
 
 namespace Razorvine.Pickle
 {
@@ -40,7 +39,7 @@ public class PrettyPrint {
 			IDictionary map=(IDictionary)o;
 			w.Write("{");
 			foreach(object key in map.Keys) {
-				w.Write(key.ToString()+"="+map[key].ToString()+", ");
+				w.Write(key+"="+map[key]+", ");
 			}
 			w.WriteLine("}");
 		} else if (o is string) {

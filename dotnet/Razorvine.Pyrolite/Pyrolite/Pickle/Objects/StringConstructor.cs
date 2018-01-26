@@ -1,7 +1,5 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
-using System;
-
 namespace Razorvine.Pickle.Objects
 {
 
@@ -12,10 +10,6 @@ namespace Razorvine.Pickle.Objects
 /// </summary>
 public class StringConstructor : IObjectConstructor
 {
-	public StringConstructor()
-	{
-	}
-	
 	public object construct(object[] args)
 	{
 		if(args.Length==0) {

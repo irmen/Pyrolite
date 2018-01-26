@@ -4,13 +4,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-
 using Razorvine.Pickle;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.PickleExample
 {
-	class PickleTest
+	static class PickleTest
 	{
 		public static void Main(string[] args)
 		{
@@ -20,7 +19,7 @@ namespace Pyrolite.PickleExample
 			map["apple"] = 42;
 			map["microsoft"] = "hello";
 			var values = new List<double>();
-			values.AddRange(new double[] { 1.11, 2.22, 3.33, 4.44, 5.55} );
+			values.AddRange(new [] { 1.11, 2.22, 3.33, 4.44, 5.55} );
 			map["values"] = values;
 			// You can add many other types if you like. See the readme about the type mappings.
 			

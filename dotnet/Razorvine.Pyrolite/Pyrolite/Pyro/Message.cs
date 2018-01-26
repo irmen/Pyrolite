@@ -128,8 +128,8 @@ public class Message
 		header[2]=(byte)'R';
 		header[3]=(byte)'O';
 
-		header[4]=(byte) (Config.PROTOCOL_VERSION>>8);
-		header[5]=(byte) (Config.PROTOCOL_VERSION&0xff);
+		header[4]=Config.PROTOCOL_VERSION>>8;
+		header[5]=Config.PROTOCOL_VERSION&0xff;
 
 		header[6]=(byte) (type>>8);
 		header[7]=(byte) (type&0xff);
@@ -168,7 +168,7 @@ public class Message
 			if(ann.Key.Length!=4)
 				throw new ArgumentException("annotation key must be length 4");
 			result = result.Concat(Encoding.ASCII.GetBytes(ann.Key));
-			byte[] size_bytes = new byte[2] { (byte)((ann.Value.Length>>8)&0xff), (byte)(ann.Value.Length&0xff) };
+			byte[] size_bytes = new byte[] { (byte)((ann.Value.Length>>8)&0xff), (byte)(ann.Value.Length&0xff) };
 			result = result.Concat(size_bytes);
 			result = result.Concat(ann.Value);
 		}
@@ -263,7 +263,7 @@ public class Message
 		
 		if(msg.annotations.ContainsKey("HMAC") && hmac!=null)
 		{
-			if(!msg.annotations["HMAC"].SequenceEqual<byte>(msg.hmac(hmac)))
+			if(!msg.annotations["HMAC"].SequenceEqual(msg.hmac(hmac)))
 				throw new PyroException("message hmac mismatch");
 		}
 		else if (msg.annotations.ContainsKey("HMAC") != (hmac!=null))

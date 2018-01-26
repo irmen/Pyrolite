@@ -2,6 +2,8 @@
 
 using System;
 using System.Text;
+// ReSharper disable CompareOfFloatsByEqualityOperator
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace Razorvine.Pickle.Objects
 {

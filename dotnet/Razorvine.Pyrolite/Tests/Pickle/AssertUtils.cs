@@ -1,9 +1,9 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.Tests.Pickle
 {
@@ -17,20 +17,21 @@ static class AssertUtils
 	{
 		if(expected.Equals(actual)) return;
 		IDictionary actualdict=(IDictionary)actual;
-		Assert.AreEqual(expected.Count, actualdict.Count, "dictionary size must be equal");
+		Assert.Equal(expected.Count, actualdict.Count); // dictionary size must be equal
 		ArrayList keys1=new ArrayList(expected.Keys);
 		ArrayList keys2=new ArrayList(actualdict.Keys);
 		keys1.Sort();
 		keys2.Sort();
-		Assert.AreEqual(keys1, keys2, "dictionary keys must be the same");
+		Assert.Equal(keys1, keys2);  // dictionary keys must be the same
 		
 		foreach(object key in expected.Keys) {
 			object ev=expected[key];
 			object av=actualdict[key];
 			if(ev is IDictionary) {
 				AssertEqual((IDictionary)ev, av);
-			} else {
-				Assert.AreEqual(ev,av, "dictionary values must be the same");
+			} else
+			{
+				Assert.Equal(ev, av);  // dictionary values must be the same
 			}
 		}
 	}
@@ -43,7 +44,7 @@ static class AssertUtils
 		foreach(object x in (IEnumerable)actual) {
 			actualvalues.Add((T)x);
 		}
-		Assert.AreEqual(expectedvalues, actualvalues, "hashsets must be equal");
+		Assert.Equal(expectedvalues, actualvalues);  // hashsets must be equal
 	}	
 }
 

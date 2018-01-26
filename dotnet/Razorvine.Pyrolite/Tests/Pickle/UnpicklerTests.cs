@@ -5,9 +5,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.Tests.Pickle
 {
@@ -15,16 +16,7 @@ namespace Pyrolite.Tests.Pickle
 /// <summary>
 /// Unit tests for the unpickler. 
 /// </summary>
-[TestClass]
 public class UnpicklerTests {
-
-	[TestInitialize]
-	public void setUp()  {
-	}
-
-	[TestCleanup]
-	public void tearDown() {
-	}
 
 	object U(string strdata) 
 	{
@@ -39,51 +31,51 @@ public class UnpicklerTests {
 	}
 	
 	
-	[TestMethod]
+	[Fact]
 	public void testSinglePrimitives()  {
 		// protocol level 1
-		Assert.IsNull(U("N."));		// none
-		Assert.AreEqual(123.456d, U("F123.456\n."));	// float
-		Assert.AreEqual(true,U("I01\n."));	// true boolean
-		Assert.AreEqual(false,U("I00\n."));	// false boolean
-		Assert.AreEqual(new byte[]{97,98,99},(byte[]) U("c__builtin__\nbytes\np0\n((lp1\nL97L\naL98L\naL99L\natp2\nRp3\n.")); // python3 bytes
-		Assert.AreEqual(new byte[]{97,98,99},(byte[]) U("c__builtin__\nbytes\n(](KaKbKcetR.")); // python3 bytes
-		Assert.AreEqual(new byte[]{97,98,99,100,101,102}, (byte[]) U("C\u0006abcdef.")); // python3 bytes
-		Assert.AreEqual(123,U("I123\n."));   // int
-		Assert.AreEqual(999999999,U("I999999999\n."));   // int
-		Assert.AreEqual(-999999999,U("I-999999999\n."));   // int
-		Assert.AreEqual(9999999999L,U("I9999999999\n."));   // int (From 64-bit python)
-		Assert.AreEqual(-9999999999L,U("I-9999999999\n."));   // int (From 64-bit python)
-		Assert.AreEqual(19999999999L,U("I19999999999\n."));   // int (From 64-bit python)
-		Assert.AreEqual(-19999999999L,U("I-19999999999\n."));   // int (From 64-bit python)
-		Assert.AreEqual(0x45443043,U("JC0DE."));	// 4 byte signed int 0x45443043 (little endian)
-		Assert.AreEqual(-285212674,U("J\u00fe\u00ff\u00ff\u00ee."));	// 4 byte signed int (little endian)
-		Assert.AreEqual(255,U("K\u00ff."));   // unsigned int
-		Assert.AreEqual(1234L,U("L1234\n.")); // long (as long)
-		Assert.AreEqual(12345678987654321L,U("L12345678987654321L\n.")); // long (as long)
-		// Assert.AreEqual(new BigInteger("9999888877776666555544443333222211110000"),U("L9999888877776666555544443333222211110000L\n.")); // long (as bigint)
-		Assert.AreEqual(12345,U("M90."));	// 2 byte unsigned
-		Assert.AreEqual(65535,U("M\u00ff\u00ff."));	// 2 byte unsigned
-		Assert.AreEqual("Foobar",U("S'Foobar'\n."));  // string with quotes
-		Assert.AreEqual("abc",U("T\u0003\u0000\u0000\u0000abc."));  // counted string
-		Assert.AreEqual("abc",U("U\u0003abc."));  // short counted string
-		Assert.AreEqual("unicode",U("Vunicode\n."));
-		Assert.AreEqual("unicode",U("X\u0007\u0000\u0000\u0000unicode."));
-		Assert.AreEqual(new Hashtable(),U("}."));
-		Assert.AreEqual(new ArrayList(),U("]."));
-		Assert.AreEqual(new object[0], (object[]) U(")."));
-		Assert.AreEqual(1234.5678d, U("G@\u0093JEm\\\u00fa\u00ad."));  // 8-byte binary coded float
+		Assert.Null(U("N."));		// none
+		Assert.Equal(123.456d, U("F123.456\n."));	// float
+		Assert.Equal(true,U("I01\n."));	// true boolean
+		Assert.Equal(false,U("I00\n."));	// false boolean
+		Assert.Equal(new byte[]{97,98,99},(byte[]) U("c__builtin__\nbytes\np0\n((lp1\nL97L\naL98L\naL99L\natp2\nRp3\n.")); // python3 bytes
+		Assert.Equal(new byte[]{97,98,99},(byte[]) U("c__builtin__\nbytes\n(](KaKbKcetR.")); // python3 bytes
+		Assert.Equal(new byte[]{97,98,99,100,101,102}, (byte[]) U("C\u0006abcdef.")); // python3 bytes
+		Assert.Equal(123,U("I123\n."));   // int
+		Assert.Equal(999999999,U("I999999999\n."));   // int
+		Assert.Equal(-999999999,U("I-999999999\n."));   // int
+		Assert.Equal(9999999999L,U("I9999999999\n."));   // int (From 64-bit python)
+		Assert.Equal(-9999999999L,U("I-9999999999\n."));   // int (From 64-bit python)
+		Assert.Equal(19999999999L,U("I19999999999\n."));   // int (From 64-bit python)
+		Assert.Equal(-19999999999L,U("I-19999999999\n."));   // int (From 64-bit python)
+		Assert.Equal(0x45443043,U("JC0DE."));	// 4 byte signed int 0x45443043 (little endian)
+		Assert.Equal(-285212674,U("J\u00fe\u00ff\u00ff\u00ee."));	// 4 byte signed int (little endian)
+		Assert.Equal(255,U("K\u00ff."));   // unsigned int
+		Assert.Equal(1234L,U("L1234\n.")); // long (as long)
+		Assert.Equal(12345678987654321L,U("L12345678987654321L\n.")); // long (as long)
+		// Assert.Equal(new BigInteger("9999888877776666555544443333222211110000"),U("L9999888877776666555544443333222211110000L\n.")); // long (as bigint)
+		Assert.Equal(12345,U("M90."));	// 2 byte unsigned
+		Assert.Equal(65535,U("M\u00ff\u00ff."));	// 2 byte unsigned
+		Assert.Equal("Foobar",U("S'Foobar'\n."));  // string with quotes
+		Assert.Equal("abc",U("T\u0003\u0000\u0000\u0000abc."));  // counted string
+		Assert.Equal("abc",U("U\u0003abc."));  // short counted string
+		Assert.Equal("unicode",U("Vunicode\n."));
+		Assert.Equal("unicode",U("X\u0007\u0000\u0000\u0000unicode."));
+		Assert.Equal(new Hashtable(),U("}."));
+		Assert.Equal(new ArrayList(),U("]."));
+		Assert.Equal(new object[0], (object[]) U(")."));
+		Assert.Equal(1234.5678d, U("G@\u0093JEm\\\u00fa\u00ad."));  // 8-byte binary coded float
 		// protocol level2
-		Assert.AreEqual(true,U("\u0088."));	// True
-		Assert.AreEqual(false,U("\u0089."));	// False
-		//Assert.AreEqual(12345678987654321L, U("\u008a\u0007\u00b1\u00f4\u0091\u0062\u0054\u00dc\u002b."));
-		//Assert.AreEqual(12345678987654321L, U("\u008b\u0007\u0000\u0000\u0000\u00b1\u00f4\u0091\u0062\u0054\u00dc\u002b."));
+		Assert.Equal(true,U("\u0088."));	// True
+		Assert.Equal(false,U("\u0089."));	// False
+		//Assert.Equal(12345678987654321L, U("\u008a\u0007\u00b1\u00f4\u0091\u0062\u0054\u00dc\u002b."));
+		//Assert.Equal(12345678987654321L, U("\u008b\u0007\u0000\u0000\u0000\u00b1\u00f4\u0091\u0062\u0054\u00dc\u002b."));
 		// Protocol 3 (Python 3.x)
-		Assert.AreEqual(new byte[]{65,66,67}, (byte[]) U("B\u0003\u0000\u0000\u0000ABC."));
-		Assert.AreEqual(new byte[]{65,66,67}, (byte[]) U("C\u0003ABC."));
+		Assert.Equal(new byte[]{65,66,67}, (byte[]) U("B\u0003\u0000\u0000\u0000ABC."));
+		Assert.Equal(new byte[]{65,66,67}, (byte[]) U("C\u0003ABC."));
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testZeroToTwoFiveSix() {
 		byte[] bytes=new byte[256];
 		for(int b=0; b<256; ++b) {
@@ -103,7 +95,7 @@ public class UnpicklerTests {
 		byte[] data=Encoding.Default.GetBytes("c__builtin__\nbytearray\n");
 		bos.Write(data,0,data.Length);
 		bos.WriteByte(Opcodes.BINUNICODE);
-		bos.Write(new byte[] {(byte)0x80,0x01,0x00,0x00},0,4);
+		bos.Write(new byte[] {0x80,0x01,0x00,0x00},0,4);
 		byte[] utf8=Encoding.UTF8.GetBytes(str);
 		bos.Write(utf8,0,utf8.Length);
 		bos.WriteByte(Opcodes.BINUNICODE);
@@ -116,72 +108,72 @@ public class UnpicklerTests {
 		
 		byte[] bytesresult=bos.ToArray();
 		byte[] output=p.dumps(bytes);
-		Assert.AreEqual(bytesresult, output);
-		Assert.AreEqual(bytes, (byte[])u.loads(output)); 
+		Assert.Equal(bytesresult, output);
+		Assert.Equal(bytes, (byte[])u.loads(output)); 
 		
 		bos=new MemoryStream(434);
 		bos.WriteByte(Opcodes.PROTO); bos.WriteByte(2);
 		bos.WriteByte(Opcodes.BINUNICODE);
-		bos.Write(new byte[] {(byte)0x80,0x01,0x00,0x00},0,4);
+		bos.Write(new byte[] {0x80,0x01,0x00,0x00},0,4);
 		utf8=Encoding.UTF8.GetBytes(str);
 		bos.Write(utf8,0,utf8.Length);
 		bos.WriteByte(Opcodes.STOP);
 		bytesresult=bos.ToArray();
 
 		output=p.dumps(str);
-		Assert.AreEqual(bytesresult, output);
-		Assert.AreEqual(str, u.loads(output));
+		Assert.Equal(bytesresult, output);
+		Assert.Equal(str, u.loads(output));
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testUnicodeStrings() 
 	{
-		Assert.AreEqual("\u00ff", U("S'\\xff'\n."));
-		Assert.AreEqual("\u20ac", U("V\\u20ac\n."));
+		Assert.Equal("\u00ff", U("S'\\xff'\n."));
+		Assert.Equal("\u20ac", U("V\\u20ac\n."));
 		
-		Assert.AreEqual("euro\u20ac", U("X\u0007\u0000\u0000\u0000euro\u00e2\u0082\u00ac."));   // utf-8 encoded
+		Assert.Equal("euro\u20ac", U("X\u0007\u0000\u0000\u0000euro\u00e2\u0082\u00ac."));   // utf-8 encoded
 		
-		Assert.AreEqual("\u0007\u00db\u007f\u0080",U(new byte[]{(byte)'T',0x04,0x00,0x00,0x00,0x07,0xdb,0x7f,0x80,(byte)'.'}));  // string with non-ascii symbols
-		Assert.AreEqual("\u0007\u00db\u007f\u0080",U(new byte[]{(byte)'U',0x04,0x07,0xdb,0x7f,0x80,(byte)'.'}));  // string with non-ascii symbols
-		Assert.AreEqual("\u0007\u00db\u007f\u0080",U(new byte[]{(byte)'V',0x07,0xdb,0x7f,0x80,(byte)'\n',(byte)'.'}));  // string with non-ascii symbols
+		Assert.Equal("\u0007\u00db\u007f\u0080",U(new byte[]{(byte)'T',0x04,0x00,0x00,0x00,0x07,0xdb,0x7f,0x80,(byte)'.'}));  // string with non-ascii symbols
+		Assert.Equal("\u0007\u00db\u007f\u0080",U(new byte[]{(byte)'U',0x04,0x07,0xdb,0x7f,0x80,(byte)'.'}));  // string with non-ascii symbols
+		Assert.Equal("\u0007\u00db\u007f\u0080",U(new byte[]{(byte)'V',0x07,0xdb,0x7f,0x80,(byte)'\n',(byte)'.'}));  // string with non-ascii symbols
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testTuples() 
 	{
-		Assert.AreEqual(new object[0], (object[])U(")."));	// ()
-		Assert.AreEqual(new object[]{97}, (object[])U("Ka\u0085.")); // (97,)
-		Assert.AreEqual(new object[]{97,98}, (object[])U("KaKb\u0086.")); // (97,98)
-		Assert.AreEqual(new object[]{97,98,99}, (object[])U("KaKbKc\u0087.")); // (97,98,99)
-		Assert.AreEqual(new object[]{97,98,99,100}, (object[])U("(KaKbKcKdt.")); // (97,98,99,100)
+		Assert.Equal(new object[0], (object[])U(")."));	// ()
+		Assert.Equal(new object[]{97}, (object[])U("Ka\u0085.")); // (97,)
+		Assert.Equal(new object[]{97,98}, (object[])U("KaKb\u0086.")); // (97,98)
+		Assert.Equal(new object[]{97,98,99}, (object[])U("KaKbKc\u0087.")); // (97,98,99)
+		Assert.Equal(new object[]{97,98,99,100}, (object[])U("(KaKbKcKdt.")); // (97,98,99,100)
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testLists() 
 	{
 		IList<int> list=new List<int>(0);
 		
-		Assert.AreEqual(list, U("]."));	// []
+		Assert.Equal(list, U("]."));	// []
 		list.Add(97);
-		Assert.AreEqual(list, U("]Kaa."));	// [97]
-		Assert.AreEqual(list, U("(Kal."));	// [97]
+		Assert.Equal(list, U("]Kaa."));	// [97]
+		Assert.Equal(list, U("(Kal."));	// [97]
 		list.Add(98);
 		list.Add(99);
-		Assert.AreEqual(list, U("](KaKbKce."));	// [97,98,99]
+		Assert.Equal(list, U("](KaKbKce."));	// [97,98,99]
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testDicts() 
 	{
 		Hashtable map=new Hashtable();
 		Hashtable map2=new Hashtable();
 		ArrayList list=new ArrayList();
-		Assert.AreEqual(map, U("}.") );	// {}
+		Assert.Equal(map, U("}.") );	// {}
 		map.Add(97, 98);
 		map.Add(99, 100);
-		Assert.AreEqual(map, U("}(KaKbKcKdu."));  // {97: 98, 99: 100}
-		Assert.AreEqual(map, U("(dI97\nI98\nsI99\nI100\ns.")); // {97: 98, 99: 100}
-		Assert.AreEqual(map, U("(I97\nI98\nI99\nI100\nd.")); // {97: 98, 99: 100}
+		Assert.Equal(map, U("}(KaKbKcKdu."));  // {97: 98, 99: 100}
+		Assert.Equal(map, U("(dI97\nI98\nsI99\nI100\ns.")); // {97: 98, 99: 100}
+		Assert.Equal(map, U("(I97\nI98\nI99\nI100\nd.")); // {97: 98, 99: 100}
 	
 		map.Clear();
 		map.Add(1,2);
@@ -190,19 +182,19 @@ public class UnpicklerTests {
 		map2.Add(7,8);
 		list.Add(map);
 		list.Add(map2);
-		Assert.AreEqual(list, U("(lp0\n(dp1\nI1\nI2\nsI3\nI4\nsa(dp2\nI5\nI6\nsI7\nI8\nsa."));  // [{1:2, 3:4}, {5:6, 7:8}]
-		Assert.AreEqual(list, U("\u0080\u0002]q\u0000(}q\u0001(K\u0001K\u0002K\u0003K\u0004u}q\u0002(K\u0005K\u0006K\u0007K\u0008ue."));  // [{1:2, 3:4}, {5:6, 7:8}]
+		Assert.Equal(list, U("(lp0\n(dp1\nI1\nI2\nsI3\nI4\nsa(dp2\nI5\nI6\nsI7\nI8\nsa."));  // [{1:2, 3:4}, {5:6, 7:8}]
+		Assert.Equal(list, U("\u0080\u0002]q\u0000(}q\u0001(K\u0001K\u0002K\u0003K\u0004u}q\u0002(K\u0005K\u0006K\u0007K\u0008ue."));  // [{1:2, 3:4}, {5:6, 7:8}]
 		
 		map.Clear();
 		map2.Clear();
 		list.Clear();
 		
 		map["abc"]=null;
-		Assert.AreEqual(map, U("(dp0\nS'abc'\np1\nNs.")); // {'abc': None}
-		Assert.AreEqual(map, U("\u0080\u0002}q\u0000U\u0003abcq\u0001Ns.")); // {'abc': None}
+		Assert.Equal(map, U("(dp0\nS'abc'\np1\nNs.")); // {'abc': None}
+		Assert.Equal(map, U("\u0080\u0002}q\u0000U\u0003abcq\u0001Ns.")); // {'abc': None}
 		map["abc"]=111;
-		Assert.AreEqual(map, U("(dp0\nS'abc'\np1\nI111\ns.")); // {'abc': 111}
-		Assert.AreEqual(map, U("\u0080\u0002}q\u0000U\u0003abcq\u0001Kos.")); // {'abc': 111}
+		Assert.Equal(map, U("(dp0\nS'abc'\np1\nI111\ns.")); // {'abc': 111}
+		Assert.Equal(map, U("\u0080\u0002}q\u0000U\u0003abcq\u0001Kos.")); // {'abc': 111}
 		list.Add(111);
 		list.Add(111);
 		map["abc"]=list;
@@ -219,9 +211,7 @@ public class UnpicklerTests {
 		AssertUtils.AssertEqual(map, U("(dp0\nS'abc'\np1\n(dp2\nS'def'\np3\n(lp4\nI111\naI111\nass.")); // {'abc': {'def': [111,111] }}
 		AssertUtils.AssertEqual(map, U("\u0080\u0002}q\u0000U\u0003abcq\u0001}q\u0002U\u0003defq\u0003]q\u0004(KoKoess.")); // {'abc': {'def': [111,111] }}
 
-		ArrayList list2=new ArrayList();
-		list2.Add(222);
-		list2.Add(222);
+		ArrayList list2 = new ArrayList {222, 222};
 		map2["ghi"]=list2;
 		AssertUtils.AssertEqual(map, U("(dp0\nS'abc'\np1\n(dp2\nS'ghi'\np3\n(lp4\nI222\naI222\nasS'def'\np5\n(lp6\nI111\naI111\nass.")); // {'abc': {'def': [111,111], ghi: [222,222] }}
 		AssertUtils.AssertEqual(map, U("\u0080\u0002}q\u0000U\u0003abcq\u0001}q\u0002(U\u0003ghiq\u0003]q\u0004(K\u00deK\u00deeU\u0003defq\u0005]q\u0006(KoKoeus.")); // {'abc': {'def': [111,111], ghi: [222,222] }}
@@ -233,77 +223,77 @@ public class UnpicklerTests {
 		AssertUtils.AssertEqual(map, U("\u0080\u0002}q\u0000U\u0003abcq\u0001}q\u0002(h\u0001]q\u0003(KoKoeU\u0003defq\u0004h\u0003us.")); // {'abc': {'def': [111,111], abc: [111,111] }}
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testComplex() 
 	{
 		ComplexNumber c=new ComplexNumber(2.0, 4.0);
-		Assert.AreEqual(c, U("c__builtin__\ncomplex\np0\n(F2.0\nF4.0\ntp1\nRp2\n."));
-		Assert.AreEqual(c, U("c__builtin__\ncomplex\nq\u0000G@\u0000\u0000\u0000\u0000\u0000\u0000\u0000G@\u0010\u0000\u0000\u0000\u0000\u0000\u0000\u0086q\u0001Rq\u0002."));
+		Assert.Equal(c, U("c__builtin__\ncomplex\np0\n(F2.0\nF4.0\ntp1\nRp2\n."));
+		Assert.Equal(c, U("c__builtin__\ncomplex\nq\u0000G@\u0000\u0000\u0000\u0000\u0000\u0000\u0000G@\u0010\u0000\u0000\u0000\u0000\u0000\u0000\u0086q\u0001Rq\u0002."));
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testDecimal() 
 	{
-		Assert.AreEqual(12345.6789m, U("cdecimal\nDecimal\np0\n(S'12345.6789'\np1\ntp2\nRp3\n."));
-		Assert.AreEqual(12345.6789m, U("\u0080\u0002cdecimal\nDecimal\nU\n12345.6789\u0085R."));
+		Assert.Equal(12345.6789m, U("cdecimal\nDecimal\np0\n(S'12345.6789'\np1\ntp2\nRp3\n."));
+		Assert.Equal(12345.6789m, U("\u0080\u0002cdecimal\nDecimal\nU\n12345.6789\u0085R."));
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testDateTime() 
 	{
 		DateTime dt;
 		TimeSpan ts;
 		
 		dt=(DateTime)U("cdatetime\ndate\nU\u0004\u0007\u00db\u000c\u001f\u0085R.");
-		Assert.AreEqual(new DateTime(2011,12,31), dt);
+		Assert.Equal(new DateTime(2011,12,31), dt);
 
 		ts=(TimeSpan)U("cdatetime\ntime\nU\u0006\u000e!;\u0006\u00f5@\u0085R.");
-		Assert.AreEqual(new TimeSpan(0,14,33,59,456), ts);
+		Assert.Equal(new TimeSpan(0,14,33,59,456), ts);
 		
 		dt=(DateTime)U("cdatetime\ndatetime\nU\n\u0007\u00db\u000c\u001f\u000e!;\u0006\u00f5@\u0085R.");
-		Assert.AreEqual(new DateTime(2011, 12, 31, 14, 33, 59, 456), dt);
+		Assert.Equal(new DateTime(2011, 12, 31, 14, 33, 59, 456), dt);
 		dt=(DateTime)U("cdatetime\ndatetime\np0\n(S'\\x07\\xdb\\x0c\\x1f\\x0e!;\\x06\\xf5@'\np1\ntp2\nRp3\n.");
-		Assert.AreEqual(new DateTime(2011, 12, 31, 14, 33, 59, 456), dt);
+		Assert.Equal(new DateTime(2011, 12, 31, 14, 33, 59, 456), dt);
 		
 		ts=(TimeSpan)U("cdatetime\ntimedelta\nM\u00d9\u0002M\u00d5\u00d2JU\u00f8\u0006\u0000\u0087R.");
-		Assert.AreEqual(new TimeSpan(729, 0, 0, 53973, 456), ts);
+		Assert.Equal(new TimeSpan(729, 0, 0, 53973, 456), ts);
 
 		ts = (TimeSpan)U("cdatetime\ntimedelta\nq\x00K\nK;J@\xe2\x01\x00\x87q\x01Rq\x02.");
-		Assert.AreEqual(new TimeSpan(10, 0, 0, 59, 123), ts);
+		Assert.Equal(new TimeSpan(10, 0, 0, 59, 123), ts);
 
 		ts = (TimeSpan)U("cdatetime\ntime\nq\x00U\x06\n\x1d;\x01\xe2@q\x01\x85q\x02Rq\x03.");
-		Assert.AreEqual(new TimeSpan(0, 10, 29, 59, 123), ts);
+		Assert.Equal(new TimeSpan(0, 10, 29, 59, 123), ts);
 		
 		dt = (DateTime)U("cdatetime\ndatetime\n(M\xdd\x07K\x06K\x17K\x0dK\x36K\x01J@\xe2\x01\x00tR.");
-		Assert.AreEqual(new DateTime(2013, 6, 23, 13, 54, 1, 123), dt);
+		Assert.Equal(new DateTime(2013, 6, 23, 13, 54, 1, 123), dt);
 		
 		ts = (TimeSpan)U("cdatetime\ntime\n(K\x17K\x0dK\x36J@\xe2\x01\x00tR.");
-		Assert.AreEqual(new TimeSpan(0, 23, 13, 54, 123), ts);
+		Assert.Equal(new TimeSpan(0, 23, 13, 54, 123), ts);
 
 		dt = (DateTime) U("cdatetime\ndatetime\np0\n(S'\\x07\\xde\\x07\\x08\\n\\n\\x01\\x00\\x03\\xe8'\np1\ntp2\nRp3\n."); // has escaped newline characters encoding decimal 10
-		Assert.AreEqual(new DateTime(2014, 7, 8, 10, 10, 1, 1), dt);
+		Assert.Equal(new DateTime(2014, 7, 8, 10, 10, 1, 1), dt);
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testDateTimePython3() 
 	{
 		DateTime dt;
 		TimeSpan ts;
 
 		dt=(DateTime)U("cdatetime\ndate\nC\u0004\u0007\u00db\u000c\u001f\u0085R.");
-		Assert.AreEqual(new DateTime(2011,12,31), dt);
+		Assert.Equal(new DateTime(2011,12,31), dt);
 
 		ts=(TimeSpan)U("cdatetime\ntime\nC\u0006\u000e!;\u0006\u00f5@\u0085R.");
-		Assert.AreEqual(new TimeSpan(0,14,33,59,456), ts);
+		Assert.Equal(new TimeSpan(0,14,33,59,456), ts);
 
 		dt=(DateTime)U("cdatetime\ndatetime\nC\n\u0007\u00db\u000c\u001f\u000e!;\u0006\u00f5@\u0085R.");
-		Assert.AreEqual(new DateTime(2011, 12, 31, 14, 33, 59, 456), dt);
+		Assert.Equal(new DateTime(2011, 12, 31, 14, 33, 59, 456), dt);
 		
 		ts=(TimeSpan)U("cdatetime\ntimedelta\nM\u00d9\u0002M\u00d5\u00d2JU\u00f8\u0006\u0000\u0087R.");
-		Assert.AreEqual(new TimeSpan(729, 0, 0, 53973, 456), ts);
+		Assert.Equal(new TimeSpan(729, 0, 0, 53973, 456), ts);
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testDateTimeStringEscaping()
 	{
 		DateTime dt=new DateTime(2011, 10, 10, 9, 13, 10, 10);
@@ -311,37 +301,37 @@ public class UnpicklerTests {
 		byte[] pickle = p.dumps(dt);
 		Unpickler u = new Unpickler();
 		DateTime dt2 = (DateTime) u.loads(pickle);
-		Assert.AreEqual(dt, dt2);
+		Assert.Equal(dt, dt2);
 		
 		dt = new DateTime(2011, 10, 9, 13, 10, 9, 10);
 		dt2 = (DateTime) U("\u0080\u0002cdatetime\ndatetime\nq\u0000U\n\u0007\u00db\n\t\r\n\t\u0000'\u0010q\u0001\u0085q\u0002Rq\u0003.");	// protocol 2
-		Assert.AreEqual(dt, dt2);
+		Assert.Equal(dt, dt2);
 		dt2 = (DateTime) U("cdatetime\ndatetime\nq\u0000(U\n\u0007\u00db\n\t\r\n\t\u0000'\u0010q\u0001tq\u0002Rq\u0003.");	// protocol 1
-		Assert.AreEqual(dt, dt2);
+		Assert.Equal(dt, dt2);
 		dt2 = (DateTime) U("cdatetime\ndatetime\np0\n(S'\\x07\\xdb\\n\\t\\r\\n\\t\\x00'\\x10'\np1\ntp2\nRp3\n.");	// protocol 0
-		Assert.AreEqual(dt, dt2);
+		Assert.Equal(dt, dt2);
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testCodecBytes()
 	{
 		// this is a protocol 2 pickle that contains the way python3 encodes bytes
 		byte[] data = (byte[]) U("\u0080\u0002c_codecs\nencode\nX\u0004\u0000\u0000\u0000testX\u0006\u0000\u0000\u0000latin1\u0086R.");
-		CollectionAssert.AreEqual(Encoding.ASCII.GetBytes("test"), data);
+		Assert.Equal(Encoding.ASCII.GetBytes("test"), data);
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testBytesAndByteArray() 
 	{
-		byte[] bytes=new byte[]{1,2,127,(byte)128,(byte)255};
-		Assert.AreEqual(bytes, (byte[])U("\u0080\u0003C\u0005\u0001\u0002\u007f\u0080\u00ffq\u0000."));
-		Assert.AreEqual(bytes, (byte[])U("c__builtin__\nbytearray\np0\n(V\u0001\u0002\u007f\u0080\u00ff\np1\nS'latin-1'\np2\ntp3\nRp4\n."));
+		byte[] bytes={1,2,127,128,255};
+		Assert.Equal(bytes, (byte[])U("\u0080\u0003C\u0005\u0001\u0002\u007f\u0080\u00ffq\u0000."));
+		Assert.Equal(bytes, (byte[])U("c__builtin__\nbytearray\np0\n(V\u0001\u0002\u007f\u0080\u00ff\np1\nS'latin-1'\np2\ntp3\nRp4\n."));
 		bytes=new byte[]{1,2,3};
-		Assert.AreEqual(bytes, (byte[])U("\u0080\u0002c__builtin__\nbytearray\nX\u0003\u0000\u0000\u0000\u0001\u0002\u0003X\u000a\u0000\u0000\u0000iso-8859-1\u0086R."));
+		Assert.Equal(bytes, (byte[])U("\u0080\u0002c__builtin__\nbytearray\nX\u0003\u0000\u0000\u0000\u0001\u0002\u0003X\u000a\u0000\u0000\u0000iso-8859-1\u0086R."));
 
 		// the following bytecode pickle has been created in python by pickling a bytearray
 		// from 0x00 to 0xff with protocol level 0.
-		byte[] p0=new byte[] {
+		byte[] p0={
 			0x63,0x5f,0x5f,0x62,0x75,0x69,0x6c,0x74,0x69,0x6e,0x5f,0x5f,0xa,0x62,0x79,0x74,0x65,0x61,0x72,0x72,0x61,0x79,0xa,0x70,0x30,0xa,0x28,0x56,
 			0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0x5c,0x75,0x30,0x30,0x30,0x61,0xb,0xc,0xd,0xe,0xf,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,
 			0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f,0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f,0x30,0x31,0x32,
@@ -360,11 +350,11 @@ public class UnpicklerTests {
 		bytes=new byte[256];
 		for(int i=0; i<256; ++i)
 			bytes[i]=(byte)i;
-		Assert.AreEqual(bytes, (byte[])U(p0));
+		Assert.Equal(bytes, (byte[])U(p0));
 
 		// the following bytecode pickle has been created in python by pickling a bytearray
 		// from 0x00 to 0xff with protocol level 2.
-		byte[] p2=new byte[] {
+		byte[] p2={
 			0x80,0x2,0x63,0x5f,0x5f,0x62,0x75,0x69,0x6c,0x74,0x69,0x6e,0x5f,0x5f,0xa,0x62,0x79,0x74,0x65,0x61,0x72,0x72,0x61,
 			0x79,0xa,0x71,0x0,0x58,0x80,0x1,0x0,0x0,0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xa,0xb,0xc,0xd,0xe,0xf,0x10,0x11,
 			0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f,0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,0x28,0x29,
@@ -385,7 +375,7 @@ public class UnpicklerTests {
 			0xc3,0xb0,0xc3,0xb1,0xc3,0xb2,0xc3,0xb3,0xc3,0xb4,0xc3,0xb5,0xc3,0xb6,0xc3,0xb7,0xc3,0xb8,0xc3,0xb9,0xc3,0xba,
 			0xc3,0xbb,0xc3,0xbc,0xc3,0xbd,0xc3,0xbe,0xc3,0xbf,0x71,0x1,0x55,0x7,0x6c,0x61,0x74,0x69,0x6e,0x2d,0x31,0x71,0x2,0x86,0x71,0x3,0x52,0x71,0x4,0x2e
 		};
-		Assert.AreEqual(bytes, (byte[])U(p2));
+		Assert.Equal(bytes, (byte[])U(p2));
 
 		// the following is a python3 pickle of a small bytearray. It constructs a bytearray using [SHORT_]BINBYTES instead of a list.
 		byte[] p3 = new byte[] {
@@ -393,146 +383,135 @@ public class UnpicklerTests {
 				0x6c, 0x74, 0x69, 0x6e, 0x73, 0x8c, 0x09, 0x62, 0x79, 0x74, 0x65, 0x61, 0x72, 0x72, 0x61, 0x79,
 				0x93, 0x43, 0x08, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x85, 0x52, 0x2e
 		};
-		Assert.AreEqual(Encoding.ASCII.GetBytes("ABCDEFGH"), (byte[])U(p3));
+		Assert.Equal(Encoding.ASCII.GetBytes("ABCDEFGH"), (byte[])U(p3));
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testArray() 
 	{
 		// c=char -->char
-		char[] testc=new char[]{'a','b','c'};
+		char[] testc={'a','b','c'};
 		char[] arrayc=(char[]) U("carray\narray\np0\n(S'c'\np1\n(lp2\nS'a'\np3\naS'b'\np4\nag1\natp5\nRp6\n.");
-		Assert.AreEqual(testc,arrayc);
-		testc=new char[]{'x','y','z'};
+		Assert.Equal(testc,arrayc);
+		testc=new []{'x','y','z'};
 		arrayc=(char[])U("carray\narray\nU\u0001c](U\u0001xU\u0001yU\u0001ze\u0086R.");
-		Assert.AreEqual(testc,arrayc);
+		Assert.Equal(testc,arrayc);
 		
 		// u=unicode char -->char
-		testc=new char[]{'a','b','c'};
+		testc=new[]{'a','b','c'};
 		arrayc=(char[]) U("carray\narray\np0\n(S'u'\np1\n(lp2\nVa\np3\naVb\np4\naVc\np5\natp6\nRp7\n.");
-		Assert.AreEqual(testc,arrayc);
+		Assert.Equal(testc,arrayc);
 
 		// b=signed char -->sbyte
-		sbyte[] testsb=new sbyte[]{1,2,-1,-2};
+		sbyte[] testsb={1,2,-1,-2};
 		sbyte[] arraysb=(sbyte[]) U("carray\narray\np0\n(S'b'\np1\n(lp2\nI1\naI2\naI-1\naI-2\natp3\nRp4\n.");
-		Assert.AreEqual(testsb,arraysb);
+		Assert.Equal(testsb,arraysb);
 
 		// B=unsigned char -->byte
-		byte[] testb=new byte[]{1,2,128,255};
+		byte[] testb={1,2,128,255};
 		byte[] arrayb=(byte[]) U("carray\narray\np0\n(S'B'\np1\n(lp2\nI1\naI2\naI128\naI255\natp3\nRp4\n.");
-		Assert.AreEqual(testb,arrayb);
+		Assert.Equal(testb,arrayb);
 
 		// h=signed short -->short
-		short[] tests=new short[]{1,2,128,255,32700,-32700};
+		short[] tests={1,2,128,255,32700,-32700};
 		short[] arrays=(short[]) U("carray\narray\np0\n(S'h'\np1\n(lp2\nI1\naI2\naI128\naI255\naI32700\naI-32700\natp3\nRp4\n.");
-		Assert.AreEqual(tests,arrays);
+		Assert.Equal(tests,arrays);
 		
 		// H=unsigned short -->ushort
-		ushort[] testus=new ushort[]{1,2,40000,65535};
+		ushort[] testus={1,2,40000,65535};
 		ushort[] arrayus=(ushort[]) U("carray\narray\np0\n(S'H'\np1\n(lp2\nI1\naI2\naI40000\naI65535\natp3\nRp4\n.");
-		Assert.AreEqual(testus,arrayus);
+		Assert.Equal(testus,arrayus);
 
 		// i=signed integer -->int
-		int[] testi=new int[]{1,2,999999999,-999999999};
+		int[] testi={1,2,999999999,-999999999};
 		int[] arrayi=(int[]) U("carray\narray\np0\n(S'i'\np1\n(lp2\nI1\naI2\naI999999999\naI-999999999\natp3\nRp4\n.");
-		Assert.AreEqual(testi,arrayi);
+		Assert.Equal(testi,arrayi);
 		
 		// I=unsigned integer -->uint
 		uint[] testui=new uint[]{1,2,999999999};
 		uint[] arrayui=(uint[]) U("carray\narray\np0\n(S'I'\np1\n(lp2\nL1L\naL2L\naL999999999L\natp3\nRp4\n.");
-		Assert.AreEqual(testui,arrayui);
+		Assert.Equal(testui,arrayui);
 
 		// l=signed long -->long
 		long[] testl=new long[]{1,2,999999999999,-999999999999};
 		long[] arrayl=(long[]) U("carray\narray\np0\n(S'l'\np1\n(lp2\nI1\naI2\naI999999999999\naI-999999999999\natp3\nRp4\n.");
-		Assert.AreEqual(testl,arrayl);
+		Assert.Equal(testl,arrayl);
 
 		// L=unsigned long -->ulong
 		ulong[] testul=new ulong[]{1,2,999999999999};
 		ulong[] arrayul=(ulong[]) U("carray\narray\np0\n(S'L'\np1\n(lp2\nL1L\naL2L\naL999999999999L\natp3\nRp4\n.");
-		Assert.AreEqual(testul,arrayul);
+		Assert.Equal(testul,arrayul);
 
 		// f=float 4
 		float[] testf=new float[]{-4.4f, 4.4f};
 		float[] arrayf=(float[]) U("carray\narray\np0\n(S'f'\np1\n(lp2\nF-4.400000095367432\naF4.400000095367432\natp3\nRp4\n.");
-		Assert.AreEqual(testf,arrayf);
+		Assert.Equal(testf,arrayf);
 
 		// d=float 8
 		double[] testd=new double[]{-4.4d, 4.4d};
 		double[] arrayd=(double[]) U("carray\narray\np0\n(S'd'\np1\n(lp2\nF-4.4\naF4.4\natp3\nRp4\n.");
-		Assert.AreEqual(testd,arrayd);
+		Assert.Equal(testd,arrayd);
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testArrayPython3() {
 		// python 3 array reconstructor
 		short[] testi=new short[]{1,2,3};
 		short[] arrayi=(short[])U("\u0080\u0003carray\n_array_reconstructor\nq\u0000(carray\narray\nq\u0001X\u0001\u0000\u0000\u0000hq\u0002K\u0004C\u0006\u0001\u0000\u0002\u0000\u0003\u0000q\u0003tq\u0004Rq\u0005.");
 							  
-		Assert.AreEqual(testi, arrayi);
+		Assert.Equal(testi, arrayi);
 	}
 	
-	[TestMethod]
-	[ExpectedException(typeof(PickleException))]
+	[Fact]
 	public void testArrayPython26NotSupported() {
 		// python 2.6 array reconstructor not yet supported
-		short[] arrayi=(short[])U("carray\narray\n(S'h'\nS'\\x01\\x00\\x02\\x00\\x03\\x00'\ntR.");
-		Assert.Fail("should crash with pickle exception because not supported");
+		Assert.Throws<PickleException>(() => U("carray\narray\n(S'h'\nS'\\x01\\x00\\x02\\x00\\x03\\x00'\ntR."));
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testSet() 
 	{
-		var set=new HashSet<object>();
-		set.Add(1);
-		set.Add(2);
-		set.Add("abc");
-		
+		var set = new HashSet<object> {1, 2, "abc"};
+
 		AssertUtils.AssertEqual(set, (HashSet<object>)U("c__builtin__\nset\np0\n((lp1\nI1\naI2\naS'abc'\np2\natp3\nRp4\n."));
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testMemoing() 
 	{
-		ArrayList list=new ArrayList();
-		list.Add("irmen");	 
-		list.Add("irmen");	 
-		list.Add("irmen");	 
-		Assert.AreEqual(list, U("]q\u0000(U\u0005irmenq\u0001h\u0001h\u0001e."));
-		
-		ArrayList a=new ArrayList();
-		a.Add(111);
-		ArrayList b=new ArrayList();
-		b.Add(222);
-		ArrayList c=new ArrayList();
-		c.Add(333);
-		
+		ArrayList list = new ArrayList {"irmen", "irmen", "irmen"};
+
+		Assert.Equal(list, U("]q\u0000(U\u0005irmenq\u0001h\u0001h\u0001e."));
+
+		ArrayList a = new ArrayList {111};
+		ArrayList b = new ArrayList {222};
+		ArrayList c = new ArrayList {333};
+
 		object[] array=new object[] {a,b,c,a,b,c};
-		Assert.AreEqual(array, (object[]) U("((lp0\nI111\na(lp1\nI222\na(lp2\nI333\nag0\ng1\ng2\ntp3\n."));
+		Assert.Equal(array, (object[]) U("((lp0\nI111\na(lp1\nI222\na(lp2\nI333\nag0\ng1\ng2\ntp3\n."));
 		
 		list.Clear();
 		list.Add("a");
 		list.Add("b");
 		list.Add(list);//recursive
 		a=(ArrayList) U("(lp0\nS'a'\np1\naS'b'\np2\nag0\na.");
-		Assert.AreEqual("[a, b, (this Collection), ]", PrettyPrint.printToString(a));
+		Assert.Equal("[a, b, (this Collection), ]", PrettyPrint.printToString(a));
 		a=(ArrayList) U("\u0080\u0002]q\u0000(U\u0001aq\u0001U\u0001bq\u0002h\u0000e.");
-		Assert.AreEqual("[a, b, (this Collection), ]", PrettyPrint.printToString(a));
+		Assert.Equal("[a, b, (this Collection), ]", PrettyPrint.printToString(a));
 		a=(ArrayList)U("]q\u0000(]q\u0001(K\u0001K\u0002K\u0003e]q\u0002(h\u0001h\u0001ee.");
-		Assert.AreEqual("[[1, 2, 3, ], [[1, 2, 3, ], [1, 2, 3, ], ], ]", PrettyPrint.printToString(a));
+		Assert.Equal("[[1, 2, 3, ], [[1, 2, 3, ], [1, 2, 3, ], ], ]", PrettyPrint.printToString(a));
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testBinint2WithObject() 
 	{
 		Unpickler u=new Unpickler();
 		byte[] data=PickleUtils.str2bytes("\u0080\u0002cIgnore.Ignore\nIgnore\n)\u0081M\u0082#.");
 		int result=(int) u.loads(data);
-		Assert.AreEqual(9090,result);
+		Assert.Equal(9090,result);
 	}
 
-	[TestMethod]
-	[Ignore("performancetest")]
+	[Fact(Skip = "performancetest")]
     public void testUnpicklingPerformance()
     {
         Pickler pickler = new Pickler();

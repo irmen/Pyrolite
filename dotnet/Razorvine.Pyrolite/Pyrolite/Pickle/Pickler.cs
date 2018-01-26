@@ -8,6 +8,8 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable MemberInitializerValueIgnored
 
 namespace Razorvine.Pickle
 {
@@ -24,7 +26,7 @@ public class Pickler : IDisposable {
 
 	protected const int MAX_RECURSE_DEPTH = 200;
 	protected Stream outs;
-	protected int recurse = 0;	// recursion level
+	protected int recurse;	// recursion level
 	protected int PROTOCOL = 2;
 	protected static IDictionary<Type, IObjectPickler> customPicklers = new Dictionary<Type, IObjectPickler>();
 	protected bool useMemo=true;

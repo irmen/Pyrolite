@@ -98,7 +98,7 @@ public static class PickleUtils {
 			// 2-bytes unsigned int
 			if(!BitConverter.IsLittleEndian) {
 				// need to byteswap because the converter needs big-endian...
-				byte[] bigendian=new byte[2] {bytes[1+offset], bytes[0+offset]};
+				byte[] bigendian=new byte[] {bytes[1+offset], bytes[0+offset]};
 				return BitConverter.ToUInt16(bigendian, 0);
 			}
 			return BitConverter.ToUInt16(bytes,offset);
@@ -106,7 +106,7 @@ public static class PickleUtils {
 			// 4-bytes signed int
 			if(!BitConverter.IsLittleEndian) {
 				// need to byteswap because the converter needs big-endian...
-				byte[] bigendian=new byte[4] {bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
+				byte[] bigendian=new byte[] {bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
 				return BitConverter.ToInt32(bigendian, 0);
 			}
 			return BitConverter.ToInt32(bytes,offset);
@@ -124,7 +124,7 @@ public static class PickleUtils {
     		return BitConverter.ToInt64(bytes, offset);
 		}
 		// need to byteswap because the converter needs big-endian...
-		byte[] bigendian=new byte[8] {bytes[7+offset], bytes[6+offset], bytes[5+offset], bytes[4+offset], bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
+		byte[] bigendian=new byte[] {bytes[7+offset], bytes[6+offset], bytes[5+offset], bytes[4+offset], bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
 		return BitConverter.ToInt64(bigendian, 0);
 	}	
 
@@ -138,7 +138,7 @@ public static class PickleUtils {
     		return BitConverter.ToUInt32(bytes, offset);
 		}
 		// need to byteswap because the converter needs big-endian...
-		byte[] bigendian=new byte[4] {bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
+		byte[] bigendian=new byte[] {bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
 		return BitConverter.ToUInt32(bigendian, 0);
 	}	
 		
@@ -175,7 +175,7 @@ public static class PickleUtils {
 	    }
     	if(BitConverter.IsLittleEndian) {
 			// reverse the bytes to make them littleendian for the bitconverter
-			byte[] littleendian=new byte[8] { bytes[7+offset], bytes[6+offset], bytes[5+offset], bytes[4+offset], bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
+			byte[] littleendian=new byte[] { bytes[7+offset], bytes[6+offset], bytes[5+offset], bytes[4+offset], bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
 			return BitConverter.ToDouble(littleendian,0);
 		}
 		return BitConverter.ToDouble(bytes,offset);
@@ -190,7 +190,7 @@ public static class PickleUtils {
 	    }
     	if(BitConverter.IsLittleEndian) {
 			// reverse the bytes to make them littleendian for the bitconverter
-			byte[] littleendian=new byte[4] { bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
+			byte[] littleendian=new byte[] { bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
 			return BitConverter.ToSingle(littleendian,0);
 		}
 		return BitConverter.ToSingle(bytes,offset);

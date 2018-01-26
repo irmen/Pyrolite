@@ -7,10 +7,11 @@ using System.IO;
 using System.Text;
 using System.Security.Cryptography;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
 using Razorvine.Pyro;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.Tests.Pickle
 {
@@ -18,7 +19,6 @@ namespace Pyrolite.Tests.Pickle
 /// <summary>
 /// tests for more complex pickling/unpickling such as Proxy and URI objects.
 /// </summary>
-[TestClass]
 public class UnpickleComplexTests
 {
 	object U(string strdata) 
@@ -33,92 +33,86 @@ public class UnpickleComplexTests
 		}
 	}
 
-	[TestInitialize]
-	public void setUp() {
-	}
-
-	[TestCleanup]
-	public void tearDown() {
-	}
-
-	[TestMethod]
+	[Fact]
 	public void testPickleUnpickleURI() {
 		PyroURI uri=new PyroURI("PYRO:test@localhost:9999");
 		PyroSerializer ser = new PickleSerializer();
 		byte[] pickled_uri=ser.serializeData(uri);
 		PyroURI uri2=(PyroURI) ser.deserializeData(pickled_uri);
-		Assert.AreEqual(uri,uri2);
+		Assert.Equal(uri,uri2);
 
 		uri=new PyroURI();
 		pickled_uri=ser.serializeData(uri);
 		uri2=(PyroURI) ser.deserializeData(pickled_uri);
-		Assert.AreEqual(uri,uri2);
+		Assert.Equal(uri,uri2);
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testPickleUnpickleProxy() {
-		PyroProxy proxy=new PyroProxy("hostname",9999,"objectid");
-		proxy.pyroHmacKey = Encoding.UTF8.GetBytes("secret");
-		proxy.pyroHandshake = "apples";
+		PyroProxy proxy = new PyroProxy("hostname", 9999, "objectid")
+		{
+			pyroHmacKey = Encoding.UTF8.GetBytes("secret"),
+			pyroHandshake = "apples"
+		};
 		PyroSerializer ser = new PickleSerializer();
 		byte[] pickled_proxy=ser.serializeData(proxy);
 		PyroProxy result = (PyroProxy) ser.deserializeData(pickled_proxy);
-		Assert.AreEqual(proxy.hostname, result.hostname);
-		Assert.AreEqual(proxy.objectid, result.objectid);
-		Assert.AreEqual(proxy.port, result.port);
-		Assert.AreEqual(Encoding.UTF8.GetBytes("secret"), result.pyroHmacKey);
-		Assert.AreEqual("apples", result.pyroHandshake);
+		Assert.Equal(proxy.hostname, result.hostname);
+		Assert.Equal(proxy.objectid, result.objectid);
+		Assert.Equal(proxy.port, result.port);
+		Assert.Equal(Encoding.UTF8.GetBytes("secret"), result.pyroHmacKey);
+		Assert.Equal("apples", result.pyroHandshake);
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testUnpickleRealProxy2() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p2.dat");
 		unpickleRealProxy(pickled_proxy);
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testUnpickleRealProxy2old() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p2old.dat");
 		unpickleRealProxy(pickled_proxy);
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testUnpickleRealProxy3() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p3.dat");
 		unpickleRealProxy(pickled_proxy);
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testUnpickleRealProxy4() {
 		byte[] pickled_proxy=File.ReadAllBytes("pickled_nameserver_proxy_p4.dat");
 		unpickleRealProxy(pickled_proxy);
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testUnpickleProto0Bytes() {
 		byte[] pickle = File.ReadAllBytes("pickled_bytes_level0.dat");
 
 		PickleSerializer ser = new PickleSerializer();
 		string x = (string)ser.deserializeData(pickle);
-		Assert.AreEqual(2496, x.Length);
+		Assert.Equal(2496, x.Length);
 		
 		// validate that the bytes in the string are what we expect (based on md5 hash)
 		var m = SHA1.Create();
 		byte[] hashb = m.ComputeHash(Encoding.UTF8.GetBytes(x));
 		string digest = BitConverter.ToString(hashb);
-		Assert.AreEqual("22-f4-5b-87-63-83-c9-1b-1c-b2-0a-fe-51-ee-3b-30-f5-a8-5d-4c", digest.ToLowerInvariant());
+		Assert.Equal("22-f4-5b-87-63-83-c9-1b-1c-b2-0a-fe-51-ee-3b-30-f5-a8-5d-4c", digest.ToLowerInvariant());
 	}
 
 	private void unpickleRealProxy(byte[] pickled_proxy) {
 		PyroSerializer ser = new PickleSerializer();
 		PyroProxy proxy=(PyroProxy)ser.deserializeData(pickled_proxy);
-		Assert.AreEqual("Pyro.NameServer",proxy.objectid);
-		Assert.AreEqual("localhost",proxy.hostname);
-		Assert.AreEqual(9090,proxy.port);
-		Assert.AreEqual("hello", proxy.pyroHandshake);
-		CollectionAssert.AreEqual(Encoding.UTF8.GetBytes("secret"), proxy.pyroHmacKey);
+		Assert.Equal("Pyro.NameServer",proxy.objectid);
+		Assert.Equal("localhost",proxy.hostname);
+		Assert.Equal(9090,proxy.port);
+		Assert.Equal("hello", proxy.pyroHandshake);
+		Assert.Equal(Encoding.UTF8.GetBytes("secret"), proxy.pyroHmacKey);
 		ISet<string> expectedSet = new HashSet<string>();
-		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroAttrs);
+		Assert.Equal(expectedSet, proxy.pyroAttrs);
 		expectedSet.Clear();
 		expectedSet.Add("lookup");
 		expectedSet.Add("ping");
@@ -128,12 +122,12 @@ public class UnpickleComplexTests
 		expectedSet.Add("count");
 		expectedSet.Add("set_metadata");
 		proxy.pyroMethods.ExceptWith(expectedSet);
-		Assert.AreEqual(0, proxy.pyroMethods.Count, "something is wrong with the expected exposed methods");
+		Assert.Equal(0, proxy.pyroMethods.Count); // "something is wrong with the expected exposed methods"
 		expectedSet = new HashSet<string>();
-		CollectionAssert.AreEquivalent(expectedSet, proxy.pyroOneway);
+		Assert.Equal(expectedSet, proxy.pyroOneway);
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testUnpickleMemo() {
 		// the pickle is of the following list: [65, 'hello', 'hello', {'recurse': [...]}, 'hello']
 		// i.e. the 4th element is a dict referring back to the list itself and the 'hello' strings are reused
@@ -141,26 +135,26 @@ public class UnpickleComplexTests
 			{128, 2, 93, 113, 0, 40, 75, 65, 85, 5, 104, 101, 108, 108, 111, 113, 1, 104, 1, 125, 113, 2,
 			85, 7, 114, 101, 99, 117, 114, 115, 101, 113, 3, 104, 0, 115, 104, 1, 101, 46};
 		ArrayList a = (ArrayList) U(pickle);
-		Assert.AreEqual(5, a.Count);
-		Assert.AreEqual(65, a[0]);
-		Assert.AreEqual("hello", a[1]);
-		Assert.AreSame(a[1], a[2]);
-		Assert.AreSame(a[1], a[4]);
+		Assert.Equal(5, a.Count);
+		Assert.Equal(65, a[0]);
+		Assert.Equal("hello", a[1]);
+		Assert.Same(a[1], a[2]);
+		Assert.Same(a[1], a[4]);
 		Hashtable h = (Hashtable) a[3];
-		Assert.AreSame(a, h["recurse"]);
+		Assert.Same(a, h["recurse"]);
 	}
 		 
 	
-	[TestMethod]
+	[Fact]
 	public void testUnpickleUnsupportedClass() {
 		// an unsupported class is mapped to a dictionary containing the class's attributes, and a __class__ attribute with the name of the class
 		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108, 97, 115, 115, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
 		IDictionary<string, object> o = (IDictionary<string, object> ) U(pickled);
-		Assert.AreEqual(4, o.Count);
-		Assert.AreEqual("Harry", o["name"]);
-		Assert.AreEqual(34, o["age"]);
-		Assert.AreEqual(new ArrayList() {1,2,3}, o["values"]);
-		Assert.AreEqual("__main__.CustomClass", o["__class__"]);
+		Assert.Equal(4, o.Count);
+		Assert.Equal("Harry", o["name"]);
+		Assert.Equal(34, o["age"]);
+		Assert.Equal(new ArrayList() {1,2,3}, o["values"]);
+		Assert.Equal("__main__.CustomClass", o["__class__"]);
 	}
 
 	
@@ -182,6 +176,7 @@ public class UnpickleComplexTests
 		/**
 		 * called by the Unpickler to restore state.
 		 */
+		// ReSharper disable once UnusedMember.Local
 		public void __setstate__(Hashtable args) {
 			this.name = (string) args["name"];
 			this.age = (int) args["age"];
@@ -206,68 +201,68 @@ public class UnpickleComplexTests
 		}
 	}
 
-	[TestMethod]
+	[Fact]
 	public void testUnpickleCustomClassAsClassDict() {
 		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 115, 115, 115, 115, 115, 97, 122, 122, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
 
 		ClassDict cd = (ClassDict) U(pickled);
-		Assert.AreEqual("__main__.Cussssssazz", cd["__class__"]);
-		Assert.AreEqual("Harry" , cd["name"]);
-		Assert.AreEqual(34 , cd["age"]);
-		Assert.AreEqual(new ArrayList() {1,2,3}, cd["values"]);
+		Assert.Equal("__main__.Cussssssazz", cd["__class__"]);
+		Assert.Equal("Harry" , cd["name"]);
+		Assert.Equal(34 , cd["age"]);
+		Assert.Equal(new ArrayList() {1,2,3}, cd["values"]);
 	}
 	
-	[TestMethod]
+	[Fact]
 	public void testClassDictConstructorSetsClass() {
 		ClassDict cd = new ClassDict("module", "myclass");
-		Assert.AreEqual("module.myclass", cd["__class__"]);
+		Assert.Equal("module.myclass", cd["__class__"]);
 		
 		ClassDictConstructor cdc = new ClassDictConstructor("module", "myclass");
 		cd = (ClassDict) cdc.construct(new Object[]{});
-		Assert.AreEqual("module.myclass", cd["__class__"]);
+		Assert.Equal("module.myclass", cd["__class__"]);
 		
-		Assert.AreEqual("module.myclass", cd.ClassName);
+		Assert.Equal("module.myclass", cd.ClassName);
 	}
 		
-	[TestMethod]
+	[Fact]
 	public void testUnpickleCustomClass() {
 		byte[] pickled = new byte[] {128, 2, 99, 95, 95, 109, 97, 105, 110, 95, 95, 10, 67, 117, 115, 116, 111, 109, 67, 108, 97, 122, 122, 10, 113, 0, 41, 129, 113, 1, 125, 113, 2, 40, 85, 3, 97, 103, 101, 113, 3, 75, 34, 85, 6, 118, 97, 108, 117, 101, 115, 113, 4, 93, 113, 5, 40, 75, 1, 75, 2, 75, 3, 101, 85, 4, 110, 97, 109, 101, 113, 6, 85, 5, 72, 97, 114, 114, 121, 113, 7, 117, 98, 46};
 		
 		Unpickler.registerConstructor("__main__","CustomClazz", new CustomClazzConstructor());
 		CustomClazz o = (CustomClazz) U(pickled);
-		Assert.AreEqual("Harry" ,o.name);
-		Assert.AreEqual(34 ,o.age);
-		Assert.AreEqual(new ArrayList() {1,2,3}, o.values);
+		Assert.Equal("Harry" ,o.name);
+		Assert.Equal(34 ,o.age);
+		Assert.Equal(new ArrayList() {1,2,3}, o.values);
 	}
 
 
 	
-	[TestMethod]
+	[Fact]
 	public void testUnpickleException() {
 		// python 2.x
 		PythonException x = (PythonException) U("cexceptions\nZeroDivisionError\np0\n(S'hello'\np1\ntp2\nRp3\n.");
-		Assert.AreEqual("[exceptions.ZeroDivisionError] hello", x.Message);
-		Assert.AreEqual("exceptions.ZeroDivisionError", x.PythonExceptionType);
+		Assert.Equal("[exceptions.ZeroDivisionError] hello", x.Message);
+		Assert.Equal("exceptions.ZeroDivisionError", x.PythonExceptionType);
 		// python 3.x
 		x = (PythonException) U("c__builtin__\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
-		Assert.AreEqual("[__builtin__.ZeroDivisionError] hello", x.Message);
-		Assert.AreEqual("__builtin__.ZeroDivisionError", x.PythonExceptionType);
+		Assert.Equal("[__builtin__.ZeroDivisionError] hello", x.Message);
+		Assert.Equal("__builtin__.ZeroDivisionError", x.PythonExceptionType);
 		x = (PythonException) U("cbuiltins\nZeroDivisionError\np0\n(Vhello\np1\ntp2\nRp3\n.");
-		Assert.AreEqual("[builtins.ZeroDivisionError] hello", x.Message);
-		Assert.AreEqual("builtins.ZeroDivisionError", x.PythonExceptionType);
+		Assert.Equal("[builtins.ZeroDivisionError] hello", x.Message);
+		Assert.Equal("builtins.ZeroDivisionError", x.PythonExceptionType);
 
 		// python 2.x
 		x = (PythonException) U("cexceptions\nGeneratorExit\np0\n(tRp1\n.");
-		Assert.IsNull(x.InnerException);
-		Assert.AreEqual("exceptions.GeneratorExit", x.PythonExceptionType);
+		Assert.Null(x.InnerException);
+		Assert.Equal("exceptions.GeneratorExit", x.PythonExceptionType);
 	
 		// python 3.x
 		x = (PythonException) U("c__builtin__\nGeneratorExit\np0\n(tRp1\n.");
-		Assert.AreEqual("[__builtin__.GeneratorExit]", x.Message);
-		Assert.AreEqual("__builtin__.GeneratorExit", x.PythonExceptionType);
+		Assert.Equal("[__builtin__.GeneratorExit]", x.Message);
+		Assert.Equal("__builtin__.GeneratorExit", x.PythonExceptionType);
 		x = (PythonException) U("cbuiltins\nGeneratorExit\np0\n(tRp1\n.");
-		Assert.AreEqual("[builtins.GeneratorExit]", x.Message);
-		Assert.AreEqual("builtins.GeneratorExit", x.PythonExceptionType);
+		Assert.Equal("[builtins.GeneratorExit]", x.Message);
+		Assert.Equal("builtins.GeneratorExit", x.PythonExceptionType);
 	}
 }
 }

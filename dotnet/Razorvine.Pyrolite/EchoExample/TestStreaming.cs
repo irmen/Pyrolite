@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using Razorvine.Pyro;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.TestPyroEcho
 {
@@ -12,9 +13,6 @@ namespace Pyrolite.TestPyroEcho
 /// </summary>
 public class TestStreaming {
 
-	static protected byte[] hmacKey = null;
-
-	
 	public void Run() {
 
 		setConfig();

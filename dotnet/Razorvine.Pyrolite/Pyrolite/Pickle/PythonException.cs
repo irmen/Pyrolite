@@ -4,13 +4,14 @@ using System;
 using System.Collections;
 using System.Runtime.Serialization;
 using System.Text;
+// ReSharper disable UnusedParameter.Local
 
 namespace Razorvine.Pickle
 {
 	/// <summary>
 	/// Exception thrown that represents a certain Python exception.
 	/// </summary>
-	public class PythonException : Exception, ISerializable
+	public class PythonException : Exception
 	{
 		public string _pyroTraceback {get;set;}
 		public string PythonExceptionType {get; set;}

@@ -26,11 +26,11 @@ public class PyroProxy : DynamicObject, IDisposable {
 	public string hostname {get;set;}
 	public int port {get;set;}
 	public string objectid {get;set;}
-	public byte[] pyroHmacKey = null;		// per-proxy hmac key, used to be HMAC_KEY config item
-	public Guid? correlation_id = null;     // per-proxy correlation id (need to set/update this yourself)
+	public byte[] pyroHmacKey;		// per-proxy hmac key, used to be HMAC_KEY config item
+	public Guid? correlation_id;     // per-proxy correlation id (need to set/update this yourself)
 	public object pyroHandshake = "hello";	// data object that should be sent in the initial connection handshake message. Can be any serializable object.
 
-	private ushort sequenceNr = 0;
+	private ushort sequenceNr;
 	private TcpClient sock;
 	private NetworkStream sock_stream;
 	
@@ -107,7 +107,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 	
 		//  invoke the get_metadata method on the daemon
-		object result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new [] {objectId});
+		object result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, objectId);
 		if(result==null)
 			return;
 		_processMetadata((IDictionary<object,object>)result);
@@ -260,12 +260,13 @@ public class PyroProxy : DynamicObject, IDisposable {
 			if(Config.MSG_TRACE_DIR!=null) {
 				Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
 			}
+			// ReSharper disable once RedundantAssignment
 			pickle = null;
 
 			if ((flags & Message.FLAGS_ONEWAY) != 0)
 				return null;
 
-			resultmsg = Message.recv(sock_stream, new ushort[]{Message.MSG_RESULT}, pyroHmacKey);
+			resultmsg = Message.recv(sock_stream, new []{Message.MSG_RESULT}, pyroHmacKey);
 		}
 		if (resultmsg.seq != sequenceNr) {
 			throw new PyroException("result msg out of sync");
@@ -276,11 +277,11 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 
 		if ((resultmsg.flags & Message.FLAGS_ITEMSTREAMRESULT) != 0) {
-			byte[] streamId = null;
+			byte[] streamId;
 			if(!resultmsg.annotations.TryGetValue("STRM", out streamId)) {
 				throw new PyroException("result of call is an iterator, but the server is not configured to allow streaming");
 			}
-			return new PyroProxy.StreamResultIterator(Encoding.UTF8.GetString(streamId), this);
+			return new StreamResultIterator(Encoding.UTF8.GetString(streamId), this);
 		}
 		
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
@@ -365,7 +366,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 		
 		// process handshake response
-		msg = Message.recv(sock_stream, new ushort[]{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL}, pyroHmacKey);
+		msg = Message.recv(sock_stream, new []{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL}, pyroHmacKey);
 		responseAnnotations(msg.annotations, msg.type);
 		object handshake_response = "?";
 		if(msg.data!=null) {
@@ -483,9 +484,9 @@ public class PyroProxy : DynamicObject, IDisposable {
 				if(this.proxy.sock ==null) {
 					throw new PyroException("the proxy for this stream result has been closed");
 				}
-				object value = null;
+				object value;
 				try {
-					value = this.proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, new [] {this.streamId});
+					value = this.proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, this.streamId);
 				} catch (PyroException x) {
 					if(stopIterationExceptions.Contains(x.PythonExceptionType)) {
 						// iterator ended normally. no need to call close_stream, server will have closed the stream on its side already.
@@ -502,7 +503,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		public void Dispose()
 		{
 			if(this.proxy!=null && this.proxy.sock!=null) {
-				this.proxy.internal_call("close_stream", Config.DAEMON_NAME, Message.FLAGS_ONEWAY, false, new [] {this.streamId});
+				this.proxy.internal_call("close_stream", Config.DAEMON_NAME, Message.FLAGS_ONEWAY, false, this.streamId);
 			}
 			this.proxy = null;
 		}

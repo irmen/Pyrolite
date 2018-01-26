@@ -8,7 +8,7 @@ namespace DebugHelper
 	/// <summary>
 	/// A little command line tool that is used to simplyfy starting a debugger for problematic code.
 	/// </summary>
-	class Program
+	public static class Program
 	{
 		public static void Main(string[] args)
 		{

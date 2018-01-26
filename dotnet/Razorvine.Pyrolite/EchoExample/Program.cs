@@ -2,13 +2,14 @@
 
 using System;
 using Razorvine.Pyro;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.TestPyroEcho
 {
 	/// <summary>
 	/// Console program to select the test to run.
 	/// </summary>
-	public class Program
+	public static class Program
 	{
 		public static void Main(String[] args) {
 			

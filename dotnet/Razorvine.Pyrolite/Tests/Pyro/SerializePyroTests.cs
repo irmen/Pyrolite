@@ -2,37 +2,34 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Razorvine.Pyro;
+// ReSharper disable CheckNamespace
 
 namespace Pyrolite.Tests.Pyro
 {
-	[TestClass]
-	public class SerializePyroTests
+	public class SerializePyroTests: IDisposable
 	{
-		[TestInitialize]
-		public void Setup()
+		public SerializePyroTests()
 		{
 			Config.SERPENT_INDENT=true;
 			Config.SERPENT_SET_LITERALS=true;
 		}
 		
-		[TestCleanup]
-		public void Teardown()
+		public void Dispose()
 		{
 			Config.SERPENT_INDENT=false;
 			Config.SERPENT_SET_LITERALS=false;
 		}
 
-		[TestMethod]
+		[Fact]
 		public void PyroClassesSerpent()
 		{
 			var ser = new SerpentSerializer();
 			var uri = new PyroURI("PYRO:something@localhost:4444");
 			byte[] s = ser.serializeData(uri);
 			object x = ser.deserializeData(s);
-			Assert.AreEqual(uri, x);
+			Assert.Equal(uri, x);
 
 			var proxy = new PyroProxy(uri);
 			proxy.correlation_id = Guid.NewGuid();
@@ -44,33 +41,33 @@ namespace Pyrolite.Tests.Pyro
 			s = ser.serializeData(proxy);
 			x = ser.deserializeData(s);
 			PyroProxy proxy2 = (PyroProxy) x;
-			Assert.AreEqual(uri.host, proxy2.hostname);
-			Assert.AreEqual(uri.objectid, proxy2.objectid);
-			Assert.AreEqual(uri.port, proxy2.port);
-			Assert.IsNull(proxy2.correlation_id, "correlation_id is not serialized on the proxy object");
-			Assert.AreEqual(proxy.pyroHandshake, proxy2.pyroHandshake);
-			Assert.AreEqual(proxy.pyroHmacKey, proxy2.pyroHmacKey);
-			Assert.AreEqual(2, proxy2.pyroAttrs.Count);
-			Assert.AreEqual(proxy.pyroAttrs, proxy2.pyroAttrs);
+			Assert.Equal(uri.host, proxy2.hostname);
+			Assert.Equal(uri.objectid, proxy2.objectid);
+			Assert.Equal(uri.port, proxy2.port);
+			Assert.Null(proxy2.correlation_id); // "correlation_id is not serialized on the proxy object"
+			Assert.Equal(proxy.pyroHandshake, proxy2.pyroHandshake);
+			Assert.Equal(proxy.pyroHmacKey, proxy2.pyroHmacKey);
+			Assert.Equal(2, proxy2.pyroAttrs.Count);
+			Assert.Equal(proxy.pyroAttrs, proxy2.pyroAttrs);
 
 			PyroException ex = new PyroException("error");
 			s = ser.serializeData(ex);
 			x = ser.deserializeData(s);
 			PyroException ex2 = (PyroException) x;
-			Assert.AreEqual("[PyroError] error", ex2.Message);
-			Assert.IsNull(ex._pyroTraceback);
+			Assert.Equal("[PyroError] error", ex2.Message);
+			Assert.Null(ex._pyroTraceback);
 			
 			// try another kind of pyro exception
 			s = Encoding.UTF8.GetBytes("{'attributes':{'tb': 'traceback', '_pyroTraceback': ['line1', 'line2']},'__exception__':True,'args':('hello',42),'__class__':'CommunicationError'}");
 			x = ser.deserializeData(s);
 			ex2 = (PyroException) x;
-			Assert.AreEqual("[CommunicationError] hello", ex2.Message);
-			Assert.AreEqual("traceback", ex2.Data["tb"]);
-			Assert.AreEqual("line1line2", ex2._pyroTraceback);
-			Assert.AreEqual("CommunicationError", ex2.PythonExceptionType);
+			Assert.Equal("[CommunicationError] hello", ex2.Message);
+			Assert.Equal("traceback", ex2.Data["tb"]);
+			Assert.Equal("line1line2", ex2._pyroTraceback);
+			Assert.Equal("CommunicationError", ex2.PythonExceptionType);
 		}
 		
-		[TestMethod]
+		[Fact]
 		public void PyroProxySerpent()
 		{
 			PyroURI uri = new PyroURI("PYRO:something@localhost:4444");
@@ -82,16 +79,16 @@ namespace Pyrolite.Tests.Pyro
 			proxy.pyroAttrs.Add("attr1");
 			proxy.pyroAttrs.Add("attr2");
 			var data = PyroProxyPickler.ToSerpentDict(proxy);
-			Assert.AreEqual(2, data.Count);
-			Assert.AreEqual("Pyro4.core.Proxy", data["__class__"]);
-			Assert.AreEqual(8, ((object[])data["state"]).Length);
+			Assert.Equal(2, data.Count);
+			Assert.Equal("Pyro4.core.Proxy", data["__class__"]);
+			Assert.Equal(8, ((object[])data["state"]).Length);
 				
 			PyroProxy proxy2 = (PyroProxy) PyroProxyPickler.FromSerpentDict(data);
-			Assert.AreEqual(proxy.objectid, proxy2.objectid);
-			Assert.AreEqual("apples", proxy2.pyroHandshake);
+			Assert.Equal(proxy.objectid, proxy2.objectid);
+			Assert.Equal("apples", proxy2.pyroHandshake);
 		}
 		
-		[TestMethod]
+		[Fact]
 		public void UnserpentProxy()
 		{
 			byte[] data = Encoding.UTF8.GetBytes("# serpent utf-8 python3.2\n" +
@@ -99,15 +96,15 @@ namespace Pyrolite.Tests.Pyro
 			
 			SerpentSerializer ser = new SerpentSerializer();
 			PyroProxy p = (PyroProxy) ser.deserializeData(data);
-			Assert.IsNull(p.correlation_id);
-			Assert.AreEqual("Pyro.NameServer", p.objectid);
-			Assert.AreEqual("localhost", p.hostname);
-			Assert.AreEqual(9090, p.port);
-			Assert.AreEqual("hello", p.pyroHandshake);
-			Assert.AreEqual(Encoding.UTF8.GetBytes("secret"), p.pyroHmacKey);
-			Assert.AreEqual(0, p.pyroAttrs.Count);
-			Assert.AreEqual(0, p.pyroOneway.Count);
-			Assert.AreEqual(6, p.pyroMethods.Count);
+			Assert.Null(p.correlation_id);
+			Assert.Equal("Pyro.NameServer", p.objectid);
+			Assert.Equal("localhost", p.hostname);
+			Assert.Equal(9090, p.port);
+			Assert.Equal("hello", p.pyroHandshake);
+			Assert.Equal(Encoding.UTF8.GetBytes("secret"), p.pyroHmacKey);
+			Assert.Equal(0, p.pyroAttrs.Count);
+			Assert.Equal(0, p.pyroOneway.Count);
+			Assert.Equal(6, p.pyroMethods.Count);
 			ISet<string> methods = new HashSet<string>();
 			methods.Add("ping");
 			methods.Add("count");
@@ -115,17 +112,17 @@ namespace Pyrolite.Tests.Pyro
 			methods.Add("list");
 			methods.Add("register");
 			methods.Add("remove");
-			CollectionAssert.AreEquivalent(methods, p.pyroMethods);
+			Assert.Equal(methods, p.pyroMethods);
 		}
 	
-		[TestMethod]
+		[Fact]
 		public void PyroClassesPickle()
 		{
 			var pickler = new PickleSerializer();
 			var uri = new PyroURI("PYRO:something@localhost:4444");
 			byte[] s = pickler.serializeData(uri);
 			object x = pickler.deserializeData(s);
-			Assert.AreEqual(uri, x);
+			Assert.Equal(uri, x);
 
 			var proxy = new PyroProxy(uri);
 			proxy.correlation_id = Guid.NewGuid();
@@ -137,25 +134,25 @@ namespace Pyrolite.Tests.Pyro
 			s = pickler.serializeData(proxy);
 			x = pickler.deserializeData(s);
 			PyroProxy proxy2 = (PyroProxy) x;
-			Assert.AreEqual(uri.host, proxy2.hostname);
-			Assert.AreEqual(uri.objectid, proxy2.objectid);
-			Assert.AreEqual(uri.port, proxy2.port);
-			Assert.IsNull(proxy2.correlation_id, "correlation_id is not serialized on the proxy object");
-			Assert.AreEqual(proxy.pyroHandshake, proxy2.pyroHandshake);
-			Assert.AreEqual(proxy.pyroHmacKey, proxy2.pyroHmacKey);
-			Assert.AreEqual(2, proxy2.pyroAttrs.Count);
-			Assert.AreEqual(proxy.pyroAttrs, proxy2.pyroAttrs);
+			Assert.Equal(uri.host, proxy2.hostname);
+			Assert.Equal(uri.objectid, proxy2.objectid);
+			Assert.Equal(uri.port, proxy2.port);
+			Assert.Null(proxy2.correlation_id); // "correlation_id is not serialized on the proxy object"
+			Assert.Equal(proxy.pyroHandshake, proxy2.pyroHandshake);
+			Assert.Equal(proxy.pyroHmacKey, proxy2.pyroHmacKey);
+			Assert.Equal(2, proxy2.pyroAttrs.Count);
+			Assert.Equal(proxy.pyroAttrs, proxy2.pyroAttrs);
 
 			PyroException ex = new PyroException("error");
 			s = pickler.serializeData(ex);
 			x = pickler.deserializeData(s);
 			PyroException ex2 = (PyroException) x;
-			Assert.AreEqual("[Pyro4.errors.PyroError] error", ex2.Message);
-			Assert.IsNull(ex._pyroTraceback);
+			Assert.Equal("[Pyro4.errors.PyroError] error", ex2.Message);
+			Assert.Null(ex._pyroTraceback);
 		}		
 
 
-		[TestMethod]
+		[Fact]
 		public void TestBytes()
 		{
 			byte[] bytes = new byte[] { 97, 98, 99, 100, 101, 102 };	// abcdef
@@ -164,18 +161,18 @@ namespace Pyrolite.Tests.Pyro
 			dict.Add("encoding", "base64");
 	
 	        byte[] bytes2 = SerpentSerializer.ToBytes(dict);
-	        Assert.AreEqual(bytes, bytes2);
+	        Assert.Equal(bytes, bytes2);
 	        
 	        var hashtable = new Hashtable();
 			hashtable.Add("data", "YWJjZGVm");
 			hashtable.Add("encoding", "base64");
 	
 	        bytes2 = SerpentSerializer.ToBytes(hashtable);
-	        Assert.AreEqual(bytes, bytes2);
+	        Assert.Equal(bytes, bytes2);
 
 	        try {
 	        	SerpentSerializer.ToBytes(12345);
-	        	Assert.Fail("error expected");
+	        	Assert.True(false, "error expected");
 	        } catch (ArgumentException) {
 	        	//
 	        }
@@ -185,20 +182,20 @@ namespace Pyrolite.Tests.Pyro
 	/// <summary>
 	/// Miscellaneous tests.
 	/// </summary>
-	[TestClass]
-	public class MiscellaneousTests {
-		[TestMethod]
+	public class MiscellaneousTests
+	{
+		[Fact]
 		public void testPyroExceptionType()
 		{
 			var ex=new PyroException("hello");
 			var type = ex.GetType();
 			var prop = type.GetProperty("PythonExceptionType");
-			Assert.IsNotNull(prop, "pyro exception class has to have a property PythonExceptionType, it is used in constructor classes");
+			Assert.NotNull(prop); // "pyro exception class has to have a property PythonExceptionType, it is used in constructor classes"
 			prop = type.GetProperty("_pyroTraceback");
-			Assert.IsNotNull(prop, "pyro exception class has to have a property _pyroTraceback, it is used in constructor classes");
+			Assert.NotNull(prop); // "pyro exception class has to have a property _pyroTraceback, it is used in constructor classes"
 		}		
 		
-		[TestMethod]
+		[Fact]
 		public void testSerpentDictType()
 		{
 			Hashtable ht = new Hashtable();
@@ -206,8 +203,9 @@ namespace Pyrolite.Tests.Pyro
 			var ser = new SerpentSerializer();
 			var data = ser.serializeData(ht);
 			var result = ser.deserializeData(data);
-			Assert.IsAssignableFrom(typeof(Dictionary<object,object>), result, "in recent serpent versions, hashtables/dicts must be deserialized as IDictionary<object,object> rather than Hashtable");
+			Assert.IsAssignableFrom(typeof(Dictionary<object,object>), result); // "in recent serpent versions, hashtables/dicts must be deserialized as IDictionary<object,object> rather than Hashtable"
 			var dict = (IDictionary<object,object>)result;
-			Assert.AreEqual("value", dict["key"]);
+			Assert.Equal("value", dict["key"]);
 		}
-	}}
+	}
+}

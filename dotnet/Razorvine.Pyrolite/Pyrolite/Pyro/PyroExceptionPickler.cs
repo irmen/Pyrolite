@@ -1,6 +1,5 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
-using System;
 using System.Collections;
 using System.IO;
 using System.Text;
@@ -28,7 +27,7 @@ public class PyroExceptionPickler : IObjectPickler {
 		{
 			// add _pyroTraceback attribute to the output
 			Hashtable tb = new Hashtable();
-			tb["_pyroTraceback"] = new string[]{ error._pyroTraceback };		// transform single string back into list
+			tb["_pyroTraceback"] = new []{ error._pyroTraceback };		// transform single string back into list
 			currentPickler.save(tb);
 			outs.WriteByte(Opcodes.BUILD);
 		}
@@ -42,11 +41,11 @@ public class PyroExceptionPickler : IObjectPickler {
 		dict["__class__"] = "PyroError";
 		dict["__exception__"] = true;
 		if(ex.Message != null)
-			dict["args"] = new object[1] {ex.Message};
+			dict["args"] = new object[] {ex.Message};
 		else
 			dict["args"] = new object[0];
 		if(!string.IsNullOrEmpty(ex._pyroTraceback))
-			ex.Data["_pyroTraceback"] = new string[] { ex._pyroTraceback } ;    	// transform single string back into list
+			ex.Data["_pyroTraceback"] = new [] { ex._pyroTraceback } ;    	// transform single string back into list
 		dict["attributes"] = ex.Data;
 		return dict;
 	}

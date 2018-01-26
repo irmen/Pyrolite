@@ -12,17 +12,13 @@ namespace Razorvine.Pickle.Objects
 /// </summary>
 public class DecimalConstructor : IObjectConstructor
 {
-	public DecimalConstructor()
-	{
-	}
-	
 	public object construct(object[] args)
 	{
 		if(args.Length==1 && args[0] is string) {
 			return Convert.ToDecimal((string)args[0], CultureInfo.InvariantCulture);
-		} else {
-			throw new PickleException("invalid arguments for decimal constructor");
 		}
+
+		throw new PickleException("invalid arguments for decimal constructor");
 	}
 }
 

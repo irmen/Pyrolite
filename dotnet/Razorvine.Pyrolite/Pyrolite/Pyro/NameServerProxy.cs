@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace Razorvine.Pyro
 {
@@ -19,12 +20,9 @@ public class NameServerProxy : PyroProxy {
 	public NameServerProxy(PyroURI uri) : this(uri.host, uri.port, uri.objectid) {
 	}
 	
-	public NameServerProxy(string hostname, int port, string objectid) : base(hostname, port, objectid) {
+	public NameServerProxy(string hostname, int port, string objectid = "Pyro.NameServer") : base(hostname, port, objectid) {
 	}
-	
-	public NameServerProxy(string hostname, int port) : this(hostname, port, "Pyro.NameServer") {
-	}
-		
+
 	public void ping() {
 		this.call("ping");
 	}
@@ -102,8 +100,7 @@ public class NameServerProxy : PyroProxy {
 		if(host!=null) {
 			if(port==0)
 				port=Config.NS_PORT;
-			NameServerProxy proxy=new NameServerProxy(host, port);
-			proxy.pyroHmacKey=hmacKey;
+			NameServerProxy proxy = new NameServerProxy(host, port) {pyroHmacKey = hmacKey};
 			proxy.ping();
 			return proxy;
 		}
@@ -120,15 +117,11 @@ public class NameServerProxy : PyroProxy {
 			try {
 				buf=udpclient.Receive(ref source);
 			} catch (SocketException) {
-				// try localhost explicitly (if host wasn't localhost already)
-				if(host==null || (!host.StartsWith("127.0") && host!="localhost"))
-					return locateNS("localhost", Config.NS_PORT, hmacKey);
-				else
-					throw;
+				// try localhost explicitly
+				return locateNS("localhost", Config.NS_PORT, hmacKey);
 			}
 			string location=Encoding.ASCII.GetString(buf);
-			var nsp = new NameServerProxy(new PyroURI(location));
-			nsp.pyroHmacKey = hmacKey;
+			var nsp = new NameServerProxy(new PyroURI(location)) {pyroHmacKey = hmacKey};
 			return nsp;
 		}
 	}
