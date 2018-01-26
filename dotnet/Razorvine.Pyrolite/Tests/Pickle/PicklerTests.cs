@@ -263,8 +263,8 @@ public class PicklerTests {
 		Assert.Same(first, second);				// both objects should be the same memoized object
 
 		HashSet<object> theSet = (HashSet<object>)second;
-		Assert.Equal(1, theSet.Count);
-		Assert.True(theSet.Contains("a"));
+		Assert.Single(theSet);
+		Assert.Contains("a", theSet);
 	}
 	
 	[Fact]
@@ -287,7 +287,7 @@ public class PicklerTests {
 		Assert.Same(first, second);				// both objects should be the same memoized object
 
 		Hashtable theMap = (Hashtable) second;
-		Assert.Equal(1, theMap.Count);
+		Assert.Single(theMap);
 		Assert.Equal("value", theMap["key"]);
 	}
 
@@ -312,7 +312,7 @@ public class PicklerTests {
 		Assert.Same(first, second);				// both objects should be the same memoized object
 
 		ArrayList theList = (ArrayList) second;
-		Assert.Equal(1, theList.Count);
+		Assert.Single(theList);
 		Assert.True(theList.Contains("a"));
 	}
 	
@@ -493,7 +493,7 @@ public class PicklerTests {
 		o=p.dumps(h);
 		Assert.Equal("\x80\x02}q\x00(X\x06\x00\x00\x0000myselfq\x01h\x0000u.", S(o));
 		Hashtable h2 = (Hashtable) u.loads(o);
-		Assert.Equal(1, h2.Count);
+		Assert.Single(h2);
 		Assert.Same(h2, h2["myself"]);
 	}
 
@@ -532,7 +532,7 @@ public class PicklerTests {
 		Assert.Equal("Pyrolite.Tests.Pickle.PicklerTests+Relative", map["__class__"]);
 		Assert.Equal("Tupac", map["Name"]);
 		Assert.Equal("unspecified", map["Relation"]);
-		Assert.Equal(true, map["Deceased"]);
+		Assert.True((Boolean) map["Deceased"]);
 		Assert.Equal(new [] {3,4,5}, map["Values"]);
 	}
 	
@@ -610,13 +610,14 @@ public class PicklerTests {
 		try {
 			p.dumps(c);
 			Assert.True(false, "should crash");
-		} catch (PickleException x) {
-			Assert.True(x.Message.Contains("couldn't pickle object of type"));
+		} catch (PickleException x)
+		{
+			Assert.Contains("couldn't pickle object of type", x.Message);
 		}
 		
 		Pickler.registerCustomPickler(typeof(AbstractBaseClass), new AnyClassPickler());
 		byte[] data = p.dumps(c);
-		Assert.True(S(data).Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+ConcreteSubClass]"));
+		Assert.Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+ConcreteSubClass]", S(data));
 	}
 	
 	[Fact]
@@ -628,20 +629,21 @@ public class PicklerTests {
 		try {
 			p.dumps(b);
 			Assert.True(false, "should crash");
-		} catch (PickleException x) {
-			Assert.True(x.Message.Contains("couldn't pickle object of type"));
+		} catch (PickleException x)
+		{
+			Assert.Contains("couldn't pickle object of type", x.Message);
 		}
 		try {
 			p.dumps(sub);
 			Assert.True(false, "should crash");
 		} catch (PickleException x) {
-			Assert.True(x.Message.Contains("couldn't pickle object of type"));
+			Assert.Contains("couldn't pickle object of type", x.Message);
 		}
 		Pickler.registerCustomPickler(typeof(IBaseInterface), new AnyClassPickler());
 		byte[] data = p.dumps(b);
-		Assert.True(S(data).Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+BaseClassWithInterface]"));
+		Assert.Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+BaseClassWithInterface]", S(data));
 		data = p.dumps(sub);
-		Assert.True(S(data).Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+SubClassWithInterface]"));
+		Assert.Contains("[class=Pyrolite.Tests.Pickle.PicklerTests+SubClassWithInterface]", S(data));
 	}	
 	
 	

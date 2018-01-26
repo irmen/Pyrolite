@@ -225,7 +225,7 @@ public class MessageTestsHmac {
 			Assert.True(false, "crash expected");
 		}
 		catch(PyroException x) {
-			Assert.True(x.Message.Contains("hmac"));
+			Assert.Contains("hmac", x.Message);
 		}
 		c = new MemoryStream(data);
 		// test that it works again when resetting the key
@@ -237,8 +237,9 @@ public class MessageTestsHmac {
 			Message.recv(c, null, null);
 			Assert.True(false, "crash expected");
 		}
-		catch(PyroException x) {
-			Assert.True(x.Message.Contains("hmac key config"));
+		catch(PyroException x)
+		{
+			Assert.Contains("hmac key config", x.Message);
 		}
 	}
 	
@@ -255,8 +256,9 @@ public class MessageTestsHmac {
 			Message.recv(ms, null, null);
 			Assert.True(false, "crash expected");
 		}
-		catch(PyroException x) {
-			Assert.True(x.Message.Contains("checksum"));
+		catch(PyroException x)
+		{
+			Assert.Contains("checksum", x.Message);
 		}
 	}
 	

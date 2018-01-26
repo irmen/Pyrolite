@@ -6,16 +6,11 @@ using Razorvine.Pyro;
 using Razorvine.Serpent;
 // ReSharper disable CheckNamespace
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace Pyrolite.Tests.Pyro
 {
 	public class SerpentSerializerTestsNoSets
 	{
-		public SerpentSerializerTestsNoSets()
-		{
-			Config.SERPENT_INDENT=false;
-			Config.SERPENT_SET_LITERALS=false;
-		}
-		
 		[Fact]
 		public void TestSerpentVersion()
 		{
@@ -26,6 +21,9 @@ namespace Pyrolite.Tests.Pyro
 		[Fact]
 		public void TestSerializeData()
 		{
+			Config.SERPENT_INDENT=false;
+			Config.SERPENT_SET_LITERALS=false;
+
 			ICollection<object> list = new LinkedList<object>();
 			list.Add("hello");
 			list.Add(42);
@@ -52,6 +50,9 @@ namespace Pyrolite.Tests.Pyro
 		[Fact]
 		public void TestSerializeCall()
 		{
+			Config.SERPENT_INDENT=false;
+			Config.SERPENT_SET_LITERALS=false;
+
 			var ser = PyroSerializer.GetFor(Config.SerializerType.serpent);
 			IDictionary<string, object> kwargs = new Dictionary<string, object>();
 			kwargs["arg"] = 42;
@@ -74,23 +75,14 @@ namespace Pyrolite.Tests.Pyro
 		}
 	}
 
-	public class SerpentSerializerTestsSets: IDisposable
+	public class SerpentSerializerTestsSets
 	{
-		public SerpentSerializerTestsSets()
-		{
-			Config.SERPENT_INDENT=false;
-			Config.SERPENT_SET_LITERALS=true;
-		}
-
-		public void Dispose()
-		{
-			Config.SERPENT_INDENT=false;
-			Config.SERPENT_SET_LITERALS=false;
-		}
-
 		[Fact]
 		public void TestSerializeData()
 		{
+			Config.SERPENT_INDENT=false;
+			Config.SERPENT_SET_LITERALS=true;
+
 			ISet<string> s = new HashSet<string>();
 			s.Add("element1");
 			s.Add("element2");
@@ -106,12 +98,15 @@ namespace Pyrolite.Tests.Pyro
 		[Fact]
 		public void TestSerpentBytes()
 		{
+			Config.SERPENT_INDENT=false;
+			Config.SERPENT_SET_LITERALS=true;
+
 			byte[] bytes = Encoding.ASCII.GetBytes("hello");
 			SerpentSerializer ser = new SerpentSerializer();
 			byte[] data = ser.serializeData(bytes);
 			
 			string str = Encoding.ASCII.GetString(data);
-			Assert.True(str.Contains("base64"));
+			Assert.Contains("base64", str);
 			
 			Parser p = new Parser();
 			Object data2 = p.Parse(data).GetData();

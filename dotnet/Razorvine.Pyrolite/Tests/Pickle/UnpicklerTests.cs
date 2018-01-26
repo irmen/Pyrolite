@@ -36,8 +36,8 @@ public class UnpicklerTests {
 		// protocol level 1
 		Assert.Null(U("N."));		// none
 		Assert.Equal(123.456d, U("F123.456\n."));	// float
-		Assert.Equal(true,U("I01\n."));	// true boolean
-		Assert.Equal(false,U("I00\n."));	// false boolean
+		Assert.True((Boolean)U("I01\n."));	// true boolean
+		Assert.False((Boolean)U("I00\n."));	// false boolean
 		Assert.Equal(new byte[]{97,98,99},(byte[]) U("c__builtin__\nbytes\np0\n((lp1\nL97L\naL98L\naL99L\natp2\nRp3\n.")); // python3 bytes
 		Assert.Equal(new byte[]{97,98,99},(byte[]) U("c__builtin__\nbytes\n(](KaKbKcetR.")); // python3 bytes
 		Assert.Equal(new byte[]{97,98,99,100,101,102}, (byte[]) U("C\u0006abcdef.")); // python3 bytes
@@ -66,8 +66,8 @@ public class UnpicklerTests {
 		Assert.Equal(new object[0], (object[]) U(")."));
 		Assert.Equal(1234.5678d, U("G@\u0093JEm\\\u00fa\u00ad."));  // 8-byte binary coded float
 		// protocol level2
-		Assert.Equal(true,U("\u0088."));	// True
-		Assert.Equal(false,U("\u0089."));	// False
+		Assert.True((Boolean)U("\u0088."));	// True
+		Assert.False((Boolean)U("\u0089."));	// False
 		//Assert.Equal(12345678987654321L, U("\u008a\u0007\u00b1\u00f4\u0091\u0062\u0054\u00dc\u002b."));
 		//Assert.Equal(12345678987654321L, U("\u008b\u0007\u0000\u0000\u0000\u00b1\u00f4\u0091\u0062\u0054\u00dc\u002b."));
 		// Protocol 3 (Python 3.x)

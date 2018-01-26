@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xunit;
 using Razorvine.Pyro;
@@ -8,7 +9,7 @@ using Razorvine.Pyro;
 
 namespace Pyrolite.Tests.Pyro
 {
-	public class SerializePyroTests: IDisposable
+	public class SerializePyroTests
 	{
 		public SerializePyroTests()
 		{
@@ -16,12 +17,6 @@ namespace Pyrolite.Tests.Pyro
 			Config.SERPENT_SET_LITERALS=true;
 		}
 		
-		public void Dispose()
-		{
-			Config.SERPENT_INDENT=false;
-			Config.SERPENT_SET_LITERALS=false;
-		}
-
 		[Fact]
 		public void PyroClassesSerpent()
 		{
@@ -31,13 +26,13 @@ namespace Pyrolite.Tests.Pyro
 			object x = ser.deserializeData(s);
 			Assert.Equal(uri, x);
 
-			var proxy = new PyroProxy(uri);
-			proxy.correlation_id = Guid.NewGuid();
-			proxy.pyroHandshake = "apples";
-			proxy.pyroHmacKey = Encoding.UTF8.GetBytes("secret");
-			proxy.pyroAttrs = new HashSet<string>();
-			proxy.pyroAttrs.Add("attr1");
-			proxy.pyroAttrs.Add("attr2");
+			var proxy = new PyroProxy(uri)
+			{
+				correlation_id = Guid.NewGuid(),
+				pyroHandshake = "apples",
+				pyroHmacKey = Encoding.UTF8.GetBytes("secret"),
+				pyroAttrs = new HashSet<string> {"attr1", "attr2"}
+			};
 			s = ser.serializeData(proxy);
 			x = ser.deserializeData(s);
 			PyroProxy proxy2 = (PyroProxy) x;
@@ -71,13 +66,13 @@ namespace Pyrolite.Tests.Pyro
 		public void PyroProxySerpent()
 		{
 			PyroURI uri = new PyroURI("PYRO:something@localhost:4444");
-			PyroProxy proxy = new PyroProxy(uri);
-			proxy.correlation_id = Guid.NewGuid();
-			proxy.pyroHandshake = "apples";
-			proxy.pyroHmacKey = Encoding.UTF8.GetBytes("secret");
-			proxy.pyroAttrs = new HashSet<string>();
-			proxy.pyroAttrs.Add("attr1");
-			proxy.pyroAttrs.Add("attr2");
+			PyroProxy proxy = new PyroProxy(uri)
+			{
+				correlation_id = Guid.NewGuid(),
+				pyroHandshake = "apples",
+				pyroHmacKey = Encoding.UTF8.GetBytes("secret"),
+				pyroAttrs = new HashSet<string> {"attr1", "attr2"}
+			};
 			var data = PyroProxyPickler.ToSerpentDict(proxy);
 			Assert.Equal(2, data.Count);
 			Assert.Equal("Pyro4.core.Proxy", data["__class__"]);
@@ -105,14 +100,8 @@ namespace Pyrolite.Tests.Pyro
 			Assert.Equal(0, p.pyroAttrs.Count);
 			Assert.Equal(0, p.pyroOneway.Count);
 			Assert.Equal(6, p.pyroMethods.Count);
-			ISet<string> methods = new HashSet<string>();
-			methods.Add("ping");
-			methods.Add("count");
-			methods.Add("lookup");
-			methods.Add("list");
-			methods.Add("register");
-			methods.Add("remove");
-			Assert.Equal(methods, p.pyroMethods);
+			var methods = new List<string> {"count", "list", "lookup", "ping", "register", "remove"};
+			Assert.Equal(methods, p.pyroMethods.OrderBy(m=>m).ToList());
 		}
 	
 		[Fact]
@@ -124,13 +113,13 @@ namespace Pyrolite.Tests.Pyro
 			object x = pickler.deserializeData(s);
 			Assert.Equal(uri, x);
 
-			var proxy = new PyroProxy(uri);
-			proxy.correlation_id = Guid.NewGuid();
-			proxy.pyroHandshake = "apples";
-			proxy.pyroHmacKey = Encoding.UTF8.GetBytes("secret");
-			proxy.pyroAttrs = new HashSet<string>();
-			proxy.pyroAttrs.Add("attr1");
-			proxy.pyroAttrs.Add("attr2");
+			var proxy = new PyroProxy(uri)
+			{
+				correlation_id = Guid.NewGuid(),
+				pyroHandshake = "apples",
+				pyroHmacKey = Encoding.UTF8.GetBytes("secret"),
+				pyroAttrs = new HashSet<string> {"attr1", "attr2"}
+			};
 			s = pickler.serializeData(proxy);
 			x = pickler.deserializeData(s);
 			PyroProxy proxy2 = (PyroProxy) x;
@@ -156,18 +145,14 @@ namespace Pyrolite.Tests.Pyro
 		public void TestBytes()
 		{
 			byte[] bytes = new byte[] { 97, 98, 99, 100, 101, 102 };	// abcdef
-			var dict = new Dictionary<string, string>();
-			dict.Add("data", "YWJjZGVm");
-			dict.Add("encoding", "base64");
-	
-	        byte[] bytes2 = SerpentSerializer.ToBytes(dict);
+			var dict = new Dictionary<string, string> {{"data", "YWJjZGVm"}, {"encoding", "base64"}};
+
+			byte[] bytes2 = SerpentSerializer.ToBytes(dict);
 	        Assert.Equal(bytes, bytes2);
-	        
-	        var hashtable = new Hashtable();
-			hashtable.Add("data", "YWJjZGVm");
-			hashtable.Add("encoding", "base64");
-	
-	        bytes2 = SerpentSerializer.ToBytes(hashtable);
+
+			var hashtable = new Hashtable {{"data", "YWJjZGVm"}, {"encoding", "base64"}};
+
+			bytes2 = SerpentSerializer.ToBytes(hashtable);
 	        Assert.Equal(bytes, bytes2);
 
 	        try {
@@ -198,12 +183,11 @@ namespace Pyrolite.Tests.Pyro
 		[Fact]
 		public void testSerpentDictType()
 		{
-			Hashtable ht = new Hashtable();
-			ht["key"]="value";
+			Hashtable ht = new Hashtable {["key"] = "value"};
 			var ser = new SerpentSerializer();
 			var data = ser.serializeData(ht);
 			var result = ser.deserializeData(data);
-			Assert.IsAssignableFrom(typeof(Dictionary<object,object>), result); // "in recent serpent versions, hashtables/dicts must be deserialized as IDictionary<object,object> rather than Hashtable"
+			Assert.IsAssignableFrom<Dictionary<object,object>>(result); // "in recent serpent versions, hashtables/dicts must be deserialized as IDictionary<object,object> rather than Hashtable"
 			var dict = (IDictionary<object,object>)result;
 			Assert.Equal("value", dict["key"]);
 		}

@@ -19,9 +19,9 @@ namespace Pyrolite.Tests.Pickle
 /// </summary>
 public class UnpickleOpcodesTests: IDisposable {
 
-	Unpickler u;
-	static string STRING256;
-	static string STRING255;
+	readonly Unpickler u;
+	static readonly string STRING256;
+	static readonly string STRING255;
 	
 	static UnpickleOpcodesTests() {
 		StringBuilder sb=new StringBuilder();
@@ -188,7 +188,7 @@ public class UnpickleOpcodesTests: IDisposable {
 	[Fact]
 	public void testNONE() {
 		//NONE           = b'N'   # push None
-		Assert.Equal(null, U("N."));
+		Assert.Null(U("N."));
 	}
 
 	[Fact]
@@ -722,8 +722,7 @@ public class UnpickleOpcodesTests: IDisposable {
 	[Fact]
 	public void testBINBYTES() {
 		//BINBYTES       = b'B'   # push bytes; counted binary string argument
-		byte[] bytes;
-		bytes=new byte[]{};
+		var bytes = new byte[]{};
 		Assert.Equal(bytes, (byte[]) U("B\u0000\u0000\u0000\u0000."));
 		bytes=new[]{(byte)'a'};
 		Assert.Equal(bytes, (byte[]) U("B\u0001\u0000\u0000\u0000a."));
@@ -740,8 +739,7 @@ public class UnpickleOpcodesTests: IDisposable {
 	[Fact]
 	public void testBINBYTES8() {
 		//BINBYTES8 = 0x8e;  // push very long bytes string
-		byte[] bytes;
-		bytes=new byte[]{};
+		var bytes = new byte[]{};
 		Assert.Equal(bytes, (byte[]) U("\u008e\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000."));
 		bytes=new[]{(byte)'a'};
 		Assert.Equal(bytes, (byte[]) U("\u008e\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000a."));
@@ -757,8 +755,7 @@ public class UnpickleOpcodesTests: IDisposable {
 	[Fact]
 	public void testSHORT_BINBYTES() {
 		//SHORT_BINBYTES = b'C'   #  push bytes; counted binary string argument < 256 bytes
-		byte[] bytes;
-		bytes=new byte[]{};
+		var bytes = new byte[]{};
 		Assert.Equal(bytes, (byte[]) U("C\u0000."));
 		bytes=new[]{(byte)'a'};
 		Assert.Equal(bytes, (byte[]) U("C\u0001a."));
