@@ -4,7 +4,6 @@
     <AssemblyName>Razorvine.Pyrolite</AssemblyName>
     <RootNamespace>Razorvine</RootNamespace>
     <LangVersion>6</LangVersion>
-
     <Authors>Irmen de Jong</Authors>
     <Product>Serpent Python literal expression serialization</Product>
     <PackageId>Razorvine.Pyrolite</PackageId>
@@ -22,6 +21,8 @@ More info about Pyro: http://pythonhosted.org/Pyro4/</Description>
     <RepositoryType>git</RepositoryType>
     <PackageTags>pyro python rpc remote-objects</PackageTags>
     <PackageReleaseNotes>Migrated to dotnet core and NetStandard 2.0</PackageReleaseNotes>
-
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Razorvine.Serpent" Version="1.20.0" />
+  </ItemGroup>
 </Project>
