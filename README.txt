@@ -101,9 +101,10 @@ couple of example programs in the java/test/ directory.
 Pyrolite speaks Pyro4 protocol version 48 only (Pyro 4.38 and later).
 (get an older version of Pyrolite if you need to connect to earlier Pyro versions) 
 The java library requires java 8 (jdk/jre 1.8) or newer to compile and run.
-The .net library requires .net framework 4.0 or newer.
+The .net library targets NetStandard 2.0 (.net framework 4.6 or dotnet core 2.0).
 The Java code was developed using Eclipse.
-The C#/.NET source was developed using mono, monodevelop and sharpdevelop.
+The C#/.NET source was developed using Jetbrains Rider on Debian Linux, with dotnet core 2.1.4.
+
 
 
 
@@ -285,7 +286,7 @@ will still work but only with the built-in pickle serializer. Serpent is a
 separate project, and the library is not included in the Pyrolite project.
 
 You can find the Serpent project at: https://github.com/irmen/Serpent
-You need version 1.16 of Serpent, or newer.
+You need version 1.20 of Serpent, or newer.
 
 
 7. DOWNLOAD COMPILED LIBRARY
