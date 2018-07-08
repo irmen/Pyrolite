@@ -7,10 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="java" />
+        <module name="Pyrolite" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="java" target="1.8" />
+      <module name="Pyrolite" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
