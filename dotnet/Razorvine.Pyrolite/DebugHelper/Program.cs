@@ -10,15 +10,13 @@ namespace DebugHelper
 	/// </summary>
 	public static class Program
 	{
-		public static void Main(string[] args)
+		public static void Main()
 		{
 			Unpickler u=new Unpickler();
-			byte[] data;
-			object result;
-			
+
 			Console.WriteLine("here we go; 1");
-			data=PickleUtils.str2bytes("\u0080\u0002carray\narray\nq\u0000U\u0001iq\u0001]q\u0002\u0086q\u0003Rq\u0004.");
-			result=u.loads(data);
+			var data = PickleUtils.str2bytes("\u0080\u0002carray\narray\nq\u0000U\u0001iq\u0001]q\u0002\u0086q\u0003Rq\u0004.");
+			var result = u.loads(data);
 			PrettyPrint.print(result);
 				
 			Console.WriteLine("here we go; 2");

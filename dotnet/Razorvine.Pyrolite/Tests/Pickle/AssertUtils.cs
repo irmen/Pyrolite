@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 // ReSharper disable CheckNamespace
 
@@ -10,8 +11,7 @@ namespace Pyrolite.Tests.Pickle
 /// <summary>
 /// Some assertion things that don't appear to be in Nunit.
 /// </summary>
-
-static class AssertUtils
+internal static class AssertUtils
 {
 	public static void AssertEqual(IDictionary expected, object actual)
 	{
@@ -27,10 +27,10 @@ static class AssertUtils
 		foreach(object key in expected.Keys) {
 			object ev=expected[key];
 			object av=actualdict[key];
-			if(ev is IDictionary) {
-				AssertEqual((IDictionary)ev, av);
-			} else
-			{
+			var dictionary = ev as IDictionary;
+			if(dictionary != null) {
+				AssertEqual(dictionary, av);
+			} else {
 				Assert.Equal(ev, av);  // dictionary values must be the same
 			}
 		}
@@ -39,11 +39,8 @@ static class AssertUtils
 	public static void AssertEqual<T>(HashSet<T> expected, object actual)
 	{
 		if(expected.Equals(actual)) return;
-		List<T> expectedvalues=new List<T>(expected);
-		List<T> actualvalues=new List<T>();
-		foreach(object x in (IEnumerable)actual) {
-			actualvalues.Add((T)x);
-		}
+		var expectedvalues=new List<T>(expected);
+		var actualvalues= ((IEnumerable) actual).Cast<T>().ToList();
 		Assert.Equal(expectedvalues, actualvalues);  // hashsets must be equal
 	}	
 }

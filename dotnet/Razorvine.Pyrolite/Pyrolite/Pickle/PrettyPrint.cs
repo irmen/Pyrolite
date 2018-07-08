@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace Razorvine.Pickle
@@ -11,7 +12,9 @@ namespace Razorvine.Pickle
 /// Object output pretty printing, to help with the test scripts.
 /// Nothing fancy, just a simple readable output format for a handfull of classes.
 /// </summary>
-public class PrettyPrint {
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+public static class PrettyPrint {
 
 	public static string printToString(object o) {
 		StringWriter sw=new StringWriter();
@@ -34,9 +37,9 @@ public class PrettyPrint {
 			return;
 		}
 
-		if (o is IDictionary) {
+		var map = o as IDictionary;
+		if (map != null) {
 			if(typeheader) w.WriteLine("hashtable");
-			IDictionary map=(IDictionary)o;
 			w.Write("{");
 			foreach(object key in map.Keys) {
 				w.Write(key+"="+map[key]+", ");
@@ -60,7 +63,7 @@ public class PrettyPrint {
 		w.Flush();
 	}
 	
-	static void writeEnumerable(object o, TextWriter w)
+	public static void writeEnumerable(object o, TextWriter w)
 	{
 		IEnumerable e=(IEnumerable)o;
 		w.Write("[");

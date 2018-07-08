@@ -1,7 +1,6 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
-using System.Runtime.Serialization;
 
 namespace Razorvine.Pickle
 {
@@ -10,20 +9,11 @@ namespace Razorvine.Pickle
 	/// </summary>
 	public class PickleException : Exception
 	{
-		public PickleException()
-		{
-		}
-
-	 	public PickleException(string message) : base(message)
+		public PickleException(string message) : base(message)
 		{
 		}
 
 		public PickleException(string message, Exception innerException) : base(message, innerException)
-		{
-		}
-
-		// This constructor is needed for serialization.
-		protected PickleException(SerializationInfo info, StreamingContext context) : base(info, context)
 		{
 		}
 	}

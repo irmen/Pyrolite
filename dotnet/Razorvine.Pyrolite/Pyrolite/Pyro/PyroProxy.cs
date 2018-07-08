@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.IO;
 using System.IO.Compression;
@@ -11,6 +12,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using Razorvine.Pickle;
+// ReSharper disable InvertIf
 
 namespace Razorvine.Pyro
 {
@@ -21,11 +23,14 @@ namespace Razorvine.Pyro
 /// If you declare it as a 'dynamic' variable, you can just invoke the remote methods on it directly, and access remote attributes directly.
 /// </summary>
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("ReSharper", "MemberCanBeProtected.Global")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class PyroProxy : DynamicObject, IDisposable {
 
-	public string hostname {get;set;}
-	public int port {get;set;}
-	public string objectid {get;set;}
+	public string hostname {get;private set;}
+	public int port {get;private set;}
+	public string objectid {get;private set;}
 	public byte[] pyroHmacKey;		// per-proxy hmac key, used to be HMAC_KEY config item
 	public Guid? correlation_id;     // per-proxy correlation id (need to set/update this yourself)
 	public object pyroHandshake = "hello";	// data object that should be sent in the initial connection handshake message. Can be any serializable object.
@@ -63,7 +68,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// Release resources when descructed
 	/// </summary>
 	~PyroProxy() {
-		this.close();
+		close();
 	}
 
 	public void Dispose() {
@@ -88,7 +93,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 					// not checking _pyroOneway because that feature already existed and people are already modifying it on the proxy
 					// log.debug("reusing existing metadata")
 				} else {
-					GetMetadata(this.objectid);
+					GetMetadata(objectid);
 				}
 			}
 		}
@@ -99,7 +104,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// </summary>
 	protected void GetMetadata(string objectId) {
 		// get metadata from server (methods, attrs, oneway, ...) and remember them in some attributes of the proxy
-		objectId = objectId ?? this.objectid;
+		objectId = objectId ?? objectid;
 		if(sock==null) {
 			connect();
 			if(pyroMethods.Any() || pyroAttrs.Any())
@@ -107,7 +112,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 	
 		//  invoke the get_metadata method on the daemon
-		object result = this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, objectId);
+		object result = internal_call("get_metadata", Config.DAEMON_NAME, 0, false, objectId);
 		if(result==null)
 			return;
 		_processMetadata((IDictionary<object,object>)result);
@@ -121,20 +126,20 @@ public class PyroProxy : DynamicObject, IDisposable {
 	{
 		// the collections in the result can be either an object[] or a HashSet<object> or List<object>, 
 		// depending on the serializer and Pyro version that is used
-		object[] methods_array = result["methods"] as object[];
-		object[] attrs_array = result["attrs"] as object[];
-		object[] oneway_array = result["oneway"] as object[];
+		var methods_array = result["methods"] as object[];
+		var attrs_array = result["attrs"] as object[];
+		var oneway_array = result["oneway"] as object[];
 		
-		this.pyroMethods = methods_array != null ? new HashSet<string>(methods_array.Select(o => o as string)) : GetStringSet(result["methods"]);
-		this.pyroAttrs = attrs_array != null ? new HashSet<string>(attrs_array.Select(o => o as string)) : GetStringSet(result["attrs"]);
-		this.pyroOneway = oneway_array != null ? new HashSet<string>(oneway_array.Select(o => o as string)) : GetStringSet(result["attrs"]);
+		pyroMethods = methods_array != null ? new HashSet<string>(methods_array.Select(o => o as string)) : GetStringSet(result["methods"]);
+		pyroAttrs = attrs_array != null ? new HashSet<string>(attrs_array.Select(o => o as string)) : GetStringSet(result["attrs"]);
+		pyroOneway = oneway_array != null ? new HashSet<string>(oneway_array.Select(o => o as string)) : GetStringSet(result["attrs"]);
 		
 		if(!pyroMethods.Any() && !pyroAttrs.Any()) {
 			throw new PyroException("remote object doesn't expose any methods or attributes");
 		}
 	}
 	
-	protected HashSet<string> GetStringSet(object strings)
+	protected static HashSet<string> GetStringSet(object strings)
 	{
 		var result1 = strings as HashSet<string>;
 		if(result1!=null)
@@ -191,6 +196,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <param name="method">the name of the method you want to call</param>
 	/// <param name="arguments">zero or more arguments for the remote method</param>
 	[Obsolete("Pyro now figures out automatically what methods are oneway by getting metadata from the server. Just use call().")]
+	[SuppressMessage("ReSharper", "UnusedMember.Global")]
 	public void call_oneway(string method, params object[] arguments) {
 		internal_call(method, null, Message.FLAGS_ONEWAY, true, arguments);
 	}
@@ -200,7 +206,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// </summary>
 	/// <param name="attr">the attribute name</param>
 	public object getattr(string attr) {
-		return this.internal_call("__getattr__", null, 0, false, new object[]{attr});
+		return internal_call("__getattr__", null, 0, false, attr);
 	}
 	
 	
@@ -210,7 +216,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <param name="attr">the attribute name</param>
 	/// <param name="value">the new value for the attribute</param>
 	public void setattr(string attr, object value) {
-		this.internal_call("__setattr__", null, 0, false, new object[] {attr, value});
+		internal_call("__setattr__", null, 0, false, attr, value);
 	}
 	
 	/// <summary>
@@ -230,8 +236,9 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <summary>
 	/// Internal call method to actually perform the Pyro method call and process the result.
 	/// </summary>
+	// ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
 	private object internal_call(string method, string actual_objectId, ushort flags, bool checkMethodName, params object[] parameters) {
-		actual_objectId = actual_objectId ?? this.objectid;
+		actual_objectId = actual_objectId ?? objectid;
 		lock(this) {
 			connect();
 			unchecked {
@@ -245,17 +252,17 @@ public class PyroProxy : DynamicObject, IDisposable {
 			flags |= Message.FLAGS_ONEWAY;
 		}
 		if(checkMethodName && Config.METADATA && !pyroMethods.Contains(method)) {
-			throw new PyroException(string.Format("remote object '{0}' has no exposed attribute or method '{1}'", actual_objectId, method));
+			throw new PyroException($"remote object '{actual_objectId}' has no exposed attribute or method '{method}'");
 		}
 
 		if (parameters == null)
 			parameters = new object[] {};
 		
 		PyroSerializer ser = PyroSerializer.GetFor(Config.SERIALIZER);
-		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
-		var msg = new Message(Message.MSG_INVOKE, pickle, ser.serializer_id, flags, sequenceNr, this.annotations(), pyroHmacKey);
+		var pickle = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
+		var msg = new Message(Message.MSG_INVOKE, pickle, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
 		Message resultmsg;
-		lock (this.sock) {
+		lock (sock) {
 			IOUtil.send(sock_stream, msg.to_bytes());
 			if(Config.MSG_TRACE_DIR!=null) {
 				Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
@@ -286,27 +293,21 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
 			Exception rx = (Exception) ser.deserializeData(resultmsg.data);
-			if (rx is PyroException) {
-				throw (PyroException) rx;
-			} else {
-				PyroException px;
-				
-				// if the source was a PythonException, copy its message and python exception type
-				PythonException pyx = rx as PythonException;
-				if(pyx==null) {
-					px = new PyroException(null, rx);
-				} else {
-				    px = new PyroException(rx.Message, rx);	
-					px.PythonExceptionType = pyx.PythonExceptionType;
-				}
-				
-				PropertyInfo remotetbProperty=rx.GetType().GetProperty("_pyroTraceback");
-				if(remotetbProperty!=null) {
-					string remotetb=(string)remotetbProperty.GetValue(rx,null);
-					px._pyroTraceback=remotetb;
-				}
-				throw px;
+			var exception = rx as PyroException;
+			if (exception != null) {
+				throw exception;
 			}
+
+			// if the source was a PythonException, copy its message and python exception type
+			PythonException pyx = rx as PythonException;
+			var px = pyx==null ? new PyroException(null, rx) : new PyroException(rx.Message, rx) {PythonExceptionType = pyx.PythonExceptionType};
+				
+			PropertyInfo remotetbProperty=rx.GetType().GetProperty("_pyroTraceback");
+			if(remotetbProperty!=null) {
+				string remotetb=(string)remotetbProperty.GetValue(rx,null);
+				px._pyroTraceback=remotetb;
+			}
+			throw px;
 		}
 		
 		return ser.deserializeData(resultmsg.data);
@@ -316,14 +317,14 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <summary>
 	/// Decompress the data bytes in the given message (in place).
 	/// </summary>
-	private void _decompressMessageData(Message msg) {
+	private static void _decompressMessageData(Message msg) {
 		if((msg.flags & Message.FLAGS_COMPRESSED) == 0) {
 			throw new ArgumentException("message data is not compressed");
 		}
 		using(MemoryStream compressed=new MemoryStream(msg.data, 2, msg.data.Length-2, false)) {
 			using(DeflateStream decompresser=new DeflateStream(compressed, CompressionMode.Decompress)) {
 				MemoryStream bos = new MemoryStream(msg.data.Length);
-        		byte[] buffer = new byte[4096];
+        		var buffer = new byte[4096];
         		int numRead;
         		while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
         		    bos.Write(buffer, 0, numRead);
@@ -339,12 +340,12 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// If you re-use the proxy, it will automatically reconnect.
 	/// </summary>
 	public void close() {
-		if (this.sock != null) {
-			if(this.sock_stream!=null) this.sock_stream.Close();
-			this.sock.Client.Close();
-			this.sock.Close();
-			this.sock=null;
-			this.sock_stream=null;
+		if (sock != null) {
+			sock_stream?.Close();
+			sock.Client.Close();
+			sock.Close();
+			sock=null;
+			sock_stream=null;
 		}
 	}
 
@@ -353,11 +354,10 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// </summary>
 	protected void _handshake() {
 		var ser = PyroSerializer.GetFor(Config.SERIALIZER);
-		var handshakedata = new Dictionary<string, Object>();
-		handshakedata["handshake"] = pyroHandshake;
+		var handshakedata = new Dictionary<string, object> {["handshake"] = pyroHandshake};
 		if(Config.METADATA)
 			handshakedata["object"] = objectid;
-		byte[] data = ser.serializeData(handshakedata);
+		var data = ser.serializeData(handshakedata);
 		ushort flags = Config.METADATA? Message.FLAGS_META_ON_CONNECT : (ushort)0;
 		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
 		IOUtil.send(sock_stream, msg.to_bytes());
@@ -381,24 +381,28 @@ public class PyroProxy : DynamicObject, IDisposable {
 				handshake_response = "<not available because unsupported serialization format>";
 			}
 		}
-		if(msg.type==Message.MSG_CONNECTOK) {
-			if((msg.flags & Message.FLAGS_META_ON_CONNECT) != 0) {
-				var response_dict = (IDictionary<object,object>)handshake_response;
-				_processMetadata((IDictionary<object,object>)response_dict["meta"]);
-				handshake_response = response_dict["handshake"];
-				try {
-					validateHandshake(handshake_response);
-				} catch (Exception) {
-					close();
-					throw;
+		switch (msg.type)
+		{
+			case Message.MSG_CONNECTOK:
+				if((msg.flags & Message.FLAGS_META_ON_CONNECT) != 0) {
+					var response_dict = (IDictionary<object,object>)handshake_response;
+					_processMetadata((IDictionary<object,object>)response_dict["meta"]);
+					handshake_response = response_dict["handshake"];
+					try {
+						validateHandshake(handshake_response);
+					} catch (Exception) {
+						close();
+						throw;
+					}
 				}
-			}
-		} else if (msg.type==Message.MSG_CONNECTFAIL) {
-			close();
-			throw new PyroException("connection rejected, reason: "+handshake_response);
-		} else {
-			close();
-			throw new PyroException(string.Format("connect: invalid msg type {0} received", msg.type));
+
+				break;
+			case Message.MSG_CONNECTFAIL:
+				close();
+				throw new PyroException("connection rejected, reason: "+handshake_response);
+			default:
+				close();
+				throw new PyroException($"connect: invalid msg type {msg.type} received");
 		}
 	}
 	
@@ -426,37 +430,39 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// called by the Unpickler to restore state.
 	/// </summary>
 	/// <param name="args">args(8 or 9): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake, pyroMaxRetries, [pyroSerializer]</param>
+	[SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
+	[SuppressMessage("ReSharper", "UnusedMember.Global")]
 	public void __setstate__(object[] args) {
 		if(args.Length != 8 && args.Length !=9) {
 			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
 		}
 		PyroURI uri=(PyroURI)args[0];
-		this.hostname=uri.host;
-		this.port=uri.port;
-		this.objectid=uri.objectid;
-		this.sock=null;
-		this.sock_stream=null;
-		this.correlation_id=null;
+		hostname=uri.host;
+		port=uri.port;
+		objectid=uri.objectid;
+		sock=null;
+		sock_stream=null;
+		correlation_id=null;
 		
-		this.pyroOneway.Clear();
+		pyroOneway.Clear();
 		foreach(object o in (HashSet<object>) args[1])
-			this.pyroOneway.Add(o as string);
-		this.pyroMethods.Clear();
+			pyroOneway.Add(o as string);
+		pyroMethods.Clear();
 		foreach(object o in (HashSet<object>) args[2])
-			this.pyroMethods.Add(o as string);
-		this.pyroAttrs.Clear();
+			pyroMethods.Add(o as string);
+		pyroAttrs.Clear();
 		foreach(object o in (HashSet<object>) args[3])
-			this.pyroAttrs.Add(o as string);
+			pyroAttrs.Add(o as string);
 
-		this.pyroHmacKey = (byte[])args[5];
-		this.pyroHandshake = args[6];
+		pyroHmacKey = (byte[])args[5];
+		pyroHandshake = args[6];
 		// XXX maxretries (args[7]) is not yet supported/used in pyrolite
 		// XXX custom serializer (args[8]) is not yet supported in pyrolite
 	}	
 	
 	public class StreamResultIterator: IEnumerable, IDisposable
 	{
-		private string streamId;
+		private readonly string streamId;
 		private PyroProxy proxy;
 		public StreamResultIterator(string streamId, PyroProxy proxy)
 		{
@@ -477,20 +483,20 @@ public class PyroProxy : DynamicObject, IDisposable {
 
 		public IEnumerator GetEnumerator()
 		{
-			if(this.proxy==null)
+			if(proxy==null)
 				yield break;
 
 			while(true) {
-				if(this.proxy.sock ==null) {
+				if(proxy.sock ==null) {
 					throw new PyroException("the proxy for this stream result has been closed");
 				}
 				object value;
 				try {
-					value = this.proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, this.streamId);
+					value = proxy.internal_call("get_next_stream_item", Config.DAEMON_NAME, 0, false, streamId);
 				} catch (PyroException x) {
 					if(stopIterationExceptions.Contains(x.PythonExceptionType)) {
 						// iterator ended normally. no need to call close_stream, server will have closed the stream on its side already.
-						this.proxy = null;
+						proxy = null;
 						yield break;
 					}
 					Dispose();
@@ -502,10 +508,10 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		public void Dispose()
 		{
-			if(this.proxy!=null && this.proxy.sock!=null) {
-				this.proxy.internal_call("close_stream", Config.DAEMON_NAME, Message.FLAGS_ONEWAY, false, this.streamId);
+			if(proxy?.sock != null) {
+				proxy.internal_call("close_stream", Config.DAEMON_NAME, Message.FLAGS_ONEWAY, false, streamId);
 			}
-			this.proxy = null;
+			proxy = null;
 		}
 	}
 }

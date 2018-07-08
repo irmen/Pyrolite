@@ -1,9 +1,11 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable NonReadonlyMemberInGetHashCode
+// ReSharper disable UnusedMember.Global
 
 namespace Razorvine.Pickle.Objects
 {
@@ -11,10 +13,11 @@ namespace Razorvine.Pickle.Objects
 /// <summary>
 /// An immutable Complex Number class. 
 /// </summary>
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class ComplexNumber {
 	
-	public double Real {get; set;}
-	public double Imaginary {get; set;}
+	public double Real {get; }
+	public double Imaginary {get; }
 	
 	public ComplexNumber(double r, double i) {
 		Real=r;
@@ -63,7 +66,7 @@ public class ComplexNumber {
 	
 	public override int GetHashCode()
 	{
-		return (Real.GetHashCode()) ^ (Imaginary.GetHashCode());
+		return Real.GetHashCode() ^ Imaginary.GetHashCode();
 	}
 	
 	public static bool operator ==(ComplexNumber lhs, ComplexNumber rhs)

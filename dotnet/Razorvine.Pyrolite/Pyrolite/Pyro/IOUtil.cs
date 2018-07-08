@@ -1,6 +1,7 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System.IO;
+// ReSharper disable InconsistentNaming
 
 namespace Razorvine.Pyro
 {
@@ -8,7 +9,7 @@ namespace Razorvine.Pyro
 /// <summary>
 /// Lowlevel I/O utilities.
 /// </summary>
-class IOUtil
+internal static class IOUtil
 {
 	/**
 	 * send a message to the outputstream.
@@ -22,7 +23,7 @@ class IOUtil
 	 * Makes sure the complete message is received, raises IOException otherwise.
 	 */
 	public static byte[] recv(Stream ins, int size) {
-		byte [] bytes = new byte [size];
+		var bytes = new byte [size];
 		int numRead = ins.Read(bytes, 0, size);
 		if(numRead<=0) {
 			throw new IOException("premature end of data");

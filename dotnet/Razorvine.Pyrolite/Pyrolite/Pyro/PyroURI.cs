@@ -2,6 +2,8 @@
 
 using System;
 using System.Text.RegularExpressions;
+// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
 
 namespace Razorvine.Pyro
 {
@@ -12,10 +14,10 @@ namespace Razorvine.Pyro
 [Serializable]
 public class PyroURI {
 
-	public string protocol {get;set;}
-	public string objectid {get;set;}
-	public string host {get;set;}
-	public int port {get;set;}
+	public string protocol {get; private set;}
+	public string objectid {get; private set;}
+	public string host {get; private set;}
+	public int port {get; private set;}
 
 
 	public PyroURI() {
@@ -35,7 +37,7 @@ public class PyroURI {
 		if (m.Success) {
 			protocol = m.Groups[1].Value;
 			objectid = m.Groups[2].Value;
-			string[] loc = m.Groups[4].Value.Split(':');
+			var loc = m.Groups[4].Value.Split(':');
 			host = loc[0];
 			port = int.Parse(loc[1]);
 		} else {
@@ -44,7 +46,7 @@ public class PyroURI {
 	}
 
 	public PyroURI(string objectid, string host, int port) {
-		this.protocol = "PYRO";
+		protocol = "PYRO";
 		this.objectid = objectid;
 		this.host = host;
 		this.port = port;
@@ -60,7 +62,7 @@ public class PyroURI {
 		PyroURI other = obj as PyroURI;
 		if (other == null)
 			return false;
-		return other.ToString()==this.ToString();
+		return other.ToString()==ToString();
 	}
 	
 	public override int GetHashCode()
@@ -88,10 +90,10 @@ public class PyroURI {
 	 * called by the Unpickler to restore state
 	 */
 	public void __setstate__(object[] args) {
-		this.protocol = (string) args[0];
-		this.objectid = (string) args[1];
-		this.host = (string) args[3];
-		this.port = (int) args[4];
+		protocol = (string) args[0];
+		objectid = (string) args[1];
+		host = (string) args[3];
+		port = (int) args[4];
 	}
 }
 

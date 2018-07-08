@@ -1,5 +1,6 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
+// ReSharper disable UnusedMember.Global
 namespace Razorvine.Pickle.Objects
 {
 
@@ -14,11 +15,13 @@ public class StringConstructor : IObjectConstructor
 	{
 		if(args.Length==0) {
 			return "";
-		} else if(args.Length==1 && args[0] is string) {
-			return (string)args[0];
-		} else {
-			throw new PickleException("invalid string constructor arguments");
 		}
+
+		if(args.Length==1 && args[0] is string) {
+			return (string)args[0];
+		}
+
+		throw new PickleException("invalid string constructor arguments");
 	}
 }
 

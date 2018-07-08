@@ -1,6 +1,7 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Razorvine.Pickle
 {
@@ -8,34 +9,35 @@ namespace Razorvine.Pickle
 /// <summary>
 /// Helper type that represents the unpickler working stack. 
 /// </summary>
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class UnpickleStack {
-	private ArrayList stack;
-	public object MARKER;
+	private readonly ArrayList _stack;
+	public readonly object MARKER;
 
 	public UnpickleStack() {
-		stack = new ArrayList();
+		_stack = new ArrayList();
 		MARKER = new object(); // any new unique object
 	}
 
 	public void add(object o) {
-		stack.Add(o);
+		_stack.Add(o);
 	}
 
 	public void add_mark() {
-		stack.Add(MARKER);
+		_stack.Add(MARKER);
 	}
 
 	public object pop() {
-		int size = stack.Count;
-		var result = this.stack[size - 1];
-		this.stack.RemoveAt(size-1);
+		int size = _stack.Count;
+		var result = _stack[size - 1];
+		_stack.RemoveAt(size-1);
 		return result;
 	}
 
 	public ArrayList pop_all_since_marker() {
 		ArrayList result = new ArrayList();
 		object o = pop();
-		while (o != this.MARKER) {
+		while (o != MARKER) {
 			result.Add(o);
 			o = pop();
 		}
@@ -45,20 +47,20 @@ public class UnpickleStack {
 	}
 
 	public object peek() {
-		return this.stack[this.stack.Count-1];
+		return _stack[_stack.Count-1];
 	}
 
 	public void trim() {
-		this.stack.TrimToSize();
+		_stack.TrimToSize();
 	}
 
 	public int size() {
-		return this.stack.Count;
+		return _stack.Count;
 	}
 
 	public void clear() {
-		this.stack.Clear();
-		this.stack.TrimToSize();
+		_stack.Clear();
+		_stack.TrimToSize();
 	}
 }
 

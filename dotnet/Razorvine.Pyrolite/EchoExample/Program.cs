@@ -3,6 +3,7 @@
 using System;
 using Razorvine.Pyro;
 // ReSharper disable CheckNamespace
+// ReSharper disable PossibleNullReferenceException
 
 namespace Pyrolite.TestPyroEcho
 {
@@ -11,7 +12,7 @@ namespace Pyrolite.TestPyroEcho
 	/// </summary>
 	public static class Program
 	{
-		public static void Main(String[] args) {
+		public static void Main(string[] args) {
 			
 			char test;
 			if(args.Length==1)
@@ -21,21 +22,21 @@ namespace Pyrolite.TestPyroEcho
 				test = Console.ReadLine().Trim().ToLowerInvariant()[0];
 			}
 			
-			setConfig();
+			SetConfig();
 			try {
 				switch(test)
 				{
 					case 'e':
 						Console.WriteLine("\r\nRunning ECHO test.\r\n");
-						new TestEcho().Run();
+						TestEcho.Run();
 						break;
 					case 'h':
 						Console.WriteLine("\r\nRunning HANDSHAKE test.\r\n");
-						new TestHandshake().Run();
+						TestHandshake.Run();
 						break;
 					case 's':
 						Console.WriteLine("\r\nRunning STREAMING test.\r\n");
-						new TestStreaming().Run();
+						TestStreaming.Run();
 						break;
 					default:
 						Console.Error.WriteLine("invalid choice");
@@ -48,7 +49,7 @@ namespace Pyrolite.TestPyroEcho
 			Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
 		}
 
-		static void setConfig()
+		private static void SetConfig()
 		{
 			string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 			if(tracedir!=null) {

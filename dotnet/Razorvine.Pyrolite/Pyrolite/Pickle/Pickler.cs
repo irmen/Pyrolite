@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -10,6 +11,10 @@ using System.Runtime.Serialization;
 using System.Text;
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MemberInitializerValueIgnored
+// ReSharper disable InconsistentNaming
+// ReSharper disable LoopCanBeConvertedToQuery
+// ReSharper disable InvertIf
+// ReSharper disable SuggestBaseTypeForParameter
 
 namespace Razorvine.Pickle
 {
@@ -22,14 +27,15 @@ namespace Razorvine.Pickle
 /// </summary>
 public class Pickler : IDisposable {
 
+	// ReSharper disable once UnusedMember.Global
 	public static int HIGHEST_PROTOCOL = 2;
 
 	protected const int MAX_RECURSE_DEPTH = 200;
 	protected Stream outs;
 	protected int recurse;	// recursion level
-	protected int PROTOCOL = 2;
-	protected static IDictionary<Type, IObjectPickler> customPicklers = new Dictionary<Type, IObjectPickler>();
-	protected bool useMemo=true;
+	protected const int PROTOCOL = 2;
+	protected static readonly IDictionary<Type, IObjectPickler> customPicklers = new Dictionary<Type, IObjectPickler>();
+	protected readonly bool useMemo=true;
 	protected IDictionary<object, int> memo;		// maps objects to memo index
 	
 	/**
@@ -85,7 +91,7 @@ public class Pickler : IDisposable {
 		if(useMemo)
 			memo = new Dictionary<object, int>();
 		outs.WriteByte(Opcodes.PROTO);
-		outs.WriteByte((byte)PROTOCOL);
+		outs.WriteByte(PROTOCOL);
 		save(o);
 		memo = null;  // get rid of the memo table
 		outs.WriteByte(Opcodes.STOP);
@@ -131,7 +137,7 @@ public class Pickler : IDisposable {
 	 * Only works for hashable objects
 	 */
 	protected void WriteMemo(object obj) {
-		if(!this.useMemo)
+		if(!useMemo)
 			return;
 		if(!memo.ContainsKey(obj))
 		{
@@ -145,7 +151,7 @@ public class Pickler : IDisposable {
 			else
 			{
 				outs.WriteByte(Opcodes.LONG_BINPUT);
-				byte[] index_bytes = PickleUtils.integer_to_bytes(memo_index);
+				var index_bytes = PickleUtils.integer_to_bytes(memo_index);
 				outs.Write(index_bytes, 0, 4);
 			}
 		}
@@ -155,7 +161,7 @@ public class Pickler : IDisposable {
 	 * Check the memo table and output a memo lookup if the object is found
 	 */
 	private bool LookupMemo(Type objectType, object obj) {
-		if(!this.useMemo)
+		if(!useMemo)
 			return false;
 		if(!objectType.IsPrimitive)
 		{
@@ -170,7 +176,7 @@ public class Pickler : IDisposable {
 				else
 				{
 					outs.WriteByte(Opcodes.LONG_BINGET);
-					byte[] index_bytes = PickleUtils.integer_to_bytes(memo_index);
+					var index_bytes = PickleUtils.integer_to_bytes(memo_index);
 					outs.Write(index_bytes, 0, 4);
 				}
 				return true;
@@ -186,7 +192,7 @@ public class Pickler : IDisposable {
 		// is it a primitive array?
 		if(o is Array) {
 			Type componentType=t.GetElementType();
-			if(componentType.IsPrimitive) {
+			if(componentType != null && componentType.IsPrimitive) {
 				put_arrayOfPrimitives(componentType, o);
 			} else {
 				put_arrayOfObjects((object[])o);
@@ -196,7 +202,7 @@ public class Pickler : IDisposable {
 		
 		// first the primitive types
 		if(o is bool) {
-			put_bool((Boolean)o);
+			put_bool((bool)o);
 			return true;
 		}
 		if(o is byte) {
@@ -247,14 +253,15 @@ public class Pickler : IDisposable {
 		// check registry
 		IObjectPickler custompickler = getCustomPickler(t);
 		if(custompickler!=null) {
-			custompickler.pickle(o, this.outs, this);
+			custompickler.pickle(o, outs, this);
 			WriteMemo(o);
 			return true;
 		}
 		
 		// more complex types
-		if(o is string) {
-			put_string((String)o);
+		var s = o as string;
+		if(s != null) {
+			put_string(s);
 			return true;
 		}
 		if(o is decimal) {
@@ -273,16 +280,22 @@ public class Pickler : IDisposable {
 			put_set((IEnumerable)o);
 			return true;
 		}
-		if(o is IDictionary) {
-			put_map((IDictionary)o);
+
+		var dictionary = o as IDictionary;
+		if(dictionary != null) {
+			put_map(dictionary);
 			return true;
 		}
-		if(o is IList) {
-			put_enumerable((IList)o);
+
+		var list = o as IList;
+		if(list != null) {
+			put_enumerable(list);
 			return true;
 		}
-		if(o is IEnumerable) {
-			put_enumerable((IEnumerable)o);
+
+		var enumerable = o as IEnumerable;
+		if(enumerable != null) {
+			put_enumerable(enumerable);
 			return true;
 		}
 		if(o is Enum) {
@@ -310,6 +323,7 @@ public class Pickler : IDisposable {
 		return false;
 	}
 	
+	[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
 	protected IObjectPickler getCustomPickler(Type t)
 	{
 		IObjectPickler pickler;
@@ -327,15 +341,15 @@ public class Pickler : IDisposable {
 		return null;
 	}
 
-	bool hasPublicProperties(object o)
+	private static bool hasPublicProperties(object o)
 	{
-		PropertyInfo[] props=o.GetType().GetProperties();
+		var props=o.GetType().GetProperties();
 		return props.Length>0;
 	}
-		
-	void put_datetime(DateTime dt) {
+
+	private void put_datetime(DateTime dt) {
 		outs.WriteByte(Opcodes.GLOBAL);
-		byte[] bytes=Encoding.Default.GetBytes("datetime\ndatetime\n");
+		var bytes=Encoding.Default.GetBytes("datetime\ndatetime\n");
 		outs.Write(bytes,0,bytes.Length);
 		outs.WriteByte(Opcodes.MARK);
 		save(dt.Year);
@@ -349,10 +363,10 @@ public class Pickler : IDisposable {
 		outs.WriteByte(Opcodes.REDUCE);
 		WriteMemo(dt);
 	}
-		
-	void put_timespan(TimeSpan ts) {
+
+	private void put_timespan(TimeSpan ts) {
 		outs.WriteByte(Opcodes.GLOBAL);
-		byte[] bytes=Encoding.Default.GetBytes("datetime\ntimedelta\n");
+		var bytes=Encoding.Default.GetBytes("datetime\ntimedelta\n");
 		outs.Write(bytes,0,bytes.Length);
 		save(ts.Days);
 		save(ts.Hours*3600+ts.Minutes*60+ts.Seconds);
@@ -362,7 +376,7 @@ public class Pickler : IDisposable {
 		WriteMemo(ts);
 	}
 
-	void put_enumerable(IEnumerable list) {
+	private void put_enumerable(IEnumerable list) {
 		outs.WriteByte(Opcodes.EMPTY_LIST);
 		WriteMemo(list);
 		outs.WriteByte(Opcodes.MARK);
@@ -372,7 +386,7 @@ public class Pickler : IDisposable {
 		outs.WriteByte(Opcodes.APPENDS);
 	}
 
-	void put_map(IDictionary o) {
+	private void put_map(IDictionary o) {
 		outs.WriteByte(Opcodes.EMPTY_DICT);
 		WriteMemo(o);
 		outs.WriteByte(Opcodes.MARK);
@@ -383,9 +397,9 @@ public class Pickler : IDisposable {
 		outs.WriteByte(Opcodes.SETITEMS);
 	}
 
-	void put_set(IEnumerable o) {
+	private void put_set(IEnumerable o) {
 		outs.WriteByte(Opcodes.GLOBAL);
-		byte[] output=Encoding.ASCII.GetBytes("__builtin__\nset\n");
+		var output=Encoding.ASCII.GetBytes("__builtin__\nset\n");
 		outs.Write(output,0,output.Length);
 		outs.WriteByte(Opcodes.EMPTY_LIST);
 		outs.WriteByte(Opcodes.MARK);
@@ -398,60 +412,69 @@ public class Pickler : IDisposable {
 		WriteMemo(o);   // sets cannot contain self-references (because not hashable) so it is fine to put this at the end
 	}
 
-	void put_arrayOfObjects(object[] array) {
-		// 0 objects->EMPTYTUPLE
-		// 1 object->TUPLE1
-		// 2 objects->TUPLE2
-		// 3 objects->TUPLE3
-		// 4 or more->MARK+items+TUPLE
-		if(array.Length==0) {
-			outs.WriteByte(Opcodes.EMPTY_TUPLE);
-		} else if(array.Length==1) {
-			if(array[0]==array)
-				throw new PickleException("recursive array not supported, use list");
-			save(array[0]);
-			outs.WriteByte(Opcodes.TUPLE1);
-		} else if(array.Length==2) {
-			if(array[0]==array || array[1]==array)
-				throw new PickleException("recursive array not supported, use list");
-			save(array[0]);
-			save(array[1]);
-			outs.WriteByte(Opcodes.TUPLE2);
-		} else if(array.Length==3) {
-			if(array[0]==array || array[1]==array || array[2]==array)
-				throw new PickleException("recursive array not supported, use list");
-			save(array[0]);
-			save(array[1]);
-			save(array[2]);
-			outs.WriteByte(Opcodes.TUPLE3);
-		} else {
-			outs.WriteByte(Opcodes.MARK);
-			foreach(object o in array) {
-				if(o==array)
+	private void put_arrayOfObjects(object[] array)
+	{
+		switch (array.Length)
+		{
+			// 0 objects->EMPTYTUPLE
+			// 1 object->TUPLE1
+			// 2 objects->TUPLE2
+			// 3 objects->TUPLE3
+			// 4 or more->MARK+items+TUPLE
+			case 0:
+				outs.WriteByte(Opcodes.EMPTY_TUPLE);
+				break;
+			case 1:
+				if(array[0]==array)
 					throw new PickleException("recursive array not supported, use list");
-				save(o);
-			}
-			outs.WriteByte(Opcodes.TUPLE);
+				save(array[0]);
+				outs.WriteByte(Opcodes.TUPLE1);
+				break;
+			case 2:
+				if(array[0]==array || array[1]==array)
+					throw new PickleException("recursive array not supported, use list");
+				save(array[0]);
+				save(array[1]);
+				outs.WriteByte(Opcodes.TUPLE2);
+				break;
+			case 3:
+				if(array[0]==array || array[1]==array || array[2]==array)
+					throw new PickleException("recursive array not supported, use list");
+				save(array[0]);
+				save(array[1]);
+				save(array[2]);
+				outs.WriteByte(Opcodes.TUPLE3);
+				break;
+			default:
+				outs.WriteByte(Opcodes.MARK);
+				foreach(object o in array) {
+					if(o==array)
+						throw new PickleException("recursive array not supported, use list");
+					save(o);
+				}
+				outs.WriteByte(Opcodes.TUPLE);
+				break;
 		}
+
 		WriteMemo(array);		// tuples cannot contain self-references so it is fine to put this at the end
 	}
 
-	void put_arrayOfPrimitives(Type t, object array) {
+	private void put_arrayOfPrimitives(Type t, object array) {
 			
 		byte[] output;
 
 		if(t==typeof(bool)) {
 			// a bool[] isn't written as an array but rather as a tuple
-			bool[] source=(bool[])array;
+			var source=(bool[])array;
 			// this is stupid, but seems to be necessary because you can't cast a bool[] to an object[]
-			object[] boolarray=new object[source.Length];
+			var boolarray=new object[source.Length];
 			Array.Copy(source, boolarray, source.Length);
 			put_arrayOfObjects(boolarray);
 			return;
 		}
 		if(t==typeof(char)) {
 			// a char[] isn't written as an array but rather as a unicode string
-			String s=new String((char[])array);
+			string s=new string((char[])array);
 			put_string(s);
 			return;
 		}		
@@ -547,10 +570,10 @@ public class Pickler : IDisposable {
 		WriteMemo(array);		// array of primitives can by definition never be recursive, so okay to put this at the end
 	}
 
-	void put_decimal(decimal d) {
+	private void put_decimal(decimal d) {
 		//"cdecimal\nDecimal\nU\n12345.6789\u0085R."
 		outs.WriteByte(Opcodes.GLOBAL);
-		byte[] output=Encoding.ASCII.GetBytes("decimal\nDecimal\n");
+		var output=Encoding.ASCII.GetBytes("decimal\nDecimal\n");
 		outs.Write(output,0,output.Length);
 		put_string(Convert.ToString(d, CultureInfo.InvariantCulture));
 		outs.WriteByte(Opcodes.TUPLE1);
@@ -558,22 +581,22 @@ public class Pickler : IDisposable {
 		WriteMemo(d);
 	}
 
-	void put_string(string str) {
-		byte[] encoded=Encoding.UTF8.GetBytes(str);
+	private void put_string(string str) {
+		var encoded=Encoding.UTF8.GetBytes(str);
 		outs.WriteByte(Opcodes.BINUNICODE);
-		byte[] output=PickleUtils.integer_to_bytes(encoded.Length);
+		var output=PickleUtils.integer_to_bytes(encoded.Length);
 		outs.Write(output,0,output.Length);
 		outs.Write(encoded,0,encoded.Length);
 		WriteMemo(str);
 	}
 
-	void put_float(double d) {
+	private void put_float(double d) {
 		outs.WriteByte(Opcodes.BINFLOAT);
-		byte[] output=PickleUtils.double_to_bytes_bigendian(d);
+		var output=PickleUtils.double_to_bytes_bigendian(d);
 		outs.Write(output,0,output.Length);
-	}	
+	}
 
-	void put_long(long v) {
+	private void put_long(long v) {
 		byte[] output;
 		// choose optimal representation
 		// first check 1 and 2-byte unsigned ints:
@@ -607,29 +630,27 @@ public class Pickler : IDisposable {
 		outs.Write(output, 0, output.Length);
 		outs.WriteByte((byte)'\n');
 	}
-	
-	void put_ulong(ulong u) {
+
+	private void put_ulong(ulong u) {
 		if(u<=long.MaxValue) {
 			long l=(long)u;
 			put_long(l);
 		} else {
 			// ulong too big for a signed long, store it as text instead.
 			outs.WriteByte(Opcodes.INT);
-			byte[] output=Encoding.ASCII.GetBytes(u.ToString());
+			var output=Encoding.ASCII.GetBytes(u.ToString());
 			outs.Write(output, 0, output.Length);
 			outs.WriteByte((byte)'\n');
 		}
 	}
-	
-	void put_bool(bool b) {
-		if(b)
-			outs.WriteByte(Opcodes.NEWTRUE);
-		else
-			outs.WriteByte(Opcodes.NEWFALSE);
+
+	private void put_bool(bool b)
+	{
+		outs.WriteByte(b ? Opcodes.NEWTRUE : Opcodes.NEWFALSE);
 	}
 
-	void put_objwithproperties(object o) {
-		PropertyInfo[] properties=o.GetType().GetProperties();
+	private void put_objwithproperties(object o) {
+		var properties=o.GetType().GetProperties();
 		var map=new Dictionary<string, object>();
 		foreach(var propinfo in properties) {
 			if(propinfo.CanRead) {
@@ -649,10 +670,10 @@ public class Pickler : IDisposable {
 		save(map);
 	}
 
-	void put_serializable(Type t, object o)
+	private void put_serializable(Type t, object o)
 	{
 		var map=new Dictionary<string, object>();
-		FieldInfo[] fields = t.GetFields();
+		var fields = t.GetFields();
 		foreach(var field in fields) {
 			if(field.GetCustomAttribute(typeof(NonSerializedAttribute))==null) {
 				string name=field.Name;
@@ -663,7 +684,7 @@ public class Pickler : IDisposable {
 				}
 			}
 		}
-		PropertyInfo[] properties=t.GetProperties();
+		var properties=t.GetProperties();
 		foreach(var propinfo in properties) {
 			if(propinfo.CanRead) {
 				string name=propinfo.Name;
@@ -682,9 +703,9 @@ public class Pickler : IDisposable {
 		save(map);
 	}
 
-	void put_datacontract(Type t, object o, DataContractAttribute dca)
+	private void put_datacontract(Type t, object o, DataContractAttribute dca)
 	{
-		FieldInfo[] fields = t.GetFields();
+		var fields = t.GetFields();
 		var map=new Dictionary<string, object>();
 		foreach(var field in fields) {
 			DataMemberAttribute dma = (DataMemberAttribute) field.GetCustomAttribute(typeof(DataMemberAttribute));
@@ -697,7 +718,7 @@ public class Pickler : IDisposable {
 				}
 			}
 		}
-		PropertyInfo[] properties=t.GetProperties();
+		var properties=t.GetProperties();
 		foreach(var propinfo in properties) {
 			if(propinfo.CanRead && propinfo.GetCustomAttribute(typeof(DataMemberAttribute))!=null) {
 				string name=propinfo.Name;
@@ -722,7 +743,7 @@ public class Pickler : IDisposable {
 		
 	public void Dispose()
 	{
-		this.close();
+		close();
 	}
 }
 

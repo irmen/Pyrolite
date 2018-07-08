@@ -22,7 +22,7 @@ namespace Pyrolite.Tests.Pyro
 		{
 			var ser = new SerpentSerializer();
 			var uri = new PyroURI("PYRO:something@localhost:4444");
-			byte[] s = ser.serializeData(uri);
+			var s = ser.serializeData(uri);
 			object x = ser.deserializeData(s);
 			Assert.Equal(uri, x);
 
@@ -86,7 +86,7 @@ namespace Pyrolite.Tests.Pyro
 		[Fact]
 		public void UnserpentProxy()
 		{
-			byte[] data = Encoding.UTF8.GetBytes("# serpent utf-8 python3.2\n" +
+			var data = Encoding.UTF8.GetBytes("# serpent utf-8 python3.2\n" +
 			                                     "{'state':('PYRO:Pyro.NameServer@localhost:9090',(),('count','lookup','register','ping','list','remove'),(),0.0,'b64:c2VjcmV0','hello',0),'__class__':'Pyro4.core.Proxy'}");
 			
 			SerpentSerializer ser = new SerpentSerializer();
@@ -109,7 +109,7 @@ namespace Pyrolite.Tests.Pyro
 		{
 			var pickler = new PickleSerializer();
 			var uri = new PyroURI("PYRO:something@localhost:4444");
-			byte[] s = pickler.serializeData(uri);
+			var s = pickler.serializeData(uri);
 			object x = pickler.deserializeData(s);
 			Assert.Equal(uri, x);
 
@@ -144,10 +144,10 @@ namespace Pyrolite.Tests.Pyro
 		[Fact]
 		public void TestBytes()
 		{
-			byte[] bytes = new byte[] { 97, 98, 99, 100, 101, 102 };	// abcdef
+			byte[] bytes = { 97, 98, 99, 100, 101, 102 };	// abcdef
 			var dict = new Dictionary<string, string> {{"data", "YWJjZGVm"}, {"encoding", "base64"}};
 
-			byte[] bytes2 = SerpentSerializer.ToBytes(dict);
+			var bytes2 = SerpentSerializer.ToBytes(dict);
 	        Assert.Equal(bytes, bytes2);
 
 			var hashtable = new Hashtable {{"data", "YWJjZGVm"}, {"encoding", "base64"}};
@@ -170,7 +170,7 @@ namespace Pyrolite.Tests.Pyro
 	public class MiscellaneousTests
 	{
 		[Fact]
-		public void testPyroExceptionType()
+		public void TestPyroExceptionType()
 		{
 			var ex=new PyroException("hello");
 			var type = ex.GetType();
@@ -181,7 +181,7 @@ namespace Pyrolite.Tests.Pyro
 		}		
 		
 		[Fact]
-		public void testSerpentDictType()
+		public void TestSerpentDictType()
 		{
 			Hashtable ht = new Hashtable {["key"] = "value"};
 			var ser = new SerpentSerializer();

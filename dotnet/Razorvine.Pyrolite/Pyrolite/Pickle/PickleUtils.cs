@@ -3,6 +3,8 @@
 using System;
 using System.IO;
 using System.Text;
+// ReSharper disable InconsistentNaming
+// ReSharper disable InvertIf
 
 namespace Razorvine.Pickle
 {
@@ -13,16 +15,9 @@ namespace Razorvine.Pickle
 public static class PickleUtils {
 
 	/**
-	 * read a line of text, excluding the terminating LF char
-	 */
-	public static string readline(Stream input) {
-		return readline(input, false);
-	}
-
-	/**
 	 * read a line of text, possibly including the terminating LF char
 	 */
-	public static string readline(Stream input, bool includeLF) {
+	public static string readline(Stream input, bool includeLF = false) {
 		StringBuilder sb = new StringBuilder();
 		while (true) {
 			int c = input.ReadByte();
@@ -54,7 +49,7 @@ public static class PickleUtils {
 	 * read a number of signed bytes
 	 */
 	public static byte[] readbytes(Stream input, int n) {
-		byte[] buffer = new byte[n];
+		var buffer = new byte[n];
 		readbytes_into(input, buffer, 0, n);
 		return buffer;
 	}
@@ -91,27 +86,25 @@ public static class PickleUtils {
 	public static int bytes_to_integer(byte[] bytes) {
 		return bytes_to_integer(bytes, 0, bytes.Length);
 	}
-	public static int bytes_to_integer(byte[] bytes, int offset, int size) {
+	public static int bytes_to_integer(byte[] bytes, int offset, int size)
+	{
 		// this operates on little-endian bytes
-		
-		if (size == 2) {
-			// 2-bytes unsigned int
-			if(!BitConverter.IsLittleEndian) {
+
+		switch (size)
+		{
+			case 2:
+				// 2-bytes unsigned int
+				if (BitConverter.IsLittleEndian) return BitConverter.ToUInt16(bytes, offset);
 				// need to byteswap because the converter needs big-endian...
-				byte[] bigendian=new byte[] {bytes[1+offset], bytes[0+offset]};
-				return BitConverter.ToUInt16(bigendian, 0);
-			}
-			return BitConverter.ToUInt16(bytes,offset);
-		} else if (size == 4) {
-			// 4-bytes signed int
-			if(!BitConverter.IsLittleEndian) {
+				return BitConverter.ToUInt16(new[] {bytes[1+offset], bytes[0+offset]}, 0);
+			case 4:
+				// 4-bytes signed int
+				if (BitConverter.IsLittleEndian) return BitConverter.ToInt32(bytes, offset);
 				// need to byteswap because the converter needs big-endian...
-				byte[] bigendian=new byte[] {bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
-				return BitConverter.ToInt32(bigendian, 0);
-			}
-			return BitConverter.ToInt32(bytes,offset);
-		} else
-			throw new PickleException("invalid amount of bytes to convert to int: " + size);
+				return BitConverter.ToInt32(new[] {bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]}, 0);
+			default:
+				throw new PickleException("invalid amount of bytes to convert to int: " + size);
+		}
 	}
 
 	/**
@@ -124,7 +117,7 @@ public static class PickleUtils {
     		return BitConverter.ToInt64(bytes, offset);
 		}
 		// need to byteswap because the converter needs big-endian...
-		byte[] bigendian=new byte[] {bytes[7+offset], bytes[6+offset], bytes[5+offset], bytes[4+offset], bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
+		byte[] bigendian={bytes[7+offset], bytes[6+offset], bytes[5+offset], bytes[4+offset], bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
 		return BitConverter.ToInt64(bigendian, 0);
 	}	
 
@@ -138,7 +131,7 @@ public static class PickleUtils {
     		return BitConverter.ToUInt32(bytes, offset);
 		}
 		// need to byteswap because the converter needs big-endian...
-		byte[] bigendian=new byte[] {bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
+		byte[] bigendian={bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset]};
 		return BitConverter.ToUInt32(bigendian, 0);
 	}	
 		
@@ -146,7 +139,7 @@ public static class PickleUtils {
 	 * Convert a signed integer to its 4-byte representation. (little endian)
 	 */
 	public static byte[] integer_to_bytes(int i) {
-		byte[] bytes=BitConverter.GetBytes(i);
+		var bytes=BitConverter.GetBytes(i);
 		if(!BitConverter.IsLittleEndian) {
 			// reverse the bytes to make them little endian
 			Array.Reverse(bytes);
@@ -158,7 +151,7 @@ public static class PickleUtils {
 	 * Convert a double to its 8-byte representation (big endian).
 	 */
 	public static byte[] double_to_bytes_bigendian(double d) {
-		byte[] bytes=BitConverter.GetBytes(d);
+		var bytes=BitConverter.GetBytes(d);
 		if(BitConverter.IsLittleEndian) {
 			// reverse the bytes to make them big endian for the output
 			Array.Reverse(bytes);
@@ -175,7 +168,7 @@ public static class PickleUtils {
 	    }
     	if(BitConverter.IsLittleEndian) {
 			// reverse the bytes to make them littleendian for the bitconverter
-			byte[] littleendian=new byte[] { bytes[7+offset], bytes[6+offset], bytes[5+offset], bytes[4+offset], bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
+			byte[] littleendian={ bytes[7+offset], bytes[6+offset], bytes[5+offset], bytes[4+offset], bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
 			return BitConverter.ToDouble(littleendian,0);
 		}
 		return BitConverter.ToDouble(bytes,offset);
@@ -190,7 +183,7 @@ public static class PickleUtils {
 	    }
     	if(BitConverter.IsLittleEndian) {
 			// reverse the bytes to make them littleendian for the bitconverter
-			byte[] littleendian=new byte[] { bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
+			byte[] littleendian={ bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
 			return BitConverter.ToSingle(littleendian,0);
 		}
 		return BitConverter.ToSingle(bytes,offset);
@@ -208,7 +201,7 @@ public static class PickleUtils {
 			throw new PickleException("value to large for long, biginteger needed");
 		if( data.Length<8) {
 			// bitconverter requires exactly 8 bytes so we need to extend it
-			byte[] larger=new byte[8];
+			var larger=new byte[8];
 			Array.Copy(data,larger,data.Length);
 			
 			// check if we need to sign-extend (if the original number was negative)
@@ -243,7 +236,7 @@ public static class PickleUtils {
 	 * Convert a string to a byte array, no encoding is used. String must only contain characters <256.
 	 */
 	public static byte[] str2bytes(string str)  {
-		byte[] b=new byte[str.Length];
+		var b=new byte[str.Length];
 		for(int i=0; i<str.Length; ++i) {
 			char c=str[i];
 			if(c>255) throw new ArgumentException("string contained a char > 255, cannot convert to bytes");
@@ -291,7 +284,7 @@ public static class PickleUtils {
 					default:
 						if(str.Length>80)
 							str=str.Substring(0, 80);
-						throw new PickleException("invalid escape sequence char \'"+(c2)+"\' in string \""+str+" [...]\" (possibly truncated)");
+						throw new PickleException("invalid escape sequence char \'"+c2+"\' in string \""+str+" [...]\" (possibly truncated)");
 				}
 			} else {
 				sb.Append(str[i]);
@@ -338,7 +331,7 @@ public static class PickleUtils {
 					default:
 						if(str.Length>80)
 							str=str.Substring(0, 80);
-						throw new PickleException("invalid escape sequence char \'"+(c2)+"\' in string \""+str+" [...]\" (possibly truncated)");
+						throw new PickleException("invalid escape sequence char \'"+c2+"\' in string \""+str+" [...]\" (possibly truncated)");
 				}
 			} else {
 				sb.Append(str[i]);

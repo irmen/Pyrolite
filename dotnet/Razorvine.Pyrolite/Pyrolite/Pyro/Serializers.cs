@@ -8,6 +8,8 @@ using System.Reflection;
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
+// ReSharper disable MemberCanBeMadeStatic.Global
 
 namespace Razorvine.Pyro
 {
@@ -41,16 +43,13 @@ namespace Razorvine.Pyro
 						// and it will become available once you copy that into the correct location.
 						lock(typeof(SerpentSerializer))
 						{
-							if(serpentSerializer==null)
-							{
-								try {
-									serpentSerializer = new SerpentSerializer();
-									return serpentSerializer;
-								} catch (TypeInitializationException x) {
-									throw new PyroException("serpent serializer unavailable", x);
-								}
+							if (serpentSerializer != null) return serpentSerializer;
+							try {
+								serpentSerializer = new SerpentSerializer();
+								return serpentSerializer;
+							} catch (TypeInitializationException x) {
+								throw new PyroException("serpent serializer unavailable", x);
 							}
-							return serpentSerializer;
 						}
 					}
 				default:
@@ -103,7 +102,7 @@ namespace Razorvine.Pyro
 		{
 			using(var p=new Pickler())
 			{
-				object[] invokeparams = new object[] {objectId, method, vargs, kwargs};
+				object[] invokeparams = {objectId, method, vargs, kwargs};
 				return p.dumps(invokeparams);
 			}
 		}
@@ -162,6 +161,9 @@ namespace Razorvine.Pyro
 			
 			// register a few custom class-to-dict converters
 			MethodInfo registerMethod = serpentSerializerType.GetMethod("RegisterClass", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+			if (registerMethod == null)
+				throw new PyroException("serpent library doesn't provide expected RegisterClass method");
+
 			Func<object, IDictionary> converter = PyroUriPickler.ToSerpentDict;
 			registerMethod.Invoke(null, new object[]{typeof(PyroURI), converter});
 			converter = PyroExceptionPickler.ToSerpentDict;
@@ -199,7 +201,7 @@ namespace Razorvine.Pyro
 		
 		public override byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs)
 		{
-			object[] invokeparams = new object[] {objectId, method, vargs, kwargs};
+			object[] invokeparams = {objectId, method, vargs, kwargs};
 			// call the "Serialize" method, using reflection
 			var serializer = Activator.CreateInstance(serpentSerializerType, Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true);
 			return (byte[]) serializeMethod.Invoke(serializer, new object[] {invokeparams});

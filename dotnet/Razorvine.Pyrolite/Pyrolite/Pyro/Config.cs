@@ -1,5 +1,8 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
+// ReSharper disable InconsistentNaming
+// ReSharper disable ConvertToConstant.Global
+// ReSharper disable FieldCanBeMadeReadOnly.Global
 namespace Razorvine.Pyro
 {
 
@@ -11,7 +14,7 @@ public static class Config  {
 	public enum SerializerType {
 		pickle,
 		serpent
-	};
+	}
 	
 	public static string MSG_TRACE_DIR=null;
 	public static int NS_PORT = 9090;

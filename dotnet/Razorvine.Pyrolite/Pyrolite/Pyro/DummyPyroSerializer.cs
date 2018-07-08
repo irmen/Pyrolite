@@ -12,6 +12,8 @@ namespace Razorvine.Pyro
 		/// <summary>
 		/// for the unpickler to restore state
 		/// </summary>
+		// ReSharper disable once UnusedMember.Global
+		// ReSharper disable once UnusedParameter.Global
 		public void __setstate__(Hashtable values) {
 		}		
 	}

@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 
 using Razorvine.Pickle;
+// ReSharper disable InvertIf
 
 namespace Razorvine.Pyro
 {
@@ -17,17 +18,17 @@ public class PyroExceptionPickler : IObjectPickler {
 	public void pickle(object o, Stream outs, Pickler currentPickler) {
 		PyroException error = (PyroException) o;
 		outs.WriteByte(Opcodes.GLOBAL);
-		byte[] output=Encoding.Default.GetBytes("Pyro4.errors\nPyroError\n");
+		var output=Encoding.Default.GetBytes("Pyro4.errors\nPyroError\n");
 		outs.Write(output,0,output.Length);
-		object[] args = new object[] { error.Message };
+		object[] args = { error.Message };
 		currentPickler.save(args);
 		outs.WriteByte(Opcodes.REDUCE);
 		
 		if(!string.IsNullOrEmpty(error._pyroTraceback))
 		{
 			// add _pyroTraceback attribute to the output
-			Hashtable tb = new Hashtable();
-			tb["_pyroTraceback"] = new []{ error._pyroTraceback };		// transform single string back into list
+			Hashtable tb = new Hashtable {["_pyroTraceback"] = new[] {error._pyroTraceback}};
+			// transform single string back into list
 			currentPickler.save(tb);
 			outs.WriteByte(Opcodes.BUILD);
 		}
@@ -52,21 +53,17 @@ public class PyroExceptionPickler : IObjectPickler {
 
 	public static object FromSerpentDict(IDictionary dict)
 	{
-		object[] args = (object[]) dict["args"];
+		var args = (object[]) dict["args"];
 		
 		string pythonExceptionType = (string) dict["__class__"];
 		PyroException ex;
-		if(args.Length==0) {
-			if(string.IsNullOrEmpty(pythonExceptionType))
-				ex = new PyroException();
-			else
-				ex = new PyroException("["+pythonExceptionType+"]");
+		if(args.Length==0)
+		{
+			ex = string.IsNullOrEmpty(pythonExceptionType) ? new PyroException() : new PyroException("["+pythonExceptionType+"]");
 		}
-		else {
-			if(string.IsNullOrEmpty(pythonExceptionType))
-				ex = new PyroException((string)args[0]);
-			else
-				ex = new PyroException(string.Format("[{0}] {1}", pythonExceptionType, args[0]));
+		else
+		{
+			ex = string.IsNullOrEmpty(pythonExceptionType) ? new PyroException((string)args[0]) : new PyroException($"[{pythonExceptionType}] {args[0]}");
 		}
 		
 		ex.PythonExceptionType = pythonExceptionType;
@@ -79,9 +76,9 @@ public class PyroExceptionPickler : IObjectPickler {
 			if("_pyroTraceback"==key)
 			{
 				// if the traceback is a list of strings, create one string from it
-				if(entry.Value is ICollection) {
+				var tbcoll = entry.Value as ICollection;
+				if(tbcoll != null) {
 					StringBuilder sb=new StringBuilder();
-					ICollection tbcoll=(ICollection)entry.Value;
 					foreach(object line in tbcoll) {
 						sb.Append(line);
 					}	

@@ -11,41 +11,40 @@ namespace Pyrolite.TestPyroFlame
 /// Test Pyro with a Flame server
 /// </summary>
 public static class TestFlame {
+	private static readonly byte[] HmacKey = null;
 
-	static byte[] hmacKey = null;
-
-	public static void Main(String[] args) {
+	public static void Main() {
 		try {
 			Test();
 		} catch (Exception x) {
 			Console.WriteLine("unhandled exception: {0}",x);
 		}
 	}
-	
-	public static void Test() {
+
+	private static void Test() {
 
 		Console.WriteLine("Testing Pyro flame server (make sure it's running on localhost 9999)...");
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
-		setConfig();
+		SetConfig();
 		using(dynamic flame=new PyroProxy("localhost",9999,"Pyro.Flame"))
 		{
-			if(hmacKey!=null) flame.pyroHmacKey = hmacKey;
+			if(HmacKey!=null) flame.pyroHmacKey = HmacKey;
 			
 			Console.WriteLine("builtin:");
-			using(dynamic r_max=(FlameBuiltin)flame.builtin("max"))
+			using(dynamic rMax=(FlameBuiltin)flame.builtin("max"))
 			{
-				if(hmacKey!=null) r_max.pyroHmacKey = hmacKey;
+				if(HmacKey!=null) rMax.pyroHmacKey = HmacKey;
 				
-				int maximum=(int)r_max(new []{22,99,1});		// invoke remote max() builtin function
+				int maximum=(int)rMax(new []{22,99,1});		// invoke remote max() builtin function
 				Console.WriteLine("maximum="+maximum);
 			}
 			
-			using(dynamic r_module=(FlameModule)flame.module("socket"))
+			using(dynamic rModule=(FlameModule)flame.module("socket"))
 			{
-				if(hmacKey!=null) r_module.pyroHmacKey = hmacKey;
+				if(HmacKey!=null) rModule.pyroHmacKey = HmacKey;
 
-				String hostname=(String)r_module.gethostname();		// get remote hostname
+				string hostname=(string)rModule.gethostname();		// get remote hostname
 				Console.WriteLine("hostname="+hostname);
 			}
 			
@@ -63,7 +62,7 @@ public static class TestFlame {
 		}
 	}
 
-	static void setConfig()
+	private static void SetConfig()
 	{
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {

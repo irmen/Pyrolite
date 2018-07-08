@@ -14,6 +14,8 @@ namespace Pyrolite.TestPyroEcho
 /// <summary>
 /// This custom proxy adds custom annotations to the pyro messages
 /// </summary>
+// ReSharper disable once ArrangeTypeModifiers
+// ReSharper disable once UnusedMember.Global
 class CustomProxy : PyroProxy
 {
 	public CustomProxy(PyroURI uri): base(uri) 
@@ -30,11 +32,11 @@ class CustomProxy : PyroProxy
 /// <summary>
 /// Test Pyro with the Pyro echo server. 
 /// </summary>
-public class TestEcho {
-	private static readonly byte[] hmacKey = null;  // Encoding.UTF8.GetBytes("foo");
+public static class TestEcho {
+	private static readonly byte[] HmacKey = null;  // Encoding.UTF8.GetBytes("foo");
 	
 	
-	public void Run() {
+	public static void Run() {
 
 		Console.WriteLine("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
@@ -45,17 +47,17 @@ public class TestEcho {
 		if(Config.SERIALIZER==Config.SerializerType.serpent)
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
-		NameServerProxy ns = NameServerProxy.locateNS(null, hmacKey: hmacKey);
+		NameServerProxy ns = NameServerProxy.locateNS(null, hmacKey: HmacKey);
 		using(dynamic p = new PyroProxy(ns.lookup("test.echoserver")))
 		{
-			p.pyroHmacKey=hmacKey;
+			p.pyroHmacKey=HmacKey;
 			p.pyroHandshake = "banana";
 			
 			// non-dynamic way of constructing a proxy is:
 			// PyroProxy p=new PyroProxy("localhost",9999,"test.echoserver");
 	
 			Console.WriteLine("echo(), param=42:");
-			Object result=p.echo(42);
+			object result=p.echo(42);
 			Console.WriteLine("return value:");
 			PrettyPrint.print(result);
 			
@@ -76,7 +78,7 @@ public class TestEcho {
 			
 			// some more examples
 	
-			String s="This string is way too long. This string is way too long. This string is way too long. This string is way too long. ";
+			string s="This string is way too long. This string is way too long. This string is way too long. This string is way too long. ";
 			s=s+s+s+s+s;
 			Console.WriteLine("echo param:");
 			PrettyPrint.print(s);
@@ -85,7 +87,7 @@ public class TestEcho {
 			PrettyPrint.print(result);
 	
 			Console.WriteLine("dict test.");
-			IDictionary<string, object> map = new Dictionary<string, object>()
+			IDictionary<string, object> map = new Dictionary<string, object>
 			{
 				{"value", 42},
 				{"message", "hello"},
@@ -105,7 +107,7 @@ public class TestEcho {
 			Debug.Assert(p2.pyroMethods.Contains("echo"));
 			if(p2.pyroHmacKey!=null) {
 				string hmac2 = Encoding.UTF8.GetString(p2.pyroHmacKey);
-				Debug.Assert(hmac2==Encoding.UTF8.GetString(hmacKey));
+				Debug.Assert(hmac2==Encoding.UTF8.GetString(HmacKey));
 			}
 
 			Console.WriteLine("remote iterator test.");

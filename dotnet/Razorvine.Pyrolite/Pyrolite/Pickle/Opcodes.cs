@@ -1,5 +1,7 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Razorvine.Pickle
 {
 
@@ -9,7 +11,8 @@ namespace Razorvine.Pickle
 /// here is in kind-of alphabetical order of 1-character pickle code.
 /// pickletools groups them by purpose.
 /// </summary>
-public class Opcodes {
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+public static class Opcodes {
 
 	// protocol 0 and 1
 	public const byte  MARK = (byte)'('; // push special markobject on stack

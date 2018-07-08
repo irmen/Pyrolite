@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 	
 namespace Razorvine.Pyro
@@ -10,16 +11,19 @@ namespace Razorvine.Pyro
 /// <summary>
 /// Flame-Wrapper for a remote module.
 /// </summary>
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class FlameModule : DynamicObject, IDisposable
 {
-	private PyroProxy flameserver;
-	private string module;
+	private PyroProxy _flameserver;
+	private string _module;
 	public byte[] pyroHmacKey {
 		get {
-			return flameserver.pyroHmacKey;
+			return _flameserver.pyroHmacKey;
 		}
 		set {
-			flameserver.pyroHmacKey = value;
+			_flameserver.pyroHmacKey = value;
 		}
 	}
 	
@@ -27,8 +31,8 @@ public class FlameModule : DynamicObject, IDisposable
 	/// for the unpickler to restore state
 	/// </summary>
 	public void __setstate__(Hashtable values) {
-		flameserver=(PyroProxy) values["flameserver"];
-		module=(string) values["module"];
+		_flameserver=(PyroProxy) values["flameserver"];
+		_module=(string) values["module"];
 	}
 	
 	/// <summary>
@@ -41,13 +45,13 @@ public class FlameModule : DynamicObject, IDisposable
 		return true;
 	}
 	
-	public Object call(string attribute, params object[] arguments) {
-		return flameserver.call("invokeModule", module+"."+attribute, arguments, new Hashtable(0));
+	public object call(string attribute, params object[] arguments) {
+		return _flameserver.call("invokeModule", _module+"."+attribute, arguments, new Hashtable(0));
 	}
 
-	public void close()	{
-		if(flameserver!=null)
-			flameserver.close();
+	public void close()
+	{
+		_flameserver?.close();
 	}
 	
 	public void Dispose()

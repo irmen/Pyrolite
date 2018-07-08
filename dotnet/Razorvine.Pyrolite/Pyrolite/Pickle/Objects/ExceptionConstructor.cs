@@ -12,34 +12,34 @@ namespace Razorvine.Pickle.Objects
 /// </summary>
 public class ExceptionConstructor : IObjectConstructor {
 
-	private readonly string pythonExceptionType;
-	private readonly Type type;
+	private readonly string _pythonExceptionType;
+	private readonly Type _type;
 	
 	public ExceptionConstructor(Type type, string module, string name) {
 		if(!string.IsNullOrEmpty(module))
-			pythonExceptionType = module+"."+name;
+			_pythonExceptionType = module+"."+name;
 		else
-			pythonExceptionType = name;
-		this.type = type;
+			_pythonExceptionType = name;
+		_type = type;
 	}
 
 	public object construct(object[] args) {
 		try {
-			if(!string.IsNullOrEmpty(pythonExceptionType)) {
+			if(!string.IsNullOrEmpty(_pythonExceptionType)) {
 				// put the python exception type somewhere in the message
 				if(args==null || args.Length==0) {
-					args = new object[] { "["+pythonExceptionType+"]" };
+					args = new object[] { "["+_pythonExceptionType+"]" };
 				} else {
 					string msg = (string)args[0];
-					msg = string.Format("[{0}] {1}", pythonExceptionType, msg);
+					msg = $"[{_pythonExceptionType}] {msg}";
 					args = new object[] {msg};
 				}
 			}
-			object ex = Activator.CreateInstance(this.type, args);
+			object ex = Activator.CreateInstance(_type, args);
 			
 			PropertyInfo prop=ex.GetType().GetProperty("PythonExceptionType");
 			if(prop!=null) {
-				prop.SetValue(ex, pythonExceptionType, null);
+				prop.SetValue(ex, _pythonExceptionType, null);
 			}
 			return ex;
 		} catch (Exception x) {

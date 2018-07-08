@@ -1,6 +1,5 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
-using System;
 using System.IO;
 using System.Text;
 using Xunit;
@@ -16,15 +15,15 @@ namespace Pyrolite.Tests.Pickle
 /// </summary>
 public class PickleUtilsTest {
 
-	private readonly byte[] filedata;
+	private readonly byte[] _filedata;
 
 	public PickleUtilsTest() {
-		filedata=Encoding.UTF8.GetBytes("str1\nstr2  \n  str3  \nend");
+		_filedata=Encoding.UTF8.GetBytes("str1\nstr2  \n  str3  \nend");
 	}
 
 	[Fact]
-	public void testReadline() {
-		Stream bis = new MemoryStream(filedata);
+	public void TestReadline() {
+		Stream bis = new MemoryStream(_filedata);
 		Assert.Equal("str1", PickleUtils.readline(bis));
 		Assert.Equal("str2  ", PickleUtils.readline(bis));
 		Assert.Equal("  str3  ", PickleUtils.readline(bis));
@@ -38,8 +37,8 @@ public class PickleUtilsTest {
 	}
 
 	[Fact]
-	public void testReadlineWithLF() {
-		Stream bis=new MemoryStream(filedata);
+	public void TestReadlineWithLf() {
+		Stream bis=new MemoryStream(_filedata);
 		Assert.Equal("str1\n", PickleUtils.readline(bis, true));
 		Assert.Equal("str2  \n", PickleUtils.readline(bis, true));
 		Assert.Equal("  str3  \n", PickleUtils.readline(bis, true));
@@ -53,8 +52,8 @@ public class PickleUtilsTest {
 	}
 
 	[Fact]
-	public void testReadbytes() {
-		Stream bis=new MemoryStream(filedata);
+	public void TestReadbytes() {
+		Stream bis=new MemoryStream(_filedata);
 		
 		Assert.Equal(115, PickleUtils.readbyte(bis));
 		Assert.Equal(new byte[]{}, PickleUtils.readbytes(bis, 0));
@@ -69,9 +68,9 @@ public class PickleUtilsTest {
 	}
 
 	[Fact]
-	public void testReadbytes_into() {
-		Stream bis=new MemoryStream(filedata);
-		byte[] bytes = new byte[] {0,0,0,0,0,0,0,0,0,0};
+	public void TestReadbytes_into() {
+		Stream bis=new MemoryStream(_filedata);
+		byte[] bytes = {0,0,0,0,0,0,0,0,0,0};
 		PickleUtils.readbytes_into(bis, bytes, 1, 4);
 		Assert.Equal(new byte[] {0,115,116,114,49,0,0,0,0,0}, bytes);
 		PickleUtils.readbytes_into(bis, bytes, 8, 1);
@@ -79,7 +78,7 @@ public class PickleUtilsTest {
 	}
 
 	[Fact]
-	public void testBytes_to_integer() {
+	public void TestBytes_to_integer() {
 		try {
 			PickleUtils.bytes_to_integer(new byte[] {});
 			Assert.True(false, "expected PickleException");
@@ -105,7 +104,7 @@ public class PickleUtilsTest {
 	}
 
 	[Fact]
-	public void testBytes_to_uint() {
+	public void TestBytes_to_uint() {
 		try {
 			PickleUtils.bytes_to_uint(new byte[] {},0);
 			Assert.True(false, "expected PickleException");
@@ -121,7 +120,7 @@ public class PickleUtilsTest {
 	}
 
 	[Fact]
-	public void testBytes_to_long() {
+	public void TestBytes_to_long() {
 		try {
 			PickleUtils.bytes_to_long(new byte[] {}, 0);
 			Assert.True(false, "expected PickleException");
@@ -142,7 +141,7 @@ public class PickleUtilsTest {
 	}
 		
 	[Fact]
-	public void testInteger_to_bytes()
+	public void TestInteger_to_bytes()
 	{
 		Assert.Equal(new byte[]{0,0,0,0}, PickleUtils.integer_to_bytes(0));
 		Assert.Equal(new byte[]{0x78, 0x56, 0x34, 0x12}, PickleUtils.integer_to_bytes(0x12345678));
@@ -154,7 +153,7 @@ public class PickleUtilsTest {
 	}
 	
 	[Fact]
-	public void testBytes_to_double() {
+	public void TestBytes_to_double() {
 		try {
 			PickleUtils.bytes_bigendian_to_double(new byte[] {} ,0);
 			Assert.True(false, "expected PickleException");
@@ -183,7 +182,7 @@ public class PickleUtilsTest {
 	}
 	
 	[Fact]
-	public void testBytes_to_float() {
+	public void TestBytes_to_float() {
 		try {
 			PickleUtils.bytes_bigendian_to_float(new byte[] {}, 0);
 			Assert.True(false, "expected PickleException");
@@ -205,7 +204,7 @@ public class PickleUtilsTest {
 	}
 	
 	[Fact]
-	public void testDouble_to_bytes()
+	public void TestDouble_to_bytes()
 	{
 		Assert.Equal(new byte[]{0,0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(0.0d));
 		Assert.Equal(new byte[]{0x3f,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(1.0d));
@@ -215,12 +214,12 @@ public class PickleUtilsTest {
 		Assert.Equal(new byte[]{0x7e,0x3d,0x7e,0xe8,0xbc,0xaf,0x28,0x3a}, PickleUtils.double_to_bytes_bigendian(1.23456789e300d));
 		// cannot test NaN because it's not always the same byte representation...
 		// Assert.Equal(new byte[]{0xff,0xf8,0,0,0,0,0,0}, p.double_to_bytes(Double.NaN));
-		Assert.Equal(new byte[]{0x7f,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(Double.PositiveInfinity));
-		Assert.Equal(new byte[]{0xff,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(Double.NegativeInfinity));
+		Assert.Equal(new byte[]{0x7f,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(double.PositiveInfinity));
+		Assert.Equal(new byte[]{0xff,0xf0,0,0,0,0,0,0}, PickleUtils.double_to_bytes_bigendian(double.NegativeInfinity));
 	}
 
 	[Fact]
-	public void testDecode_long()
+	public void TestDecode_long()
 	{
 		Assert.Equal(0L, PickleUtils.decode_long(new byte[0]));
 		Assert.Equal(0L, PickleUtils.decode_long(new byte[]{0}));
@@ -244,7 +243,7 @@ public class PickleUtilsTest {
 	}
 
 	[Fact]
-	public void testDecode_escaped()
+	public void TestDecode_escaped()
 	{
 		Assert.Equal("abc", PickleUtils.decode_escaped("abc"));
 		Assert.Equal("a\\c", PickleUtils.decode_escaped("a\\\\c"));
@@ -256,7 +255,7 @@ public class PickleUtilsTest {
 	}
 	
 	[Fact]
-	public void testDecode_unicode_escaped()
+	public void TestDecode_unicode_escaped()
 	{
 		Assert.Equal("abc", PickleUtils.decode_unicode_escaped("abc"));
 		Assert.Equal("a\\c", PickleUtils.decode_unicode_escaped("a\\\\c"));

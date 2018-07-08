@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 
 namespace Razorvine.Pyro
@@ -10,17 +11,20 @@ namespace Razorvine.Pyro
 /// <summary>
 /// Flame-Wrapper for a builtin function.
 /// </summary>
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class FlameBuiltin : DynamicObject, IDisposable
 {
-	private PyroProxy flameserver;
-	private string builtin;
+	private PyroProxy _flameserver;
+	private string _builtin;
 	
 	public byte[] pyroHmacKey {
 		get {
-			return flameserver.pyroHmacKey;
+			return _flameserver.pyroHmacKey;
 		}
 		set {
-			flameserver.pyroHmacKey = value;
+			_flameserver.pyroHmacKey = value;
 		}
 	}
 	
@@ -28,12 +32,12 @@ public class FlameBuiltin : DynamicObject, IDisposable
 	/// for the unpickler to restore state
 	/// </summary>
 	public void __setstate__(Hashtable values) {
-		flameserver=(PyroProxy) values["flameserver"];
-		builtin=(string) values["builtin"];
+		_flameserver=(PyroProxy) values["flameserver"];
+		_builtin=(string) values["builtin"];
 	}
 	
-	public Object call(params object[] arguments) {
-		return flameserver.call("invokeBuiltin", builtin, arguments, new Hashtable(0));
+	public object call(params object[] arguments) {
+		return _flameserver.call("invokeBuiltin", _builtin, arguments, new Hashtable(0));
 	}
 
 	/// <summary>
@@ -42,13 +46,13 @@ public class FlameBuiltin : DynamicObject, IDisposable
 	/// </summary>
 	public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
 	{
-		result = flameserver.call("invokeBuiltin", builtin, args, new Hashtable(0));
+		result = _flameserver.call("invokeBuiltin", _builtin, args, new Hashtable(0));
 		return true;
 	}
 		
-	public void close()	{
-		if(flameserver!=null)
-			flameserver.close();
+	public void close()
+	{
+		_flameserver?.close();
 	}
 	
 	public void Dispose()

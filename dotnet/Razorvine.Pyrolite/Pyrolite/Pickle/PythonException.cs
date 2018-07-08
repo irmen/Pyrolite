@@ -2,54 +2,46 @@
 
 using System;
 using System.Collections;
-using System.Runtime.Serialization;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 // ReSharper disable UnusedParameter.Local
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace Razorvine.Pickle
 {
 	/// <summary>
 	/// Exception thrown that represents a certain Python exception.
 	/// </summary>
+	[SuppressMessage("ReSharper", "InconsistentNaming")]
 	public class PythonException : Exception
 	{
-		public string _pyroTraceback {get;set;}
+		public string _pyroTraceback {get; set;}
 		public string PythonExceptionType {get; set;}
 
-		public PythonException()
-		{
-		}
-
-	 	public PythonException(string message) : base(message)
-		{
-		}
-
-		public PythonException(string message, Exception innerException) : base(message, innerException)
+		public PythonException(string message) : base(message)
 		{
 		}
 
 		// special constructor for UnicodeDecodeError
-		public PythonException(String encoding, byte[] data, int i1, int i2, String message)
+		// ReSharper disable once UnusedMember.Global
+		public PythonException(string encoding, byte[] data, int i1, int i2, string message)
 			:base("UnicodeDecodeError: "+encoding+": "+message)
-		{
-		}
-
-		// This constructor is needed for serialization.
-		protected PythonException(SerializationInfo info, StreamingContext context) : base(info, context)
 		{
 		}
 
 		/// <summary>
 		/// for the unpickler to restore state
 		/// </summary>
+		// ReSharper disable once UnusedMember.Global
 		public void __setstate__(Hashtable values) {
 			if(!values.ContainsKey("_pyroTraceback"))
 				return;
 			object tb=values["_pyroTraceback"];
 			// if the traceback is a list of strings, create one string from it
-			if(tb is ICollection) {
+			var tbcoll = tb as ICollection;
+			if(tbcoll != null) {
 				StringBuilder sb=new StringBuilder();
-				ICollection tbcoll=(ICollection)tb;
 				foreach(object line in tbcoll) {
 					sb.Append(line);
 				}	

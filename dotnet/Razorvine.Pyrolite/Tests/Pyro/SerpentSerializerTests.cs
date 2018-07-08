@@ -29,12 +29,12 @@ namespace Pyrolite.Tests.Pyro
 			list.Add(42);
 			
 			var ser = PyroSerializer.GetFor(Config.SerializerType.serpent);
-			byte[] data = ser.serializeData(list);
+			var data = ser.serializeData(list);
 			string str = Encoding.UTF8.GetString(data);
 			Assert.Equal("# serpent utf-8 python2.6\n['hello',42]", str);
 			
-			List<object> list_obj = (List<object>)ser.deserializeData(data);
-			Assert.Equal(list, list_obj);
+			var listObj = (List<object>)ser.deserializeData(data);
+			Assert.Equal(list, listObj);
 			
 			ISet<string> s = new HashSet<string>();
 			s.Add("element1");
@@ -43,8 +43,8 @@ namespace Pyrolite.Tests.Pyro
 			str = Encoding.UTF8.GetString(data);
 			Assert.Equal("# serpent utf-8 python2.6\n('element1','element2')", str);
 			
-			object[] array_obj = (object[]) ser.deserializeData(data);
-			Assert.Equal(s, array_obj);
+			var arrayObj = (object[]) ser.deserializeData(data);
+			Assert.Equal(s, arrayObj);
 		}
 
 		[Fact]
@@ -56,18 +56,19 @@ namespace Pyrolite.Tests.Pyro
 			var ser = PyroSerializer.GetFor(Config.SerializerType.serpent);
 			IDictionary<string, object> kwargs = new Dictionary<string, object>();
 			kwargs["arg"] = 42;
-			object[] vargs = new object[] {"hello"};
+			object[] vargs = {"hello"};
 			
-			byte[] data = ser.serializeCall("objectid", "method", vargs, kwargs);
+			var data = ser.serializeCall("objectid", "method", vargs, kwargs);
 			string s = Encoding.UTF8.GetString(data);
 			Assert.Equal("# serpent utf-8 python2.6\n('objectid','method',('hello',),{'arg':42})", s);
 			
-			object[] call = (object[])ser.deserializeData(data);
-			object[] expected = new object[] {
+			var call = (object[])ser.deserializeData(data);
+			object[] expected = {
 				"objectid",
 				"method",
 				new object[] {"hello"},
-				new Dictionary<string, object>() {
+				new Dictionary<string, object>
+				{
 					{"arg", 42}
 				}
 			};
@@ -87,11 +88,11 @@ namespace Pyrolite.Tests.Pyro
 			s.Add("element1");
 			s.Add("element2");
 			var ser = PyroSerializer.GetFor(Config.SerializerType.serpent);
-			byte[] data = ser.serializeData(s);
+			var data = ser.serializeData(s);
 			string str = Encoding.UTF8.GetString(data);
 			Assert.Equal("# serpent utf-8 python3.2\n{'element1','element2'}", str);
 			
-			HashSet<object> s2 = (HashSet<object>) ser.deserializeData(data);
+			var s2 = (HashSet<object>) ser.deserializeData(data);
 			Assert.Equal(s, s2);
 		}
 		
@@ -101,16 +102,16 @@ namespace Pyrolite.Tests.Pyro
 			Config.SERPENT_INDENT=false;
 			Config.SERPENT_SET_LITERALS=true;
 
-			byte[] bytes = Encoding.ASCII.GetBytes("hello");
+			var bytes = Encoding.ASCII.GetBytes("hello");
 			SerpentSerializer ser = new SerpentSerializer();
-			byte[] data = ser.serializeData(bytes);
+			var data = ser.serializeData(bytes);
 			
 			string str = Encoding.ASCII.GetString(data);
 			Assert.Contains("base64", str);
 			
 			Parser p = new Parser();
-			Object data2 = p.Parse(data).GetData();
-			byte[] bytes2 = SerpentSerializer.ToBytes(data2);
+			object data2 = p.Parse(data).GetData();
+			var bytes2 = SerpentSerializer.ToBytes(data2);
 			Assert.Equal(Encoding.ASCII.GetBytes("hello"), bytes2);
 		}		
 	}

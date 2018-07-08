@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,9 @@ namespace Razorvine.Pyro
 /// <summary>
 /// Pyro wire protocol message.
 /// </summary>
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class Message
 {
 	private const int CHECKSUM_MAGIC = 0x34E9;
@@ -40,8 +44,8 @@ public class Message
 	public byte[] data;
 	public int data_size;
 	public ushort annotations_size;
-	public ushort serializer_id;
-	public ushort seq;
+	public readonly ushort serializer_id;
+	public readonly ushort seq;
 	public IDictionary<string, byte[]> annotations;
 	
 	/// <summary>
@@ -49,7 +53,7 @@ public class Message
 	/// </summary>
 	public Message(ushort msgType, ushort serializer_id, ushort flags, ushort seq)
 	{
-		this.type = msgType;
+		type = msgType;
 		this.flags = flags;
 		this.seq = seq;
 		this.serializer_id = serializer_id;
@@ -61,8 +65,8 @@ public class Message
 	public Message(ushort msgType, byte[] databytes, ushort serializer_id, ushort flags, ushort seq, IDictionary<string, byte[]> annotations, byte[] hmac)
 		:this(msgType, serializer_id, flags, seq)
 	{
-		this.data = databytes;
-		this.data_size = databytes.Length;
+		data = databytes;
+		data_size = databytes.Length;
 		this.annotations = annotations;
 		if(null==annotations)
 			this.annotations = new Dictionary<string, byte[]>(0);
@@ -70,7 +74,7 @@ public class Message
 		if(hmac!=null)
 			this.annotations["HMAC"] = this.hmac(hmac);
 		
-		this.annotations_size = (ushort) this.annotations.Sum(a=>a.Value.Length+6);
+		annotations_size = (ushort) this.annotations.Sum(a=>a.Value.Length+6);
 	}
 	
 	/// <summary>
@@ -79,13 +83,13 @@ public class Message
 	public byte[] hmac(byte[] key)
 	{
 		using(HMACSHA1 hmac=new HMACSHA1(key)) {
-			hmac.TransformBlock(this.data, 0, this.data.Length, this.data, 0);
-			foreach(var e in this.annotations.OrderBy(a=>a.Key))
+			hmac.TransformBlock(data, 0, data.Length, data, 0);
+			foreach(var e in annotations.OrderBy(a=>a.Key))
 			{
 				if(e.Key!="HMAC")
 					hmac.TransformBlock(e.Value, 0, e.Value.Length, e.Value, 0);
 			}
-			hmac.TransformFinalBlock(this.data, 0, 0);
+			hmac.TransformFinalBlock(data, 0, 0);
 			return hmac.Hash;
 		}
 	}
@@ -95,9 +99,9 @@ public class Message
 	/// </summary>
 	public byte[] to_bytes()
 	{
-		byte[] header_bytes = get_header_bytes();
-		byte[] annotations_bytes = get_annotations_bytes();
-		byte[] result = new byte[header_bytes.Length + annotations_bytes.Length + data.Length];
+		var header_bytes = get_header_bytes();
+		var annotations_bytes = get_annotations_bytes();
+		var result = new byte[header_bytes.Length + annotations_bytes.Length + data.Length];
 		Array.Copy(header_bytes, result, header_bytes.Length);
 		Array.Copy(annotations_bytes, 0, result, header_bytes.Length, annotations_bytes.Length);
 		Array.Copy(data, 0, result, header_bytes.Length+annotations_bytes.Length, data.Length);
@@ -107,7 +111,7 @@ public class Message
 	public byte[] get_header_bytes()
 	{
 		int checksum = (type+Config.PROTOCOL_VERSION+data_size+annotations_size+serializer_id+flags+seq+CHECKSUM_MAGIC)&0xffff;
-		byte[] header = new byte[HEADER_SIZE];
+		var header = new byte[HEADER_SIZE];
 		/*
 		 header format: '!4sHHHHiHHHH' (24 bytes)
 		   4   id ('PYRO')
@@ -168,7 +172,7 @@ public class Message
 			if(ann.Key.Length!=4)
 				throw new ArgumentException("annotation key must be length 4");
 			result = result.Concat(Encoding.ASCII.GetBytes(ann.Key));
-			byte[] size_bytes = new byte[] { (byte)((ann.Value.Length>>8)&0xff), (byte)(ann.Value.Length&0xff) };
+			byte[] size_bytes = { (byte)((ann.Value.Length>>8)&0xff), (byte)(ann.Value.Length&0xff) };
 			result = result.Concat(size_bytes);
 			result = result.Concat(ann.Value);
 		}
@@ -201,10 +205,12 @@ public class Message
 		int checksum = (header[22]<<8)|header[23];
 		if(checksum!=((msg_type+version+data_size+annotations_size+flags+serializer_id+seq+CHECKSUM_MAGIC)&0xffff))
 			throw new PyroException("header checksum mismatch");
-		
-		var msg = new Message((ushort)msg_type, (ushort)serializer_id, (ushort)flags, (ushort)seq);
-		msg.data_size = data_size;
-		msg.annotations_size = (ushort)annotations_size;
+
+		var msg = new Message((ushort) msg_type, (ushort) serializer_id, (ushort) flags, (ushort) seq)
+		{
+			data_size = data_size,
+			annotations_size = (ushort) annotations_size
+		};
 		return msg;
 	}
 
@@ -229,12 +235,13 @@ public class Message
 	/// Also reads annotation chunks and the actual payload data.
 	/// Validates a HMAC chunk if present.
 	/// </summary>
+	// ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
 	public static Message recv(Stream connection, ushort[] requiredMsgTypes, byte[] hmac)
 	{
-		byte[] header_data = IOUtil.recv(connection, HEADER_SIZE);
+		var header_data = IOUtil.recv(connection, HEADER_SIZE);
 		var msg = from_header(header_data);
 		if(requiredMsgTypes!=null && !requiredMsgTypes.Contains(msg.type))
-			throw new PyroException(string.Format("invalid msg type {0} received", msg.type));
+			throw new PyroException($"invalid msg type {msg.type} received");
 
 		byte[] annotations_data = null;
 		msg.annotations = new Dictionary<string, byte[]>();
@@ -247,7 +254,7 @@ public class Message
 			{
 				string anno = Encoding.ASCII.GetString(annotations_data, i, 4);
 				int length = (annotations_data[i+4]<<8) | annotations_data[i+5];
-				byte[] annotations_bytes = new byte[length];
+				var annotations_bytes = new byte[length];
 				Array.Copy(annotations_data, i+6, annotations_bytes, 0, length);
 				msg.annotations[anno] = annotations_bytes;
 				i += 6+length;
@@ -275,26 +282,26 @@ public class Message
 	}
 
 	public static void TraceMessageRecv(int sequenceNr, byte[] headerdata, byte[] annotations, byte[] data) {
-		string filename=Path.Combine(Config.MSG_TRACE_DIR, string.Format("{0:D5}-b-recv-header.dat", sequenceNr));
+		string filename=Path.Combine(Config.MSG_TRACE_DIR, $"{sequenceNr:D5}-b-recv-header.dat");
 		using(FileStream fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
 			fos.Write(headerdata, 0, headerdata.Length);
 			if(annotations!=null)
 				fos.Write(annotations, 0, annotations.Length);
 		}
-		filename=Path.Combine(Config.MSG_TRACE_DIR, string.Format("{0:D5}-b-recv-message.dat", sequenceNr));
+		filename=Path.Combine(Config.MSG_TRACE_DIR, $"{sequenceNr:D5}-b-recv-message.dat");
 		using(FileStream fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
 			fos.Write(data, 0, data.Length);
 		}
 	}
 
 	public static void TraceMessageSend(int sequenceNr, byte[] headerdata, byte[] annotations, byte[] data) {
-		string filename=Path.Combine(Config.MSG_TRACE_DIR, string.Format("{0:D5}-a-send-header.dat", sequenceNr));
+		string filename=Path.Combine(Config.MSG_TRACE_DIR, $"{sequenceNr:D5}-a-send-header.dat");
 		using(FileStream fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
 			fos.Write(headerdata, 0, headerdata.Length);
 			if(annotations!=null)
 				fos.Write(annotations, 0, annotations.Length);
 		}
-		filename=Path.Combine(Config.MSG_TRACE_DIR, string.Format("{0:D5}-a-send-message.dat", sequenceNr));
+		filename=Path.Combine(Config.MSG_TRACE_DIR, $"{sequenceNr:D5}-a-send-message.dat");
 		using(FileStream fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
 			fos.Write(data, 0, data.Length);
 		}

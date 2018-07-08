@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.IO;
 using Xunit;
@@ -28,11 +29,11 @@ namespace Pyrolite.Tests.Pickle
 /// </summary>
 public class PicklerTests {
 
-	byte[] B(string s) {
+	private static byte[] B(string s) {
 		return B(PickleUtils.str2bytes(s));
 	}
 	
-	byte[] B(byte[] bytes) {
+	private static byte[] B(byte[] bytes) {
 		byte[] result=new byte[bytes.Length+3];
 		result[0]=Opcodes.PROTO;
 		result[1]=2;
@@ -41,17 +42,16 @@ public class PicklerTests {
 		return result;
 	}
 	
-	string S(byte[] pickled) {
+	private static string S(byte[] pickled) {
 		return PickleUtils.rawStringFromBytes(pickled);
 	}
 
 	private enum DayEnum {
-	    SUNDAY, MONDAY, TUESDAY, WEDNESDAY, 
-	    THURSDAY, FRIDAY, SATURDAY 
-	};
+	    Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday 
+	}
 	
 	[Fact]
-	public void testSinglePrimitives() {
+	public void TestSinglePrimitives() {
 		// protocol level 2
 		Pickler p=new Pickler(false);
 		byte[] o=p.dumps(null);	// none
@@ -87,13 +87,13 @@ public class PicklerTests {
 		o=p.dumps(1234.9876543210987654321m);
 		Assert.Equal(B("cdecimal\nDecimal\nX\u0018\u0000\u0000\u00001234.9876543210987654321\u0085R"), o);
 		
-		DayEnum day=DayEnum.WEDNESDAY;
+		const DayEnum day = DayEnum.Wednesday;
 		o=p.dumps(day);	// enum is returned as just a string representing the value
-		Assert.Equal(B("X\u0009\u0000\u0000\u0000WEDNESDAY"),o);
+		Assert.Equal(B("X\u0009\u0000\u0000\u0000Wednesday"),o);
 	}
 	
 	[Fact]
-	public void testArrays() 
+	public void TestArrays() 
 	{
 		Pickler p = new Pickler(false);
 		var o = p.dumps(new string[] {});
@@ -127,7 +127,7 @@ public class PicklerTests {
 	public void TestRecursiveArray2()
 	{
 		Pickler p = new Pickler(false);
-		object[] a = new object[] { "hello", "placeholder" };
+		object[] a = { "hello", "placeholder" };
 		a[1] = a; // make it recursive
 		Assert.Throws<PickleException>(() => p.dumps(a));   // "recursive array not supported, use list"
 	}
@@ -136,13 +136,13 @@ public class PicklerTests {
 	public void TestRecursiveArray6()
 	{
 		Pickler p = new Pickler(false);
-		object[] a = new object[] { "a","b","c","d","e","f" };
+		object[] a = { "a","b","c","d","e","f" };
 		a[5] = a; // make it recursive
 		Assert.Throws<PickleException>(() => p.dumps(a));   // "recursive array not supported, use list"
 	}
 
 	[Fact]
-	public void testDates() 
+	public void TestDates() 
 	{
 		Pickler p=new Pickler(false);
 		Unpickler u=new Unpickler();
@@ -159,7 +159,7 @@ public class PicklerTests {
 	}
 	
 	[Fact]
-	public void testTimes() 
+	public void TestTimes() 
 	{
 		Pickler p=new Pickler(false);
 		Unpickler u=new Unpickler();
@@ -172,7 +172,7 @@ public class PicklerTests {
 	}
 
 	[Fact]
-	public void testSets() 
+	public void TestSets() 
 	{
 		Pickler p=new Pickler(false);
 		Unpickler up=new Unpickler();
@@ -189,7 +189,7 @@ public class PicklerTests {
 	}
 
 	[Fact]
-	public void testMappings() 
+	public void TestMappings() 
 	{
 		Pickler p=new Pickler(false);
 		Unpickler pu=new Unpickler();
@@ -210,7 +210,7 @@ public class PicklerTests {
 	}
 	
 	[Fact]
-	public void testLists()  
+	public void TestLists()  
 	{
 		Pickler p=new Pickler(false);
 		
@@ -244,10 +244,10 @@ public class PicklerTests {
  	}
 
 	[Fact]
-	public void testMemoizationSet()
+	public void TestMemoizationSet()
 	{
 		var set = new HashSet<string> {"a"};
-		object[] array = new object[] {set, set};
+		object[] array = {set, set};
 		
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
@@ -268,7 +268,7 @@ public class PicklerTests {
 	}
 	
 	[Fact]
-	public void testMemoizationMap()
+	public void TestMemoizationMap()
 	{
 		var map = new Dictionary<string, string> {{"key", "value"}};
 		object[] array = {map, map};
@@ -292,11 +292,11 @@ public class PicklerTests {
 	}
 
 	[Fact]
-	public void testMemoizationCollection()
+	public void TestMemoizationCollection()
 	{
 		ICollection<string> list = new List<string>();
 		list.Add("a");
-		object[] array = new object[] {list, list};
+		object[] array = {list, list};
 		
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
@@ -317,12 +317,12 @@ public class PicklerTests {
 	}
 	
 	[Fact]
-	public void testMemoizationTimeStuff()
+	public void TestMemoizationTimeStuff()
 	{
 		TimeSpan delta = new TimeSpan(1,2,3);
 		DateTime time = new DateTime(2014,11,20,1,2,3);
 	
-		object[] array = new object[] {delta, delta, time, time};
+		object[] array = {delta, delta, time, time};
 		
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
@@ -345,11 +345,11 @@ public class PicklerTests {
 }
 	
 	[Fact]
-	public void testMemoizationDecimal()
+	public void TestMemoizationDecimal()
 	{
 		decimal bigd = 12345678901234567890.99887766m;
 		
-		object[] array = new object[] {bigd, bigd};
+		object[] array = {bigd, bigd};
 		
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
@@ -367,10 +367,10 @@ public class PicklerTests {
 	}
 
 	[Fact]
-	public void testMemoizationString()
+	public void TestMemoizationString()
 	{
 		string str = "a";
-		object[] array = new object[] {str, str};
+		object[] array = {str, str};
 		
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
@@ -390,9 +390,9 @@ public class PicklerTests {
 	}
 	
 	[Fact]
-	public void testMemoizationArray()
+	public void TestMemoizationArray()
 	{
-		int[] arr = new int[] { 1, 2, 3};
+		int[] arr = { 1, 2, 3};
 		object array = new object[] {arr, arr};
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
@@ -413,12 +413,11 @@ public class PicklerTests {
 	}
 		
 	[Fact]
-	public void testMemoizationList()  
+	public void TestMemoizationList()  
 	{
 		Pickler p=new Pickler();
-		
-		string reused = "reused";
-		string another = "another";
+		const string reused = "reused";
+		const string another = "another";
 		IList list=new ArrayList();
 		IList sublist = new ArrayList();
 		sublist.Add(reused);
@@ -450,7 +449,7 @@ public class PicklerTests {
 	}
 		
 	[Fact]
-	public void testMemoizationRecursiveNoMemo()  
+	public void TestMemoizationRecursiveNoMemo()  
 	{
 		Pickler p=new Pickler(false);
 		
@@ -463,7 +462,7 @@ public class PicklerTests {
 	}
 
 	[Fact]
-	public void testMemoizationRecursiveMemo()  
+	public void TestMemoizationRecursiveMemo()  
 	{
 		Pickler p=new Pickler();
 		
@@ -504,9 +503,9 @@ public class PicklerTests {
 		public int[] Values {get;}
 				
 		public Person(string name, bool deceased, int[] values) {
-	    	this.Name=name;
-	    	this.Deceased=deceased;
-	    	this.Values = values;
+	    	Name=name;
+	    	Deceased=deceased;
+	    	Values = values;
 	    }
 	}
 	
@@ -520,7 +519,7 @@ public class PicklerTests {
 
 
 	[Fact]
-	public void testClass() 
+	public void TestClass() 
 	{
 		Pickler p=new Pickler(false);
 		Unpickler pu=new Unpickler();
@@ -532,34 +531,38 @@ public class PicklerTests {
 		Assert.Equal("Pyrolite.Tests.Pickle.PicklerTests+Relative", map["__class__"]);
 		Assert.Equal("Tupac", map["Name"]);
 		Assert.Equal("unspecified", map["Relation"]);
-		Assert.True((Boolean) map["Deceased"]);
+		Assert.True((bool) map["Deceased"]);
 		Assert.Equal(new [] {3,4,5}, map["Values"]);
 	}
 	
-	class NotABean {
-		public int x;
+	[SuppressMessage("ReSharper", "NotAccessedField.Global")]
+	public class NotABean {
+		public int Xantippe;
 	}
 
 	[Fact]
-	public void testFailure()
+	public void TestFailure()
 	{
-		NotABean notabean = new NotABean {x = 42};
+		NotABean notabean = new NotABean {Xantippe = 42};
 		Pickler p=new Pickler(false);
 		Assert.Throws<PickleException>(() => p.dumps(notabean));
 	}
 	
-	class CustomClass {
-		public int x=42;
+	[SuppressMessage("ReSharper", "ConvertToConstant.Global")]
+	public class CustomClass {
+		// ReSharper disable once ConvertToConstant.Local
+		public readonly int Xantippe=42;
 	}
-	class CustomClassPickler : IObjectPickler {
+	
+	public class CustomClassPickler : IObjectPickler {
 		public void pickle(object o, Stream outs, Pickler currentpickler)  {
 			CustomClass c=(CustomClass)o;
-			currentpickler.save("customclassint="+c.x);		// write a string representation
+			currentpickler.save("customclassint="+c.Xantippe);		// write a string representation
 		}
 	}
 	
 	[Fact]
-	public void testCustomPickler() 
+	public void TestCustomPickler() 
 	{
 		Pickler.registerCustomPickler(typeof(CustomClass), new CustomClassPickler());
 		CustomClass c=new CustomClass();
@@ -572,7 +575,7 @@ public class PicklerTests {
 	}
 	
 	[Fact]
-	public void testAnonType()
+	public void TestAnonType()
 	{
 		var x = new { Name="Harry", Country="UK", Age=34 };
 		Pickler p = new Pickler();
@@ -587,23 +590,23 @@ public class PicklerTests {
 	}
 	
 	
-	interface IBaseInterface {};
-	interface ISubInterface : IBaseInterface {};
-	class BaseClassWithInterface : IBaseInterface {};
-	class SubClassWithInterface : BaseClassWithInterface, ISubInterface {};
-	class BaseClass {};
-	class SubClass : BaseClass {};
-	abstract class AbstractBaseClass {};
-	class ConcreteSubClass : AbstractBaseClass {};
+	internal interface IBaseInterface {}
+	internal interface ISubInterface : IBaseInterface {}
+	internal class BaseClassWithInterface : IBaseInterface {}
+	internal class SubClassWithInterface : BaseClassWithInterface, ISubInterface {}
+	internal class BaseClass {}
+	internal class SubClass : BaseClass {}
+	internal abstract class AbstractBaseClass {}
+	internal class ConcreteSubClass : AbstractBaseClass {}
 
-	class AnyClassPickler : IObjectPickler {
+	internal class AnyClassPickler : IObjectPickler {
 		public void pickle(object o, Stream outs, Pickler currentpickler)  {
 			currentpickler.save("[class="+o.GetType().FullName+"]");
 		}
 	}
 
 	[Fact]
-	public void testAbstractBaseClassHierarchyPickler()
+	public void TestAbstractBaseClassHierarchyPickler()
 	{
 		ConcreteSubClass c = new ConcreteSubClass();
 		Pickler p = new Pickler(false);
@@ -621,7 +624,7 @@ public class PicklerTests {
 	}
 	
 	[Fact]
-	public void testInterfaceHierarchyPickler()
+	public void TestInterfaceHierarchyPickler()
 	{
 		BaseClassWithInterface b = new BaseClassWithInterface();
 		SubClassWithInterface sub = new SubClassWithInterface();
@@ -648,7 +651,7 @@ public class PicklerTests {
 	
 	
 	[Serializable]
-	class SerializableThing
+	public class SerializableThing
 	{
 		[NonSerialized]
 		public string NotThisOne = "apple";
@@ -659,7 +662,7 @@ public class PicklerTests {
 	}
 	
 	[DataContract(Name="CustomContractName", Namespace="http://namespace")]
-	class DataContractThing
+	public class DataContractThing
 	{
 		public string NotThisOne = "apple";
 		
@@ -710,7 +713,7 @@ public class PicklerTests {
 /// </summary>
 public class MiscellaneousTests {
 	[Fact]
-	public void testPythonExceptionType()
+	public void TestPythonExceptionType()
 	{
 		var ex=new PythonException("hello");
 		var type = ex.GetType();

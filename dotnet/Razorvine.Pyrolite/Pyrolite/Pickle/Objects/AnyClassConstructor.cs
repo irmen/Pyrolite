@@ -10,15 +10,15 @@ namespace Razorvine.Pickle.Objects
 /// </summary>
 public class AnyClassConstructor : IObjectConstructor {
 
-	private Type type;
+	private readonly Type _type;
 
 	public AnyClassConstructor(Type type) {
-		this.type = type;
+		_type = type;
 	}
 
 	public object construct(object[] args) {
 		try {
-			return Activator.CreateInstance(type, args);
+			return Activator.CreateInstance(_type, args);
 		} catch (Exception x) {
 			throw new PickleException("problem constructing object",x);
 		}

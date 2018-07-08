@@ -1,7 +1,6 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
-using System.Collections.Generic;
 using Razorvine.Pyro;
 // ReSharper disable CheckNamespace
 
@@ -12,10 +11,9 @@ namespace Pyrolite.TestPyroNaming
 /// Test Pyro with the Pyro name server.
 /// </summary>
 public static class TestNaming {
+	private static readonly byte[] HmacKey = null;
 
-	static byte[] hmacKey = null;
-
-	public static void Main(String[] args)  {
+	public static void Main()  {
 		try {
 			Test();
 		} catch (Exception x) {
@@ -23,20 +21,20 @@ public static class TestNaming {
 		}
 		Console.WriteLine("\r\nEnter to exit:"); Console.ReadLine();
 	}
-	
-	public static void Test() {
+
+	private static void Test() {
 
 		Console.WriteLine("Testing Pyro nameserver connection (make sure it's running with a broadcast server)...");
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
-		setConfig();
+		SetConfig();
 		// Config.SERIALIZER = Config.SerializerType.pickle;
 		
 		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
 		if(Config.SERIALIZER==Config.SerializerType.serpent)
 			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
-		using(NameServerProxy ns=NameServerProxy.locateNS(null, hmacKey: hmacKey))
+		using(NameServerProxy ns=NameServerProxy.locateNS(null, hmacKey: HmacKey))
 		{
 			Console.WriteLine("discovered ns at "+ns.hostname+":"+ns.port);
 			ns.ping();
@@ -54,13 +52,13 @@ public static class TestNaming {
 			
 			
 			Console.WriteLine("\nobjects registered in the name server:");
-			IDictionary<string,string> objects = ns.list(null, null);
+			var objects = ns.list(null, null);
 			foreach(string key in objects.Keys) {
 				Console.WriteLine(key + " --> " + objects[key]);
 			}
 		
 			Console.WriteLine("\nobjects registered in the name server, with metadata:");
-			IDictionary<string, Tuple<string, ISet<string>>> objectsm = ns.list_with_meta(null, null);
+			var objectsm = ns.list_with_meta(null, null);
 			foreach(string key in objectsm.Keys) {
 				var registration = objectsm[key];
 				Console.WriteLine(key + " --> " + registration.Item1);
@@ -94,12 +92,12 @@ public static class TestNaming {
 			
 			using(PyroProxy p=new PyroProxy(ns.lookup("Pyro.NameServer")))
 			{
-				p.pyroHmacKey = hmacKey;
+				p.pyroHmacKey = HmacKey;
 				p.call("ping");
 			}
 	
-			int num_removed=ns.remove(null, "dotnet.", null);
-			Console.WriteLine("number of removed entries: {0}",num_removed);
+			int numRemoved=ns.remove(null, "dotnet.", null);
+			Console.WriteLine("number of removed entries: {0}",numRemoved);
 			
 			try {
 				Console.WriteLine("uri=" + ns.lookup("dotnet.test"));	 // should fail....
@@ -110,8 +108,8 @@ public static class TestNaming {
 		}
 
 	}
-	
-	static void setConfig()
+
+	private static void SetConfig()
 	{
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {

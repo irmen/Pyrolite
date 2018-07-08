@@ -15,7 +15,7 @@ namespace Pyrolite.Tests.Pickle
 public class ArrayConstructorTest {
 
     [Fact]
-	public void testInvalidMachineTypes()
+	public void TestInvalidMachineTypes()
 	{
 		ArrayConstructor ac=new ArrayConstructor();
 		try {
@@ -55,20 +55,20 @@ public class ArrayConstructorTest {
 	}
 
 	[Fact]
-	public void testChars()
+	public void TestChars()
 	{
 		ArrayConstructor ac=new ArrayConstructor();
-		char EURO=(char)0x20ac;
+		const char eurochar = (char)0x20ac;
 		
 		// c/u
-		Assert.Equal(new []{'A',EURO}, (char[])ac.construct('c', 18, new byte[]{65,0,0xac,0x20}));
-		Assert.Equal(new []{'A',EURO}, (char[])ac.construct('u', 18, new byte[]{65,0,0xac,0x20}));
-		Assert.Equal(new []{'A',EURO}, (char[])ac.construct('c', 19, new byte[]{0,65,0x20,0xac}));
-		Assert.Equal(new []{'A',EURO}, (char[])ac.construct('u', 19, new byte[]{0,65,0x20,0xac}));
-		Assert.Equal(new []{'A',EURO}, (char[])ac.construct('c', 20, new byte[]{65,0,0,0,0xac,0x20,0,0}));
-		Assert.Equal(new []{'A',EURO}, (char[])ac.construct('u', 20, new byte[]{65,0,0,0,0xac,0x20,0,0}));
-		Assert.Equal(new []{'A',EURO}, (char[])ac.construct('c', 21, new byte[]{0,0,0,65,0,0,0x20,0xac}));
-		Assert.Equal(new []{'A',EURO}, (char[])ac.construct('u', 21, new byte[]{0,0,0,65,0,0,0x20,0xac}));
+		Assert.Equal(new []{'A',eurochar}, (char[])ac.construct('c', 18, new byte[]{65,0,0xac,0x20}));
+		Assert.Equal(new []{'A',eurochar}, (char[])ac.construct('u', 18, new byte[]{65,0,0xac,0x20}));
+		Assert.Equal(new []{'A',eurochar}, (char[])ac.construct('c', 19, new byte[]{0,65,0x20,0xac}));
+		Assert.Equal(new []{'A',eurochar}, (char[])ac.construct('u', 19, new byte[]{0,65,0x20,0xac}));
+		Assert.Equal(new []{'A',eurochar}, (char[])ac.construct('c', 20, new byte[]{65,0,0,0,0xac,0x20,0,0}));
+		Assert.Equal(new []{'A',eurochar}, (char[])ac.construct('u', 20, new byte[]{65,0,0,0,0xac,0x20,0,0}));
+		Assert.Equal(new []{'A',eurochar}, (char[])ac.construct('c', 21, new byte[]{0,0,0,65,0,0,0x20,0xac}));
+		Assert.Equal(new []{'A',eurochar}, (char[])ac.construct('u', 21, new byte[]{0,0,0,65,0,0,0x20,0xac}));
 		try {
 		    ac.construct('u', 21, new byte[]{0,1,0,65}); // out of range codepoint
 		    Assert.True(false, "expected error");
@@ -82,7 +82,7 @@ public class ArrayConstructorTest {
 	}
 	
 	[Fact]
-	public void testInts()
+	public void TestInts()
 	{
 		ArrayConstructor ac=new ArrayConstructor();
 
@@ -152,7 +152,7 @@ public class ArrayConstructorTest {
 	}
 	
 	[Fact]
-	public void testFloats()
+	public void TestFloats()
 	{
 		// f/d
 		ArrayConstructor ac=new ArrayConstructor();

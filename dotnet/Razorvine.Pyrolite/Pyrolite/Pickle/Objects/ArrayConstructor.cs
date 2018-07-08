@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Razorvine.Pickle.Objects
 {
@@ -10,6 +11,9 @@ namespace Razorvine.Pickle.Objects
 /// Creates arrays of objects. Returns a primitive type array such as int[] if 
 /// the objects are ints, etc. 
 /// </summary>
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
 public class ArrayConstructor : IObjectConstructor {
 
 	public object construct(object[] args) {
@@ -19,7 +23,7 @@ public class ArrayConstructor : IObjectConstructor {
 			ArrayConstructor constructor = (ArrayConstructor) args[0];
 			char arraytype = ((string) args[1])[0];
 			int machinecodeType = (int) args[2];
-			byte[] data = (byte[]) args[3];
+			var data = (byte[]) args[3];
 			return constructor.construct(arraytype, machinecodeType, data);		    
 		}
 		if (args.Length != 2) {
@@ -38,7 +42,7 @@ public class ArrayConstructor : IObjectConstructor {
 		case 'c':// character 1 -> char[]
 		case 'u':// Unicode character 2 -> char[]
 		{
-			char[] result = new char[values.Count];
+			var result = new char[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = ((string) c)[0];
@@ -47,7 +51,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'b':// signed char -> sbyte[]
 		{
-			sbyte[] result = new sbyte[values.Count];
+			var result = new sbyte[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToSByte(c);
@@ -56,7 +60,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'B':// unsigned char -> byte[]
 		{
-			byte[] result = new byte[values.Count];
+			var result = new byte[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToByte(c);
@@ -65,7 +69,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'h':// signed short -> short[]
 		{
-			short[] result = new short[values.Count];
+			var result = new short[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToInt16(c);
@@ -74,7 +78,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'H':// unsigned short -> ushort[]
 		{
-			ushort[] result = new ushort[values.Count];
+			var result = new ushort[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToUInt16(c);
@@ -83,7 +87,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'i':// signed integer -> int[]
 		{
-			int[] result = new int[values.Count];
+			var result = new int[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToInt32(c);
@@ -92,7 +96,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'I':// unsigned integer 4 -> uint[]
 		{
-			uint[] result = new uint[values.Count];
+			var result = new uint[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToUInt32(c);
@@ -101,7 +105,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'l':// signed long -> long[]
 		{
-			long[] result = new long[values.Count];
+			var result = new long[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToInt64(c);
@@ -110,7 +114,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'L':// unsigned long -> ulong[]
 		{
-			ulong[] result = new ulong[values.Count];
+			var result = new ulong[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToUInt64(c);
@@ -119,7 +123,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'f':// floating point 4 -> float[]
 		{
-			float[] result = new float[values.Count];
+			var result = new float[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToSingle(c);
@@ -128,7 +132,7 @@ public class ArrayConstructor : IObjectConstructor {
 		}
 		case 'd':// floating point 8 -> double[]
 		{
-			double[] result = new double[values.Count];
+			var result = new double[values.Count];
 			int i = 0;
 			foreach(var c in values) {
 				result[i++] = Convert.ToDouble(c);
@@ -185,18 +189,18 @@ public class ArrayConstructor : IObjectConstructor {
 				if (data.Length % 2 != 0)
 					throw new PickleException("data size alignment error");
 				return constructCharArrayUTF16(machinecode, data);
-			} else {
-				// utf-32, 4 bytes
-				if (data.Length % 4 != 0)
-					throw new PickleException("data size alignment error");
-				return constructCharArrayUTF32(machinecode, data);
 			}
+
+			// utf-32, 4 bytes
+			if (data.Length % 4 != 0)
+				throw new PickleException("data size alignment error");
+			return constructCharArrayUTF32(machinecode, data);
 		}
 		case 'b':// signed integer 1 -> sbyte[]
 		{
 			if (machinecode != 1)
 				throw new PickleException("for b type must be 1");
-			sbyte[] result=new sbyte[data.Length];
+			var result=new sbyte[data.Length];
 			Buffer.BlockCopy(data,0,result,0,data.Length);
 			return result;
 		}
@@ -234,17 +238,17 @@ public class ArrayConstructor : IObjectConstructor {
 		{
 			if (machinecode != 8 && machinecode != 9 && machinecode != 12 && machinecode != 13)
 				throw new PickleException("for l type must be 8/9/12/13");
-			if ((machinecode==8 || machinecode==9) && (data.Length % 4 != 0))
+			if ((machinecode==8 || machinecode==9) && data.Length % 4 != 0)
 				throw new PickleException("data size alignment error");
-			if ((machinecode==12 || machinecode==13) && (data.Length % 8 != 0))
+			if ((machinecode==12 || machinecode==13) && data.Length % 8 != 0)
 				throw new PickleException("data size alignment error");
 			if(machinecode==8 || machinecode==9) {
 				//32 bits
 				return constructIntArrayFromInt32(machinecode, data);
-			} else {
-				//64 bits
-				return constructLongArrayFromInt64(machinecode, data);
 			}
+
+			//64 bits
+			return constructLongArrayFromInt64(machinecode, data);
 		}
 		case 'I':// unsigned integer 4 -> uint[]
 		{
@@ -258,17 +262,17 @@ public class ArrayConstructor : IObjectConstructor {
 		{
 			if (machinecode != 6 && machinecode != 7 && machinecode != 10 && machinecode != 11)
 				throw new PickleException("for L type must be 6/7/10/11");
-			if ((machinecode==6 || machinecode==7) && (data.Length % 4 != 0))
+			if ((machinecode==6 || machinecode==7) && data.Length % 4 != 0)
 				throw new PickleException("data size alignment error");
-			if ((machinecode==10 || machinecode==11) && (data.Length % 8 != 0))
+			if ((machinecode==10 || machinecode==11) && data.Length % 8 != 0)
 				throw new PickleException("data size alignment error");
 			if(machinecode==6 || machinecode==7) {
 			    // 32 bits
 			    return constructUIntArrayFromUInt32(machinecode, data);
-			} else {
-			    // 64 bits
-			    return constructULongArrayFromUInt64(machinecode, data);
 			}
+
+			// 64 bits
+			return constructULongArrayFromUInt64(machinecode, data);
 		}
 		case 'f':// floating point 4 -> float[]
 		{
@@ -292,8 +296,8 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected int[] constructIntArrayFromInt32(int machinecode, byte[] data) {
-		int[] result=new int[data.Length/4];
-		byte[] bigendian=new byte[4];
+		var result=new int[data.Length/4];
+		var bigendian=new byte[4];
 		for(int i=0; i<data.Length/4; i++) {
 			if(machinecode==8) {
 				result[i]=PickleUtils.bytes_to_integer(data, i*4, 4);
@@ -310,8 +314,8 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected uint[] constructUIntArrayFromUInt32(int machinecode, byte[] data) {
-		uint[] result=new uint[data.Length/4];
-		byte[] bigendian=new byte[4];
+		var result=new uint[data.Length/4];
+		var bigendian=new byte[4];
 		for(int i=0; i<data.Length/4; i++) {
 			if(machinecode==6) {
 				result[i]=PickleUtils.bytes_to_uint(data, i*4);
@@ -328,8 +332,8 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected ulong[] constructULongArrayFromUInt64(int machinecode, byte[] data) {
-		ulong[] result=new ulong[data.Length/8];
-		byte[] swapped=new byte[8];
+		var result=new ulong[data.Length/8];
+		var swapped=new byte[8];
 		if(BitConverter.IsLittleEndian) {
     		for(int i=0; i<data.Length/8; i++) {
 		        if(machinecode==10) {
@@ -368,8 +372,8 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected long[] constructLongArrayFromInt64(int machinecode, byte[] data) {
-		long[] result=new long[data.Length/8];
-		byte[] bigendian=new byte[8];
+		var result=new long[data.Length/8];
+		var bigendian=new byte[8];
 		for(int i=0; i<data.Length/8; i++) {
 			if(machinecode==12) {
 				// little endian can go
@@ -391,8 +395,8 @@ public class ArrayConstructor : IObjectConstructor {
 	}	
 
 	protected double[] constructDoubleArray(int machinecode, byte[] data) {
-		double[] result = new double[data.Length / 8];
-		byte[] bigendian=new byte[8];
+		var result = new double[data.Length / 8];
+		var bigendian=new byte[8];
 		for (int i = 0; i < data.Length / 8; ++i) {
 			if(machinecode==17) {
 				result[i] = PickleUtils.bytes_bigendian_to_double(data, i * 8);
@@ -413,8 +417,8 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected float[] constructFloatArray(int machinecode, byte[] data) {
-		float[] result = new float[data.Length / 4];
-		byte[] bigendian=new byte[4];
+		var result = new float[data.Length / 4];
+		var bigendian=new byte[4];
 		for (int i = 0; i < data.Length / 4; ++i) {
 			if (machinecode == 15) {
 				result[i] = PickleUtils.bytes_bigendian_to_float(data, i * 4);
@@ -431,7 +435,7 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected ushort[] constructUShortArrayFromUShort(int machinecode, byte[] data) {
-		ushort[] result = new ushort[data.Length / 2];
+		var result = new ushort[data.Length / 2];
 		for(int i=0; i<data.Length/2; ++i) {
 			ushort b1=data[0+i*2];
 			ushort b2=data[1+i*2];
@@ -446,8 +450,8 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected short[] constructShortArraySigned(int machinecode, byte[] data) {
-		short[] result = new short[data.Length / 2];
-		byte[] swapped=new byte[2];
+		var result = new short[data.Length / 2];
+		var swapped=new byte[2];
 		if(BitConverter.IsLittleEndian) {
     		for(int i=0; i<data.Length/2; ++i) {
     			if(machinecode==4) {
@@ -474,8 +478,8 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected char[] constructCharArrayUTF32(int machinecode, byte[] data) {
-		char[] result = new char[data.Length / 4];
-		byte[] bigendian=new byte[4];
+		var result = new char[data.Length / 4];
+		var bigendian=new byte[4];
 		for (int index = 0; index < data.Length / 4; ++index) {
 			if (machinecode == 20) { 
 		        int codepoint=PickleUtils.bytes_to_integer(data, index*4, 4);
@@ -501,8 +505,8 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected char[] constructCharArrayUTF16(int machinecode, byte[] data) {
-		char[] result = new char[data.Length / 2];
-		byte[] bigendian=new byte[2];
+		var result = new char[data.Length / 2];
+		var bigendian=new byte[2];
 		for (int index = 0; index < data.Length / 2; ++index) {
 			if (machinecode == 18) { 
 				result[index] = (char) PickleUtils.bytes_to_integer(data, index*2, 2);

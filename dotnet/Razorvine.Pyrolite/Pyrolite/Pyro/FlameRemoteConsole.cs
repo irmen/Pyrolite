@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Razorvine.Pyro
 {
@@ -9,28 +10,29 @@ namespace Razorvine.Pyro
 /// <summary>
 /// Flame remote interactive console client.
 /// </summary>
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+[SuppressMessage("ReSharper", "InvertIf")]
 public class FlameRemoteConsole : IDisposable
 {
-	private PyroProxy remoteconsole;
+	private PyroProxy _remoteconsole;
 	
 	/// <summary>
 	/// for the unpickler to restore state
 	/// </summary>
 	public void __setstate__(Hashtable values) {
-		remoteconsole=(PyroProxy)values["remoteconsole"];
+		_remoteconsole=(PyroProxy)values["remoteconsole"];
 	}
 
 	public void interact() {
-		string banner=(String)remoteconsole.call("get_banner");
+		string banner=(string)_remoteconsole.call("get_banner");
 		Console.WriteLine(banner);
-		string ps1=">>> ";
-		string ps2="... ";
+		const string ps1 = ">>> ";
+		const string ps2 = "... ";
 		bool more=false;
 		while(true) {
-			if(more)
-				Console.Write(ps2);
-			else
-				Console.Write(ps1);
+			Console.Write(more ? ps2 : ps1);
 			Console.Out.Flush();
 			string line=Console.ReadLine();
 			if(line==null) {
@@ -38,7 +40,7 @@ public class FlameRemoteConsole : IDisposable
 				Console.WriteLine("");
 				break;
 			}
-			object[] result=(object[])remoteconsole.call("push_and_get_output", line);
+			var result=(object[])_remoteconsole.call("push_and_get_output", line);
 			if(result[0]!=null) {
 				Console.Write(result[0]);
 			}
@@ -48,10 +50,10 @@ public class FlameRemoteConsole : IDisposable
 	}
 
 	public void close()  {
-		if(remoteconsole!=null) {
-			remoteconsole.call("terminate");
-			remoteconsole.close();
-			remoteconsole = null;
+		if(_remoteconsole!=null) {
+			_remoteconsole.call("terminate");
+			_remoteconsole.close();
+			_remoteconsole = null;
 		}
 	}
 	

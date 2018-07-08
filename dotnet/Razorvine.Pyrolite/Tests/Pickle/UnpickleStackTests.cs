@@ -14,7 +14,7 @@ namespace Pyrolite.Tests.Pickle
 public class UnpickleStackTest {
 
 	[Fact]
-	public void testPopSinceMarker() {
+	public void TestPopSinceMarker() {
 		UnpickleStack s=new UnpickleStack();
 		s.add("a");
 		s.add("b");
@@ -32,7 +32,7 @@ public class UnpickleStackTest {
 	}
 
 	[Fact]
-	public void testAddPop() {
+	public void TestAddPop() {
 		UnpickleStack s=new UnpickleStack();
 		Assert.Equal(0, s.size());
 		s.add("x");
@@ -47,7 +47,7 @@ public class UnpickleStackTest {
 	}
 
 	[Fact]
-	public void testClear() {
+	public void TestClear() {
 		UnpickleStack s=new UnpickleStack();
 		s.add("x");
 		s.add("y");
@@ -57,7 +57,7 @@ public class UnpickleStackTest {
 	}
 
 	[Fact]
-	public void testTrim() {
+	public void TestTrim() {
 		UnpickleStack s=new UnpickleStack();
 		s.add("a");
 		s.add("b");

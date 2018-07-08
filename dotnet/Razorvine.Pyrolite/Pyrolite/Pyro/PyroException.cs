@@ -4,6 +4,8 @@ using System;
 using System.Collections;
 using System.Runtime.Serialization;
 using System.Text;
+// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
 
 namespace Razorvine.Pyro
 {
@@ -13,8 +15,8 @@ namespace Razorvine.Pyro
 	[Serializable]
 	public class PyroException : Exception
 	{
-		public String _pyroTraceback {get;set;}
-		public String PythonExceptionType {get;set;}
+		public string _pyroTraceback {get; set;}
+		public string PythonExceptionType {get; set;}
 
 		public PyroException()
 		{
@@ -41,9 +43,9 @@ namespace Razorvine.Pyro
 				return;
 			object tb=values["_pyroTraceback"];
 			// if the traceback is a list of strings, create one string from it
-			if(tb is ICollection) {
+			var tbcoll = tb as ICollection;
+			if(tbcoll != null) {
 				StringBuilder sb=new StringBuilder();
-				ICollection tbcoll=(ICollection)tb;
 				foreach(object line in tbcoll) {
 					sb.Append(line);
 				}	

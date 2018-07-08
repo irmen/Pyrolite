@@ -2,6 +2,9 @@
 
 using System.Collections;
 using System.Collections.Generic;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable InconsistentNaming
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace Razorvine.Pickle.Objects
 {
@@ -10,9 +13,8 @@ namespace Razorvine.Pickle.Objects
 /// This object constructor creates ClassDicts (for unsupported classes)
 /// </summary>
 public class ClassDictConstructor : IObjectConstructor {
-
-	string module;
-	string name;
+	public readonly string module;
+	public readonly string name;
 	
 	public ClassDictConstructor(string module, string name) {
 		this.module=module;
@@ -31,36 +33,30 @@ public class ClassDictConstructor : IObjectConstructor {
 /// </summary>
 public class ClassDict : Dictionary<string, object>
 {
-	private string classname;
-	
 	public ClassDict(string modulename, string classname)
 	{
 		if(string.IsNullOrEmpty(modulename))
-			this.classname = classname;
+			ClassName = classname;
 		else
-			this.classname = modulename+"."+classname;
+			ClassName = modulename+"."+classname;
 		
-		this.Add("__class__", this.classname);
+		Add("__class__", ClassName);
 	}
 	
 	/// <summary>
 	/// for the unpickler to restore state
 	/// </summary>
 	public void __setstate__(Hashtable values) {
-		this.Clear();
-		this.Add("__class__", this.classname);
+		Clear();
+		Add("__class__", ClassName);
 		foreach(string x in values.Keys)
-			this.Add(x, values[x]);
+			Add(x, values[x]);
 	}
 	
 	/// <summary>
 	/// retrieve the (python) class name of the object that was pickled.
 	/// </summary>
-	public string ClassName {
-		get {
-			return this.classname;
-		}
-	}
+	public string ClassName { get; }
 }
 
 }

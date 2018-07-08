@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using Razorvine.Pyro;
 // ReSharper disable CheckNamespace
+// ReSharper disable PossibleNullReferenceException
 
 namespace Pyrolite.TestPyroEcho
 {
@@ -11,11 +12,11 @@ namespace Pyrolite.TestPyroEcho
 /// <summary>
 /// Test Pyro with streaming.
 /// </summary>
-public class TestStreaming {
+public static class TestStreaming {
 
-	public void Run() {
+	public static void Run() {
 
-		setConfig();
+		SetConfig();
 		// Config.SERIALIZER = Config.SerializerType.pickle;
 
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
@@ -71,8 +72,8 @@ public class TestStreaming {
 			}
 		}
 	}
-	
-	static void setConfig()
+
+	private static void SetConfig()
 	{
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {
