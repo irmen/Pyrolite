@@ -13,7 +13,7 @@
     <Summary>Pyro (Python Remote Objects) client library</Summary>
     <Description>Thin client-side communication library to connect to Python applications, using the Pyro protocol.
 Also includes Pickle/Unpickle.
-More info about Pyro: http://pythonhosted.org/Pyro4/</Description>
+More info about Pyro: https://pyro4.readthedocs.io/</Description>
     <Copyright>Copyright Irmen de Jong</Copyright>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/irmen/Pyrolite</PackageProjectUrl>

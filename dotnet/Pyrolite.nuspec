@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Thin client-side communication library to connect to Python applications, using the Pyro protocol.
 Also includes Pickle/Unpickle.
-More info about Pyro: http://pythonhosted.org/Pyro4/</description>
+More info about Pyro: https://pyro4.readthedocs.io/</description>
   	<summary>Pyro (Python Remote Objects) client library</summary>
     <releaseNotes>
 Remote iterators no longer perform unnecessary close calls when their iteration has completed.
