@@ -532,7 +532,7 @@ public class Pickler {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(date);
 		save(cal.get(Calendar.YEAR));
-		save(cal.get(Calendar.MONTH));
+		save(cal.get(Calendar.MONTH)+1);    // months start at 0 in java
 		save(cal.get(Calendar.DAY_OF_MONTH));
 		out.write(Opcodes.TUPLE3);
 		out.write(Opcodes.REDUCE);
