@@ -97,8 +97,7 @@ Pyrolite only implements part of the client side Pyro library, hence its name 'l
 
 (More info about Pyro itself: https://pyro4.readthedocs.io/ )
 
-Version 4.21 changes:
-Pickle memoization uses regular obj.hashCode again (compare by value) rather than identityHashCode (compare by object identity).
-This can be configured via a new Pickler(useMemo, valueCompare) constructor.
+Version 4.22 changes:
+Fixed serialization of java.sql.Date that was off by 1 month in the date values (java months start on 0...)
 </description>
 </project>
