@@ -168,7 +168,7 @@ public class DateTimeConstructor implements IObjectConstructor {
 		// alternatively, args is 3 values year, month, day
 		if (args.length==3) {
 			int year = (Integer) args[0];
-			int month = (Integer) args[1];
+			int month = (Integer) args[1] - 1; // blargh: months start at 0 in Java
 			int day = (Integer) args[2];
 			return new GregorianCalendar(year, month, day);
  		}
