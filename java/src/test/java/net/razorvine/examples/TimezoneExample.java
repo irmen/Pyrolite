@@ -50,9 +50,9 @@ public class TimezoneExample {
 		cal.set(Calendar.SECOND, 59);
 		cal.set(Calendar.MILLISECOND, 998);
 		cal.setTimeZone(TimeZone.getTimeZone("Europe/Amsterdam"));
-		System.out.println("****" + javax.xml.bind.DatatypeConverter.printDateTime(cal));
+		System.out.println("****" + cal);
 		Calendar cal2 = (Calendar) p.call("echo", cal);
-		System.out.println("****" + javax.xml.bind.DatatypeConverter.printDateTime(cal2));
+		System.out.println("****" + cal2);
 		System.out.println(cal2);
 		System.out.println("Timezone="+cal2.getTimeZone());
 		if(!cal.equals(cal2))
