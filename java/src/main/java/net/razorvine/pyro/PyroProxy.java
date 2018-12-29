@@ -19,7 +19,7 @@ import net.razorvine.pyro.serializer.PyroSerializer;
 
 /**
  * Proxy for Pyro objects.
- * 
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class PyroProxy implements Serializable {
@@ -31,23 +31,23 @@ public class PyroProxy implements Serializable {
 	public byte[] pyroHmacKey = null;		// per-proxy hmac key, used to be HMAC_KEY config item
 	public UUID correlation_id = null;		// per-proxy correlation id (need to set/update this yourself)
 	public Object pyroHandshake = "hello";	// data object that should be sent in the initial connection handshake message. Can be any serializable object.
-	
+
 	private transient int sequenceNr = 0;
 	private transient Socket sock;
 	private transient OutputStream sock_out;
 	private transient InputStream sock_in;
-	
+
 	public Set<String> pyroMethods = new HashSet<String>();	// remote methods
 	public Set<String> pyroAttrs = new HashSet<String>();	// remote attributes
 	public Set<String> pyroOneway = new HashSet<String>();	// oneway methods
-	
+
 
 	/**
 	 * No-args constructor for (un)pickling support
 	 */
 	public PyroProxy() {
 	}
-	
+
 	/**
 	 * Create a proxy for the remote Pyro object denoted by the uri
 	 */
@@ -76,7 +76,7 @@ public class PyroProxy implements Serializable {
 			sock_in = sock.getInputStream();
 			sequenceNr = 0;
 			_handshake();
-			
+
 			if(Config.METADATA) {
 				// obtain metadata if this feature is enabled, and the metadata is not known yet
 				if(!pyroMethods.isEmpty() || !pyroAttrs.isEmpty()) {
@@ -100,13 +100,13 @@ public class PyroProxy implements Serializable {
 			if(!pyroMethods.isEmpty() || !pyroAttrs.isEmpty())
 				return;    // metadata has already been retrieved as part of creating the connection
 		}
-	
+
 		// invoke the get_metadata method on the daemon
 		@SuppressWarnings("unchecked")
 		HashMap<String, Object> result = (HashMap<String, Object>) this.internal_call("get_metadata", Config.DAEMON_NAME, 0, false, new Object[] {objectId});
 		if(result==null)
 			return;
-		
+
 		_processMetadata(result);
 	}
 
@@ -119,7 +119,7 @@ public class PyroProxy implements Serializable {
 		Object methods = result.get("methods");
 		Object attrs = result.get("attrs");
 		Object oneways = result.get("oneways");
-		
+
 		if(methods instanceof Object[]) {
 			Object[] methods_array = (Object[]) methods;
 			this.pyroMethods = new HashSet<String>();
@@ -147,12 +147,12 @@ public class PyroProxy implements Serializable {
 		} else if(oneways!=null) {
 			this.pyroOneway = getSetOfStrings(oneways);
 		}
-		
+
 		if(pyroMethods.isEmpty() && pyroAttrs.isEmpty()) {
 			throw new PyroException("remote object doesn't expose any methods or attributes");
 		}
 	}
-	
+
 	/**
 	 * Converts the given object into a set of strings.
 	 * The object must either be a HashSet already, or a different collection type.
@@ -192,16 +192,16 @@ public class PyroProxy implements Serializable {
 	 * @param attr the attribute name
 	 */
 	public Object getattr(String attr) throws PickleException, PyroException, IOException {
-		return this.internal_call("__getattr__", null, 0, false, new Object[]{attr});
+		return this.internal_call("__getattr__", null, 0, false, attr);
 	}
-	
+
 	/**
 	 * Set a new value on a remote attribute.
 	 * @param attr the attribute name
 	 * @param value the new value for the attribute
 	 */
 	public void setattr(String attr, Object value) throws PickleException, PyroException, IOException {
-		this.internal_call("__setattr__", null, 0, false, new Object[] {attr, value});
+		this.internal_call("__setattr__", null, 0, false, attr, value);
 	}
 
 	/**
@@ -218,7 +218,7 @@ public class PyroProxy implements Serializable {
 		}
 		return ann;
 	}
-	
+
 	/**
 	 * Internal call method to actually perform the Pyro method call and process the result.
 	 */
@@ -240,7 +240,7 @@ public class PyroProxy implements Serializable {
 		if (parameters == null)
 			parameters = new Object[] {};
 		PyroSerializer ser = PyroSerializer.getFor(Config.SERIALIZER);
-		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, Collections.<String, Object> emptyMap());
+		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, Collections.emptyMap());
 		Message msg = new Message(Message.MSG_INVOKE, pickle, ser.getSerializerId(), flags, sequenceNr, annotations(), pyroHmacKey);
 		Message resultmsg;
 		synchronized (this.sock) {
@@ -283,7 +283,7 @@ public class PyroProxy implements Serializable {
 				} else {
 					px = new PyroException(null, rx);
 				}
-				
+
 				try {
 					Field remotetbField = rx.getClass().getDeclaredField("_pyroTraceback");
 					String remotetb = (String) remotetbField.get(rx);
@@ -344,7 +344,7 @@ public class PyroProxy implements Serializable {
 	@SuppressWarnings("unchecked")
 	protected void _handshake() throws IOException {
 		// do connection handshake
-		
+
 		PyroSerializer ser = PyroSerializer.getFor(Config.SERIALIZER);
 		Map<String, Object> handshakedata = new HashMap<String, Object>();
 		handshakedata.put("handshake", pyroHandshake);
@@ -357,7 +357,7 @@ public class PyroProxy implements Serializable {
 		if(Config.MSG_TRACE_DIR!=null) {
 			Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
 		}
-		
+
 		// process handshake response
 		msg = Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL}, pyroHmacKey);
 		responseAnnotations(msg.annotations, msg.type);
@@ -395,7 +395,7 @@ public class PyroProxy implements Serializable {
 			throw new PyroException("connect: invalid msg type "+msg.type+" received");
 		}
 	}
-	
+
 	/**
 	 * Process and validate the initial connection handshake response data received from the daemon.
 	 * Simply return without error if everything is ok.
@@ -415,7 +415,7 @@ public class PyroProxy implements Serializable {
 	{
 		// override this in subclass
 	}
-	
+
 	/**
 	 * called by the Unpickler to restore state
 	 * args(8 or 9): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake, pyroMaxRetries [,pyroSerializer]
@@ -449,10 +449,10 @@ public class PyroProxy implements Serializable {
 		this.pyroHandshake = args[6];
 		// pyromaxretries (args[7]) is not yet used/supported by pyrolite
 		// custom serializer (args[8]) is not yet supported by pyrolite
-	}	
+	}
 
 	private static final HashSet<String> stopIterationExceptions;
-	
+
 	static {
 		stopIterationExceptions = new HashSet<String>();
 		stopIterationExceptions.add("builtins.StopIteration");
@@ -464,23 +464,23 @@ public class PyroProxy implements Serializable {
 		stopIterationExceptions.add("__builtin__.GeneratorExit");
 		stopIterationExceptions.add("exceptions.GeneratorExit");
 	}
-	
+
 	public class StreamResultIterable implements Iterable<Object>
 	{
 		private String streamId;
 		private PyroProxy proxy;
-		
+
 		public StreamResultIterable(String streamId, PyroProxy proxy)
 		{
 			this.streamId = streamId;
 			this.proxy = proxy;
 		}
-	
+
 		@Override
 		public Iterator<Object> iterator() {
 			return new StreamResultIterator<Object>(this.streamId, this.proxy);
 		}
-	
+
 		public class StreamResultIterator<T> implements Iterator<Object>
 		{
 			private String streamId;
@@ -488,7 +488,7 @@ public class PyroProxy implements Serializable {
 			private Object nextValue;
 			private Boolean getRemoteNext;
 			private Boolean exhausted;
-			
+
 			public StreamResultIterator(String streamId, PyroProxy proxy)
 			{
 				this.streamId = streamId;
@@ -496,7 +496,7 @@ public class PyroProxy implements Serializable {
 				this.getRemoteNext = true;
 				this.exhausted = false;
 			}
-			
+
 			@Override
 			public boolean hasNext() {
 				if(exhausted)
@@ -515,7 +515,7 @@ public class PyroProxy implements Serializable {
 					exhausted = true;
 					throw new NoSuchElementException("no proxy connected anymore");
 				}
-				
+
 				if(hasNext()) {
 					getRemoteNext = true;
 					return nextValue;
@@ -552,7 +552,7 @@ public class PyroProxy implements Serializable {
 			public void remove() {
 				throw new UnsupportedOperationException("cannot remove things from pyro iter");
 			}
-	
+
 			public void close() throws PyroException
 			{
 				if(this.proxy!=null && this.proxy.sock!=null) {

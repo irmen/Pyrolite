@@ -28,15 +28,15 @@ import net.razorvine.pickle.objects.SetConstructor;
  * Unpickles an object graph from a pickle data inputstream. Supports all pickle protocol versions.
  * Maps the python objects on the corresponding java equivalents or similar types.
  * This class is NOT threadsafe! (Don't use the same pickler from different threads)
- * 
+ *
  * See the README.txt for a table of the type mappings.
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class Unpickler {
 
 	/**
-	 * Used as return value for {@link Unpickler.dispatch} in the general case (because the object graph is built on the stack)
+	 * Used as return value for {@link Unpickler#dispatch} in the general case (because the object graph is built on the stack)
 	 */
 	protected static final Object NO_RETURN_VALUE = new Object();
 
@@ -46,20 +46,20 @@ public class Unpickler {
 	protected final int HIGHEST_PROTOCOL = 4;
 
 	/**
-	 * Internal cache of memoized objects. 
+	 * Internal cache of memoized objects.
 	 */
 	protected Map<Integer, Object> memo;
-	
+
 	/**
 	 * The stack that is used for building the resulting object graph.
 	 */
 	protected UnpickleStack stack;
-	
+
 	/**
 	 * The stream where the pickle data is read from.
 	 */
 	protected InputStream input;
-	
+
 	/**
 	 * Registry of object constructors that are used to create the appropriate Java objects for the given Python module.typename references.
 	 */
@@ -109,7 +109,7 @@ public class Unpickler {
 
 	/**
 	 * Read a pickled object representation from the given input stream.
-	 * 
+	 *
 	 * @return the reconstituted object hierarchy specified in the file.
 	 */
 	public Object load(InputStream stream) throws PickleException, IOException {
@@ -128,7 +128,7 @@ public class Unpickler {
 
 	/**
 	 * Read a pickled object representation from the given pickle data bytes.
-	 * 
+	 *
 	 * @return the reconstituted object hierarchy specified in the file.
 	 */
 	public Object loads(byte[] pickledata) throws PickleException, IOException {
@@ -350,7 +350,7 @@ public class Unpickler {
 		case Opcodes.STACK_GLOBAL:
 			load_stack_global();
 			break;
-				
+
 		default:
 			throw new InvalidOpcodeException("invalid pickle opcode: " + key);
 		}
@@ -510,7 +510,7 @@ public class Unpickler {
 		byte[] data = PickleUtils.readbytes(input, len);
 		stack.add(new String(data,"UTF-8"));
 	}
-	
+
 	void load_short_binstring() throws IOException {
 		short len = PickleUtils.readbyte(input);
 		byte[] data = PickleUtils.readbytes(input, len);
@@ -582,7 +582,7 @@ public class Unpickler {
 		set.addAll(top);
 		stack.add(set);
 	}
-	
+
 	void load_additems() {
 		List<Object> top = stack.pop_all_since_marker();
 		@SuppressWarnings("unchecked")
@@ -602,7 +602,7 @@ public class Unpickler {
 		String module = (String) stack.pop();
 		load_global_sub(module, name);
 	}
-	
+
 	void load_global_sub(String module, String name) {
 		IObjectConstructor constructor = objectConstructors.get(module + "." + name);
 		if (constructor == null) {
@@ -630,7 +630,7 @@ public class Unpickler {
 		}
 		stack.add(constructor);
 	}
-	
+
 
 	void load_pop() {
 		stack.pop();
@@ -716,7 +716,7 @@ public class Unpickler {
 			newitems.put(key, value);
 			value = stack.pop();
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		Map<Object, Object> dict = (Map<Object, Object>) stack.peek();
 		dict.putAll(newitems);
@@ -750,19 +750,19 @@ public class Unpickler {
 		// for now we simply skip the frame opcode and its length
 		PickleUtils.readbytes(input, 8);
 	}
-	
+
 	void load_persid() throws IOException {
 		// the persistent id is taken from the argument
 		String pid = PickleUtils.readline(input);
 		stack.add(persistentLoad(pid));
-	}	
+	}
 
 	void load_binpersid() throws IOException {
 		// the persistent id is taken from the stack
 		String pid = stack.pop().toString();
 		stack.add(persistentLoad(pid));
-	}	
-	
+	}
+
 	void load_obj() throws IOException {
 		List<Object> args = stack.pop_all_since_marker();
 		IObjectConstructor constructor = (IObjectConstructor)args.get(0);
@@ -776,7 +776,7 @@ public class Unpickler {
 		String classname = PickleUtils.readline(input);
 		List<Object> args = stack.pop_all_since_marker();
 		IObjectConstructor constructor = objectConstructors.get(module + "." + classname);
-		if (constructor == null) { 
+		if (constructor == null) {
 			constructor = new ClassDictConstructor(module, classname);
 			args.clear();  // classdict doesn't have constructor args... so we may lose info here, hmm.
 		}
@@ -788,7 +788,7 @@ public class Unpickler {
 	 * Hook for the persistent id feature where an id is replaced externally by the appropriate object.
 	 * @param pid the persistent id from the pickle
 	 * @return the actual object that belongs to that id. The default implementation throws a PickleException,
-	 *     telling you that you should implement this function yourself in a subclass of the Unpickler. 
+	 *     telling you that you should implement this function yourself in a subclass of the Unpickler.
 	 */
 	protected Object persistentLoad(String pid)
 	{

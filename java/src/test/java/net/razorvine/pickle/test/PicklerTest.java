@@ -27,7 +27,7 @@ import org.junit.Test;
 
 /**
  * Unit tests for the pickler.
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class PicklerTest {
@@ -46,7 +46,7 @@ public class PicklerTest {
 			byte[] bytes=PickleUtils.str2bytes(s);
 			byte[] result=new byte[bytes.length+3];
 			result[0]=(byte)Opcodes.PROTO;
-			result[1]=2;	
+			result[1]=2;
 			result[result.length-1]=(byte)Opcodes.STOP;
 			System.arraycopy(bytes,0,result,2,bytes.length);
 			return result;
@@ -55,7 +55,7 @@ public class PicklerTest {
 			return null;
 		}
 	}
-	
+
 	byte[] B(short[] shorts)
 	{
 		byte[] result=new byte[shorts.length+3];
@@ -73,16 +73,16 @@ public class PicklerTest {
 	}
 
 	public enum DayEnum {
-	    SUNDAY, MONDAY, TUESDAY, WEDNESDAY, 
-	    THURSDAY, FRIDAY, SATURDAY 
-	};
-	
+	    SUNDAY, MONDAY, TUESDAY, WEDNESDAY,
+	    THURSDAY, FRIDAY, SATURDAY
+	}
+
 	@Test
 	public void testSinglePrimitives() throws PickleException, IOException {
 		// protocol level 2
 		Pickler p=new Pickler(false);
 		byte[] o=p.dumps(null);	// none
-		assertArrayEquals(B("N"), o); 
+		assertArrayEquals(B("N"), o);
 		o=p.dumps('@');  // char --> string
 		assertArrayEquals(B("X\u0001\u0000\u0000\u0000@"), o);
 		o=p.dumps(true);	// boolean
@@ -95,21 +95,21 @@ public class PicklerTest {
 		assertArrayEquals(B("K@"), o);
 		o=p.dumps((short)0x1234);
 		assertArrayEquals(B("M\u0034\u0012"), o);
-		o=p.dumps((int)0x12345678);
+		o=p.dumps(0x12345678);
 		assertArrayEquals(B("J\u0078\u0056\u0034\u0012"), o);
-		o=p.dumps((long)0x12345678abcdefL);
+		o=p.dumps(0x12345678abcdefL);
 		assertArrayEquals(B("I5124095577148911\n"), o);
 		o=p.dumps(1234.5678d);
 		assertArrayEquals(B(new short[] {'G',0x40,0x93,0x4a,0x45,0x6d,0x5c,0xfa,0xad}), o);
 		o=p.dumps(1234.5f);
 		assertArrayEquals(B(new short[] {'G',0x40,0x93,0x4a,0,0,0,0,0}), o);
-		
+
 		DayEnum day=DayEnum.WEDNESDAY;
 		o=p.dumps(day);	// enum is returned as just a string representing the value
 		assertArrayEquals(B("X\u0009\u0000\u0000\u0000WEDNESDAY"),o);
 	}
-	
-	@Test 
+
+	@Test
 	public void testZeroToTwoFiveSix() throws PickleException, IOException {
 		byte[] bytes=new byte[256];
 		for(int b=0; b<256; ++b) {
@@ -120,10 +120,10 @@ public class PicklerTest {
 			sb.append((char)i);
 		}
 		String str=sb.toString();
-		
+
 		Pickler p=new Pickler(false);
 		Unpickler u=new Unpickler();
-		
+
 		ByteArrayOutputStream bos=new ByteArrayOutputStream(434);
 		bos.write(Opcodes.PROTO); bos.write(2);
 		bos.write("c__builtin__\nbytearray\n".getBytes());
@@ -137,12 +137,12 @@ public class PicklerTest {
 		bos.write(Opcodes.TUPLE2);
 		bos.write(Opcodes.REDUCE);
 		bos.write(Opcodes.STOP);
-		
+
 		byte[] bytesresult=bos.toByteArray();
 		byte[] output=p.dumps(bytes);
 		assertArrayEquals(bytesresult, output);
-		assertArrayEquals(bytes, (byte[])u.loads(output)); 
-		
+		assertArrayEquals(bytes, (byte[])u.loads(output));
+
 		bos=new ByteArrayOutputStream(434);
 		bos.write(Opcodes.PROTO); bos.write(2);
 		bos.write(Opcodes.BINUNICODE);
@@ -156,7 +156,7 @@ public class PicklerTest {
 		assertArrayEquals(bytesresult, output);
 		assertEquals(str, u.loads(output));
 	}
-	
+
 	@Test
 	public void testBigInts() throws PickleException, IOException
 	{
@@ -169,7 +169,7 @@ public class PicklerTest {
 		o=p.dumps(new BigDecimal("12345.6789"));
 		assertArrayEquals(B("cdecimal\nDecimal\nX\n\u0000\u0000\u000012345.6789\u0085R"), o);
 	}
-	
+
 	@Test
 	public void testArrays() throws PickleException, IOException
 	{
@@ -201,7 +201,7 @@ public class PicklerTest {
 		o=p.dumps(new double[] {1.1,2.2,3.3});
 		assertArrayEquals(B("carray\narray\nU\u0001d](G?\u00f1\u0099\u0099\u0099\u0099\u0099\u009aG@\u0001\u0099\u0099\u0099\u0099\u0099\u009aG@\nffffffe\u0086R"), o);
 	}
-	
+
 	@Test(expected=PickleException.class)
 	public void testRecursiveArray2() throws PickleException, IOException
 	{
@@ -210,7 +210,7 @@ public class PicklerTest {
 		a[1] = a; // make it recursive
 		p.dumps(a);
 	}
-	
+
 	@Test(expected=PickleException.class)
 	public void testRecursiveArray6() throws PickleException, IOException
 	{
@@ -231,7 +231,7 @@ public class PicklerTest {
 		Object unpickled=u.loads(o);
 		Date unpickledDate=((Calendar)unpickled).getTime();
 		assertEquals(date,unpickledDate);
-		
+
 		Calendar cal=new GregorianCalendar(2011,Calendar.DECEMBER,31,14,33,59);
 		cal.set(Calendar.MILLISECOND, 456);
 		o=p.dumps(cal);
@@ -273,13 +273,13 @@ public class PicklerTest {
 		assertEquals(cal, (Calendar) unpickled);
 		assertEquals(tz, ((Calendar) unpickled).getTimeZone());
 	}
-	
+
 	@Test
 	public void testTimes() throws PickleException, IOException
 	{
 		Pickler p=new Pickler(false);
 		Unpickler u=new Unpickler();
-		
+
 		Time time=new Time(2,33,59,456789);
 		Time time2=new Time(2,33,59,456789);
 		Time time3=new Time(2,33,59,45678);
@@ -289,7 +289,7 @@ public class PicklerTest {
 		byte[] o=p.dumps(time);
 		Object unpickled=u.loads(o);
 		assertEquals(time, unpickled);
-		
+
 		TimeDelta delta=new TimeDelta(2, 7000, 456789);
 		TimeDelta delta2=new TimeDelta(2, 7000, 456789);
 		TimeDelta delta3=new TimeDelta(2, 7000, 45678);
@@ -301,13 +301,13 @@ public class PicklerTest {
 		assertArrayEquals(B("cdatetime\ntimedelta\nK\u0002MX\u001bJU\u00f8\u0006\u0000\u0087R"), o);
 		assertEquals(delta, unpickled);
 	}
-	
+
 	@Test
 	public void testSqlDateTimes() throws PickleException, IOException
 	{
 		Pickler p=new Pickler(false);
 		Unpickler u=new Unpickler();
-		
+
 		// java.sql.Timestamp  maps to python datetime.datetime as usual
 		Calendar cal = new GregorianCalendar(2011,Calendar.DECEMBER,31,23,30,59);
 		cal.set(Calendar.MILLISECOND, 432);
@@ -349,7 +349,7 @@ public class PicklerTest {
 		assertEquals(59, time.seconds);
 		assertEquals(432000, time.microseconds);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSets() throws PickleException, IOException
@@ -397,7 +397,7 @@ public class PicklerTest {
 		o=p.dumps(stringmap);
 		resultmap=(Map<?,?>)pu.loads(o);
 		assertEquals(stringmap, resultmap);
-		
+
 		@SuppressWarnings("rawtypes")
 		java.util.Hashtable table=new java.util.Hashtable();
 		table.put(1,11);
@@ -407,21 +407,21 @@ public class PicklerTest {
 		resultmap=(Map<?, ?>)pu.loads(o);
 		assertEquals(table, resultmap);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testLists() throws PickleException, IOException 
+	public void testLists() throws PickleException, IOException
 	{
 		byte[] o;
 		Pickler p=new Pickler(false);
-		
+
 		List<Object> list=new LinkedList<Object>();
 		list.add(1);
 		list.add("abc");
 		list.add(null);
 		o=p.dumps(list);
 		assertArrayEquals(B("](K\u0001X\u0003\u0000\u0000\u0000abcNe"), o);
-		
+
 		@SuppressWarnings("rawtypes")
 		Vector v=new Vector();
 		v.add(1);
@@ -429,14 +429,14 @@ public class PicklerTest {
 		v.add(null);
 		o=p.dumps(v);
 		assertArrayEquals(B("](K\u0001X\u0003\u0000\u0000\u0000abcNe"), o);
-		
+
 		Stack<Integer> stack=new Stack<Integer>();
 		stack.push(1);
 		stack.push(2);
 		stack.push(3);
 		o=p.dumps(stack);
 		assertArrayEquals(B("](K\u0001K\u0002K\u0003e"), o);
-		
+
 		java.util.Queue<Integer> queue=new PriorityQueue<Integer>();
 		queue.add(3);
 		queue.add(2);
@@ -444,7 +444,7 @@ public class PicklerTest {
 		o=p.dumps(queue);
 		assertArrayEquals(B("](K\u0001K\u0003K\u0002e"), o);
  	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMemoizationSet() throws PickleException, IOException
@@ -456,7 +456,7 @@ public class PicklerTest {
 		Pickler p = new Pickler(true);		// default = use comparison-by-value when memoizing
 		byte[] data = p.dumps(array);
 		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
-		
+
 		Unpickler u = new Unpickler();
 		Object[] result = (Object[]) u.loads(data);
 		assertEquals(2, result.length);
@@ -491,7 +491,7 @@ public class PicklerTest {
 		assertEquals(1, set.size());
 		assertTrue(set.contains("a"));
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMemoizationMap() throws PickleException, IOException
@@ -499,11 +499,11 @@ public class PicklerTest {
 		HashMap<String,String> map = new HashMap<String,String>();
 		map.put("key", "value");
 		Object[] array = new Object[] {map, map};
-		
+
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
 		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
-		
+
 		Unpickler u = new Unpickler();
 		Object[] result = (Object[]) u.loads(data);
 		assertEquals(2, result.length);
@@ -525,11 +525,11 @@ public class PicklerTest {
 		Collection<String> list = new ArrayList<String>();
 		list.add("a");
 		Object[] array = new Object[] {list, list};
-		
+
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
 		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
-		
+
 		Unpickler u = new Unpickler();
 		Object[] result = (Object[]) u.loads(data);
 		assertEquals(2, result.length);
@@ -543,7 +543,7 @@ public class PicklerTest {
 		assertEquals(1, list.size());
 		assertTrue(list.contains("a"));
 	}
-	
+
 	@Test
 	public void testMemoizationTimeStuff() throws PickleException, IOException
 	{
@@ -551,13 +551,13 @@ public class PicklerTest {
 		Time time = new Time(1,2,3,4);
 		Calendar now = Calendar.getInstance();
 		Calendar cal = now;
-	
+
 		Object[] array = new Object[] {delta, delta, time, time, cal, cal};
-		
+
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
 		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
-		
+
 		Unpickler u = new Unpickler();
 		Object[] result = (Object[]) u.loads(data);
 		assertEquals(6, result.length);
@@ -578,19 +578,19 @@ public class PicklerTest {
 		assertEquals(new Time(1,2,3,4), time);
 		assertEquals(now, cal);
 }
-	
+
 	@Test
 	public void testMemoizationBigNums() throws PickleException, IOException
 	{
 		BigDecimal bigd = new BigDecimal("12345678901234567890.99887766");
 		BigInteger bigi = new BigInteger("12345678901234567890");
-		
+
 		Object[] array = new Object[] {bigd, bigd, bigi, bigi};
-		
+
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
 		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
-		
+
 		Unpickler u = new Unpickler();
 		Object[] result = (Object[]) u.loads(data);
 		assertEquals(4, result.length);
@@ -612,11 +612,11 @@ public class PicklerTest {
 	{
 		String str = "a";
 		Object[] array = new Object[] {str, str};
-		
+
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
 		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
-		
+
 		Unpickler u = new Unpickler();
 		Object[] result = (Object[]) u.loads(data);
 		assertEquals(2, result.length);
@@ -625,11 +625,11 @@ public class PicklerTest {
 		assertTrue(first instanceof String);
 		assertTrue(second instanceof String);
 		assertSame(first, second);				// both objects should be the same memoized object
-		
+
 		str = (String) second;
 		assertEquals("a", str);
 	}
-	
+
 	@Test
 	public void testMemoizationArray() throws PickleException, IOException
 	{
@@ -638,7 +638,7 @@ public class PicklerTest {
 		Pickler p = new Pickler(true);
 		byte[] data = p.dumps(array);
 		assertTrue(new String(data).indexOf(Opcodes.BINPUT)>0);   // check that memoization was done
-		
+
 		Unpickler u = new Unpickler();
 		Object[] result = (Object[]) u.loads(data);
 		assertEquals(2, result.length);
@@ -647,19 +647,19 @@ public class PicklerTest {
 		assertTrue(first instanceof int[]);
 		assertTrue(second instanceof int[]);
 		assertSame(first, second);				// both objects should be the same memoized object
-		
+
 		arr = (int[]) second;
 		assertEquals(3, arr.length);
 		assertArrayEquals(new int[] {1, 2, 3}, arr)	;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testMemoizationList() throws PickleException, IOException  
+	public void testMemoizationList() throws PickleException, IOException
 	{
 		byte[] o;
 		Pickler p=new Pickler();
-		
+
 		String reused = "reused";
 		String another = "another";
 		ArrayList<Object> list=new ArrayList<Object>();
@@ -673,7 +673,7 @@ public class PicklerTest {
 		list.add(sublist);
 		o=p.dumps(list);
 		assertEquals("\u0080\u0002]q\u0000(X\u0006\u0000\u0000\u0000reusedq\u0001h\u0001X\u0007\u0000\u0000\u0000anotherq\u0002]q\u0003(h\u0001h\u0001h\u0002ee.", S(o));
-		
+
 		Unpickler u = new Unpickler();
 		ArrayList<Object> data = (ArrayList<Object>) u.loads(o);
 		assertEquals(4, data.size());
@@ -691,14 +691,14 @@ public class PicklerTest {
 		assertSame(s1, s4);
 		assertSame(s1, s5);
 	}
-		
+
 	@SuppressWarnings("unused")
 	@Test(expected=StackOverflowError.class)
-	public void testMemoizationRecursiveNoMemo() throws PickleException, IOException  
+	public void testMemoizationRecursiveNoMemo() throws PickleException, IOException
 	{
 		byte[] o;
 		Pickler p=new Pickler(false);
-		
+
 		String reused = "reused";
 		ArrayList<Object> list=new ArrayList<Object>();
 		list.add(reused);
@@ -709,7 +709,7 @@ public class PicklerTest {
 
 	@SuppressWarnings({"unchecked", "serial"})
 	@Test
-	public void testMemoizationRecursiveMemo() throws PickleException, IOException  
+	public void testMemoizationRecursiveMemo() throws PickleException, IOException
 	{
 		// we have to override the hashCode() method because otherwise
 		// the default implementation will crash in a recursive call
@@ -727,11 +727,11 @@ public class PicklerTest {
 				return 19937*this.size();
 			}
 		}
-		
+
 		byte[] o;
 		Pickler p=new Pickler();
 		Unpickler u = new Unpickler();
-		
+
 		// self-referencing list
 		String reused = "reused";
 		RecursiveList list=new RecursiveList();
@@ -750,7 +750,7 @@ public class PicklerTest {
 		assertSame(s1, s2);
 		assertSame(data, data2);
 		assertSame(data.get(0), data2.get(0));
-		
+
 		// self-referencing hashtable
 		RecursiveHashMap h = new RecursiveHashMap();
 		h.put("myself", h);
@@ -766,7 +766,7 @@ public class PicklerTest {
 		public static String getStaticName() {
 			return "static base";
 		}
-		
+
 		public String getBaseName() {
 			return "basename";
 		}
@@ -777,50 +777,50 @@ public class PicklerTest {
 		private String name;
 	    private boolean deceased;
 	    private int[] values;
-	    
+
 	    public PersonBean(String name, boolean deceased, int[] values) {
 	    	this.name=name;
 	    	this.deceased=deceased;
 	    	this.values = values;
 	    }
-	 
+
 	    public String getName() {
 	        return this.name;
 	    }
-	 
+
 	    public boolean isDeceased() {
 	        return this.deceased;
 	    }
-	    
+
 	    public int[] getValues() {
 	    	return this.values;
 	    }
-	    
+
 	    @SuppressWarnings("unused")
 		private String getPrivate() {
 	    	return "nothing";
 	    }
-	    
+
 	    public String doSomething() {
 	    	return "nothing";
 	    }
-	    
+
 	    public static String getStaticName() {
 	    	return "static";
 	    }
-	    
+
 	    public int get_int2() {
 	    	return 42;
 	    }
-	    
+
 	    public int getint3() {
 	    	return 99;
 	    }
-	    
+
 	    public int getNUMBER() {
 	    	return 123;
 	    }
-	    
+
 	    public int getX() {
 	    	return 99;
 	    }
@@ -837,7 +837,7 @@ public class PicklerTest {
 		o=p.dumps(person);
 		@SuppressWarnings("unchecked")
 		Map<String,Object> map=(Map<String,Object>)pu.loads(o);
-		
+
 		assertEquals(9, map.size());
 		assertEquals("basename", map.get("baseName"));
 		assertEquals(42, map.get("_int2"));
@@ -849,7 +849,7 @@ public class PicklerTest {
 		assertArrayEquals(new int[] {3,4,5}, (int[]) map.get("values"));
 		assertEquals("net.razorvine.pickle.test.PicklerTest$PersonBean", map.get("__class__"));
 	}
-	
+
 	class NotABean {
 		public int x;
 	}
@@ -861,7 +861,7 @@ public class PicklerTest {
 		Pickler p=new Pickler(false);
 		p.dumps(notabean);
 	}
-	
+
 	class CustomClass {
 		public int x=42;
 	}
@@ -872,7 +872,7 @@ public class PicklerTest {
 			currentpickler.save("customclassint="+c.x);
 		}
 	}
-	
+
 	@Test
 	public void testCustomPickler() throws PickleException, IOException
 	{
@@ -881,16 +881,16 @@ public class PicklerTest {
 		Pickler p=new Pickler(false);
 		p.dumps(c);
 	}
-	
-	
-	interface IBaseInterface {};
-	interface ISubInterface extends IBaseInterface {};
-	class BaseClassWithInterface implements IBaseInterface {};
-	class SubClassWithInterface extends BaseClassWithInterface implements ISubInterface {};
-	class BaseClass {};
-	class SubClass extends BaseClass {};
-	abstract class AbstractBaseClass {};
-	class ConcreteSubClass extends AbstractBaseClass {};
+
+
+	interface IBaseInterface {}
+	interface ISubInterface extends IBaseInterface {}
+	class BaseClassWithInterface implements IBaseInterface {}
+	class SubClassWithInterface extends BaseClassWithInterface implements ISubInterface {}
+	class BaseClass {}
+	class SubClass extends BaseClass {}
+	abstract class AbstractBaseClass {}
+	class ConcreteSubClass extends AbstractBaseClass {}
 
 	class AnyClassPickler implements IObjectPickler {
 		@Override
@@ -910,12 +910,12 @@ public class PicklerTest {
 		} catch (PickleException x) {
 			assertTrue(x.getMessage().contains("couldn't pickle object of type"));
 		}
-		
+
 		Pickler.registerCustomPickler(AbstractBaseClass.class, new AnyClassPickler());
 		byte[] data = p.dumps(c);
 		assertTrue(new String(data).contains("[class=net.razorvine.pickle.test.PicklerTest$ConcreteSubClass]"));
 	}
-	
+
 	@Test
 	public void testInterfaceHierarchyPickler() throws PickleException, IOException
 	{

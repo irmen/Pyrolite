@@ -28,7 +28,7 @@ import net.razorvine.pyro.Config;
  * This class is NOT threadsafe! (Don't use the same pickler from different threads)
  *
  * See the README.txt for a table with the type mappings.
- * 
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class Pickler {
@@ -55,44 +55,44 @@ public class Pickler {
 	 * Limit on the recursion depth to avoid stack overflows.
 	 */
 	protected static int MAX_RECURSE_DEPTH = 1000;
-	
+
 	/**
 	 * Current recursion level.
 	 */
 	protected int recurse = 0;  // recursion level
-	
+
 	/**
 	 * Output where the pickle data is written to.
 	 */
 	protected OutputStream out;
-	
+
 	/**
 	 * The Python pickle protocol version of the pickles created by this library.
 	 */
 	protected int PROTOCOL = 2;
-	
+
 	/**
 	 * Registry of picklers for custom classes, to be able to not just pickle simple built in datatypes.
-	 * You can add to this via {@link Pickler.registerCustomPickler}
+	 * You can add to this via {@link Pickler#registerCustomPickler}
 	 */
 	protected static Map<Class<?>, IObjectPickler> customPicklers=new HashMap<Class<?>, IObjectPickler>();
-	
+
 	/**
-	 * Use memoization or not. This saves pickle size, but can only create pickles of objects that are hashable. 
+	 * Use memoization or not. This saves pickle size, but can only create pickles of objects that are hashable.
 	 */
 	protected boolean useMemo=true;
-	
+
 	/**
 	 * When memoizing, compare objects by value. This saves pickle size, but can slow down pickling.
 	 * Also, it should only be used if the object graph is immutable. Unused if useMemo is false.
 	 */
 	protected boolean valueCompare=true;
-	
+
 	/**
 	 * The memoization cache.
 	 */
 	protected HashMap<Integer, Memo> memo;  // maps object's identity hash to (object, memo index)
-	
+
 	/**
 	 * Create a Pickler.
 	 */
@@ -108,7 +108,7 @@ public class Pickler {
 	public Pickler(boolean useMemo) {
 		this(useMemo, true);
 	}
-	
+
 	/**
 	 * Create a Pickler. Also specify if it is to compare objects by value.
 	 * If you compare objects by value, the object graph might be altered,
@@ -132,14 +132,14 @@ public class Pickler {
 
 	/**
 	 * Register additional object picklers for custom classes.
-	 * If you register an interface or abstract base class, it means the pickler is used for 
+	 * If you register an interface or abstract base class, it means the pickler is used for
 	 * the whole inheritance tree of all classes ultimately implementing that interface or abstract base class.
 	 * If you register a normal concrete class, the pickler is only used for objects of exactly that particular class.
 	 */
 	public static void registerCustomPickler(Class<?> clazz, IObjectPickler pickler) {
 		customPicklers.put(clazz, pickler);
 	}
-	
+
 	/**
 	 * Pickle a given object graph, returning the result as a byte array.
 	 */
@@ -174,12 +174,12 @@ public class Pickler {
 	 * within custom picklers. This is handy if as part of the custom pickler, you need
 	 * to write a couple of normal objects such as strings or ints, that are already
 	 * supported by the pickler.
-	 * This method can be called recursively to output sub-objects. 
+	 * This method can be called recursively to output sub-objects.
 	 */
 	public void save(Object o) throws PickleException, IOException {
 		recurse++;
 		if(recurse>MAX_RECURSE_DEPTH)
-			throw new java.lang.StackOverflowError("recursion too deep in Pickler.save (>"+MAX_RECURSE_DEPTH+")"); 
+			throw new java.lang.StackOverflowError("recursion too deep in Pickler.save (>"+MAX_RECURSE_DEPTH+")");
 
 		// null type?
 		if(o==null) {
@@ -187,14 +187,14 @@ public class Pickler {
 			recurse--;
 			return;
 		}
-		
+
 		// check the memo table, otherwise simply dispatch
 		Class<?> t = o.getClass();
 		if(lookupMemo(t, o) || dispatch(t, o)){
 			recurse--;
 			return;
 		}
-		
+
 		throw new PickleException("couldn't pickle object of type "+t);
 	}
 
@@ -224,7 +224,7 @@ public class Pickler {
 			}
 		}
 	}
-	
+
 	/**
 	 * Check the memo table and output a memo lookup if the object is found
 	 */
@@ -248,7 +248,7 @@ public class Pickler {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Process a single object to be pickled.
 	 */
@@ -261,10 +261,10 @@ public class Pickler {
 			} else {
 				put_arrayOfObjects((Object[])o);
 			}
-			
+
 			return true;
 		}
-		
+
 		// first the primitive types
 		if(o instanceof Boolean || t.equals(Boolean.TYPE)) {
 			put_bool((Boolean)o);
@@ -298,7 +298,7 @@ public class Pickler {
 			put_string(""+o);
 			return true;
 		}
-		
+
 		// check registry
 		IObjectPickler custompickler=getCustomPickler(t);
 		if(custompickler!=null) {
@@ -306,7 +306,7 @@ public class Pickler {
 			writeMemo(o);
 			return true;
 		}
-		
+
 		// more complex types
 		if(o instanceof String) {
 			put_string((String)o);
@@ -315,7 +315,7 @@ public class Pickler {
 		if(o instanceof BigInteger) {
 			put_bigint((BigInteger)o);
 			return true;
-		} 
+		}
 		if(o instanceof BigDecimal) {
 			put_decimal((BigDecimal)o);
 			return true;
@@ -375,7 +375,7 @@ public class Pickler {
 			put_collection((Collection<?>)o);
 			return true;
 		}
-		// javabean		
+		// javabean
 		if(o instanceof java.io.Serializable ) {
 			put_javabean(o);
 			return true;
@@ -388,14 +388,14 @@ public class Pickler {
 	 * Get the custom pickler fot the given class, to be able to pickle not just built in collection types.
 	 * A custom pickler is matched on the interface or abstract base class that the object implements or inherits from.
 	 * @param t the class of the object to be pickled
-	 * @return null (if no custom pickler found) or a pickler registered for this class (via {@link Pickler.registerCustomPickler})
+	 * @return null (if no custom pickler found) or a pickler registered for this class (via {@link Pickler#registerCustomPickler})
 	 */
 	protected IObjectPickler getCustomPickler(Class<?> t) {
 		IObjectPickler pickler = customPicklers.get(t);
 		if(pickler!=null) {
 			return pickler;		// exact match
 		}
-		
+
 		// check if there's a custom pickler registered for an interface or abstract base class
 		// that this object implements or inherits from.
 		for(Entry<Class<?>, IObjectPickler> x: customPicklers.entrySet()) {
@@ -443,7 +443,7 @@ public class Pickler {
 	}
 
 	void put_calendar(Calendar cal) throws IOException {
-		
+
 		if(Config.PICKLE_CALENDAR_PYTZ_LOCALIZE && cal.getTimeZone()!=null)
 		{
 			// Use special pickle to get the timezone encoded in such a way
@@ -455,7 +455,7 @@ public class Pickler {
 			// simply call arbitrary functions or methods. However when we throw
 			// opcode.attrgetter in the mix we can get access to the localize function
 			// of a pytz object and create the datetime from there.
-			
+
 			out.write(Opcodes.GLOBAL);
 			out.write("operator\nattrgetter\n".getBytes());
 			put_string("localize");
@@ -467,14 +467,14 @@ public class Pickler {
 			put_calendar_without_timezone(cal, false);
 			out.write(Opcodes.TUPLE1);
 			out.write(Opcodes.REDUCE);
-			writeMemo(cal);		
+			writeMemo(cal);
 			return;
 		}
-		
+
 		// Use the regular (non-pytz) calendar pickler.
 		put_calendar_without_timezone(cal, true);
 	}
-	
+
 	void put_calendar_without_timezone(Calendar cal, boolean writememo) throws IOException {
 		// Note that we can't use the 2-arg representation of a datetime here.
 		// Python 3 uses the SHORT_BINBYTES opcode to encode the first argument,
@@ -497,7 +497,7 @@ public class Pickler {
 		out.write(Opcodes.TUPLE);
 		out.write(Opcodes.REDUCE);
 		if(writememo)
-			writeMemo(cal);		
+			writeMemo(cal);
 	}
 
 	void put_timedelta(TimeDelta delta) throws IOException {
@@ -614,7 +614,7 @@ public class Pickler {
 			String s=new String((char[])array);
 			put_string(s);
 			return;
-		}		
+		}
 		if(t.equals(Byte.TYPE)) {
 			// a byte[] isn't written as an array but rather as a bytearray object
 			out.write(Opcodes.GLOBAL);
@@ -626,13 +626,13 @@ public class Pickler {
 			out.write(Opcodes.REDUCE);
 			writeMemo(array);
 			return;
-		} 
-		
+		}
+
 		out.write(Opcodes.GLOBAL);
 		out.write("array\narray\n".getBytes());
 		out.write(Opcodes.SHORT_BINSTRING);		// array typecode follows
 		out.write(1); // typecode is 1 char
-		
+
 		if(t.equals(Short.TYPE)) {
 			out.write('h'); // signed short
 			out.write(Opcodes.EMPTY_LIST);
@@ -668,8 +668,8 @@ public class Pickler {
 			for(double d: (double[])array) {
 				save(d);
 			}
-		} 
-		
+		}
+
 		out.write(Opcodes.APPENDS);
 		out.write(Opcodes.TUPLE2);
 		out.write(Opcodes.REDUCE);
@@ -690,7 +690,7 @@ public class Pickler {
 
 	void put_bigint(BigInteger i) throws IOException {
 		byte[] b=PickleUtils.encode_long(i);
-		if(b.length<=0xff) {	
+		if(b.length<=0xff) {
 			out.write(Opcodes.LONG1);
 			out.write(b.length);
 			out.write(b);
@@ -713,7 +713,7 @@ public class Pickler {
 	void put_float(double d) throws IOException {
 		out.write(Opcodes.BINFLOAT);
 		out.write(PickleUtils.double_to_bytes(d));
-	}	
+	}
 
 	void put_long(long v) throws IOException {
 		// choose optimal representation
@@ -731,7 +731,7 @@ public class Pickler {
 				return;
 			}
 		}
-		
+
 		// 4-byte signed int?
 		long high_bits=v>>31;  // shift sign extends
 		if(high_bits==0 || high_bits==-1) {
@@ -740,13 +740,13 @@ public class Pickler {
 			out.write(PickleUtils.integer_to_bytes((int)v));
             return;
 		}
-		
+
 		// int too big, store it as text
 		out.write(Opcodes.INT);
 		out.write((""+v).getBytes());
 		out.write('\n');
 	}
-	
+
 	void put_bool(boolean b) throws IOException {
 		if(b)
 			out.write(Opcodes.NEWTRUE);

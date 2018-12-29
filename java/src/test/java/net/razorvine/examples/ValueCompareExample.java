@@ -8,6 +8,7 @@ import net.razorvine.pickle.Unpickler;
 
 public class ValueCompareExample {
 
+    @SuppressWarnings("unchecked")
     public static void main(String[] args) throws IOException {
 
         Random random = new Random(1337);
@@ -50,5 +51,4 @@ public class ValueCompareExample {
         System.out.println("Unpickling with valueCompare took " + (t5 - t4) / 1000000.0 + "ms");
 
     }
-
 }
