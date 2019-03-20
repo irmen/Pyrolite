@@ -100,7 +100,7 @@ Pyrolite only implements part of the client side Pyro library, hence its name 'l
 
 (More info about Pyro itself: https://pyro4.readthedocs.io/ )
 
-Version 4.23 changes:
-Fixed compilation issues with newer java versions (&gt;8)
+Version 4.24 changes:
+....
 </description>
 </project>
