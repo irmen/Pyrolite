@@ -48,6 +48,8 @@
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<configuration>
 						<doclint>none</doclint>
+						<additionalparam>-Xdoclint:none</additionalparam>
+						<additionalJOption>-Xdoclint:none</additionalJOption>
 					</configuration>
 				</plugin>
 			</plugins>
@@ -98,7 +100,7 @@ Pyrolite only implements part of the client side Pyro library, hence its name 'l
 
 (More info about Pyro itself: https://pyro4.readthedocs.io/ )
 
-Version 4.22 changes:
-Fixed serialization of java.sql.Date that was off by 1 month in the date values (java months start on 0...)
+Version 4.23 changes:
+Fixed compilation issues with newer java versions (>8)
 </description>
 </project>
