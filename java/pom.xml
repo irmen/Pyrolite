@@ -9,7 +9,7 @@
 
 	<groupId>net.razorvine</groupId>
 	<artifactId>pyrolite</artifactId>
-	<version>4.23-SNAPSHOT</version>
+	<version>4.23</version>
 	<packaging>jar</packaging>
 
 	<name>pyrolite</name>
@@ -48,6 +48,8 @@
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<configuration>
 						<doclint>none</doclint>
+						<additionalparam>-Xdoclint:none</additionalparam>
+						<additionalJOption>-Xdoclint:none</additionalJOption>
 					</configuration>
 				</plugin>
 			</plugins>
@@ -70,7 +72,7 @@
 		<url>https://github.com/irmen/Pyrolite</url>
 		<connection>scm:git:https://github.com/irmen/Pyrolite.git</connection>
 		<developerConnection>scm:git:https://github.com/irmen/Pyrolite.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>pyrolite-4.23</tag>
 	</scm>
 	<issueManagement>
 		<system>Github</system>
