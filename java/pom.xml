@@ -9,7 +9,7 @@
 
 	<groupId>net.razorvine</groupId>
 	<artifactId>pyrolite</artifactId>
-	<version>4.23-SNAPSHOT</version>
+	<version>4.23</version>
 	<packaging>jar</packaging>
 
 	<name>pyrolite</name>
@@ -72,7 +72,7 @@
 		<url>https://github.com/irmen/Pyrolite</url>
 		<connection>scm:git:https://github.com/irmen/Pyrolite.git</connection>
 		<developerConnection>scm:git:https://github.com/irmen/Pyrolite.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>pyrolite-4.23</tag>
 	</scm>
 	<issueManagement>
 		<system>Github</system>
@@ -101,6 +101,6 @@ Pyrolite only implements part of the client side Pyro library, hence its name 'l
 (More info about Pyro itself: https://pyro4.readthedocs.io/ )
 
 Version 4.23 changes:
-Fixed compilation issues with newer java versions (>8)
+Fixed compilation issues with newer java versions (&gt;8)
 </description>
 </project>
