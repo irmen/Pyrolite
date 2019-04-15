@@ -1,8 +1,10 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
+using System.Buffers.Binary;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -29,13 +31,21 @@ public class Pickler : IDisposable {
 
 	// ReSharper disable once UnusedMember.Global
 	public static int HIGHEST_PROTOCOL = 2;
-
 	protected const int MAX_RECURSE_DEPTH = 200;
+	protected const int PROTOCOL = 2;
+
+	protected static readonly IDictionary<Type, IObjectPickler> customPicklers = new Dictionary<Type, IObjectPickler>();
+    private static readonly byte[] datetimeDatetimeBytes = Encoding.ASCII.GetBytes("datetime\ndatetime\n");
+    private static readonly byte[] datetimeTimedeltaBytes = Encoding.ASCII.GetBytes("datetime\ntimedelta\n");
+    private static readonly byte[] builtinSetBytes = Encoding.ASCII.GetBytes("__builtin__\nset\n");
+    private static readonly byte[] builtinBytearrayBytes = Encoding.ASCII.GetBytes("__builtin__\nbytearray\n");
+    private static readonly byte[] arrayArrayBytes = Encoding.ASCII.GetBytes("array\narray\n");
+    private static readonly byte[] decimalDecimalBytes = Encoding.ASCII.GetBytes("decimal\nDecimal\n");
+
+    protected readonly bool useMemo=true;
+    private readonly byte[] byteBuffer = new byte[sizeof(long)]; // at least large enough for any primitive being serialized
 	protected Stream outs;
 	protected int recurse;	// recursion level
-	protected const int PROTOCOL = 2;
-	protected static readonly IDictionary<Type, IObjectPickler> customPicklers = new Dictionary<Type, IObjectPickler>();
-	protected readonly bool useMemo=true;
 	protected IDictionary<object, int> memo;		// maps objects to memo index
 	
 	/**
@@ -124,7 +134,7 @@ public class Pickler : IDisposable {
 		Type t=o.GetType();
 		
 		// check the memo table, otherwise simply dispatch
-		if(LookupMemo(t, o) || dispatch(t, o)){
+		if((useMemo && LookupMemo(t, o)) || dispatch(t, o)){
 			recurse--;
 			return;
 		}
@@ -136,33 +146,38 @@ public class Pickler : IDisposable {
 	 * Write the object to the memo table and output a memo write opcode
 	 * Only works for hashable objects
 	 */
-	protected void WriteMemo(object obj) {
-		if(!useMemo)
-			return;
-		if(!memo.ContainsKey(obj))
-		{
-			int memo_index = memo.Count;
-			memo[obj] = memo_index;
-			if(memo_index<=0xFF)
-			{
-				outs.WriteByte(Opcodes.BINPUT);
-				outs.WriteByte((byte)memo_index);
-			}
-			else
-			{
-				outs.WriteByte(Opcodes.LONG_BINPUT);
-				var index_bytes = PickleUtils.integer_to_bytes(memo_index);
-				outs.Write(index_bytes, 0, 4);
-			}
-		}
-	}
+	protected void WriteMemo<T>(T value) {
+        if (useMemo)
+            WriteMemoPrivate(value);
+
+        void WriteMemoPrivate(object obj)
+        {
+		    if(!memo.ContainsKey(obj))
+		    {
+			    int memo_index = memo.Count;
+			    memo[obj] = memo_index;
+			    if(memo_index<=0xFF)
+			    {
+				    outs.WriteByte(Opcodes.BINPUT);
+				    outs.WriteByte((byte)memo_index);
+			    }
+			    else
+			    {
+				    outs.WriteByte(Opcodes.LONG_BINPUT);
+                    BinaryPrimitives.WriteInt32LittleEndian(byteBuffer, memo_index);
+				    outs.Write(byteBuffer, 0, sizeof(int));
+			    }
+		    }
+	    }
+    }
 	
 	/**
 	 * Check the memo table and output a memo lookup if the object is found
 	 */
-	private bool LookupMemo(Type objectType, object obj) {
-		if(!useMemo)
-			return false;
+	private bool LookupMemo(Type objectType, object obj)
+    {
+        Debug.Assert(useMemo);
+
 		if(!objectType.IsPrimitive)
 		{
 			int memo_index;
@@ -176,8 +191,8 @@ public class Pickler : IDisposable {
 				else
 				{
 					outs.WriteByte(Opcodes.LONG_BINGET);
-					var index_bytes = PickleUtils.integer_to_bytes(memo_index);
-					outs.Write(index_bytes, 0, 4);
+                    BinaryPrimitives.WriteInt32LittleEndian(byteBuffer, memo_index);
+					outs.Write(byteBuffer, 0, sizeof(int));
 				}
 				return true;
 			}
@@ -189,8 +204,12 @@ public class Pickler : IDisposable {
 	 * Process a single object to be pickled.
 	 */
 	private bool dispatch(Type t, object o) {
-		// is it a primitive array?
-		if(o is Array) {
+        Debug.Assert(t != null);
+        Debug.Assert(o != null);
+        Debug.Assert(t == o.GetType());
+
+        // is it a primitive array?
+        if (o is Array) {
 			Type componentType=t.GetElementType();
 			if(componentType != null && componentType.IsPrimitive) {
 				put_arrayOfPrimitives(componentType, o);
@@ -199,56 +218,62 @@ public class Pickler : IDisposable {
 			}
 			return true;
 		}
+
+        // first check for enums, as GetTypeCode will return the underlying type.
+		if(o is Enum) {
+			put_string(o.ToString());
+			return true;
+		}
 		
 		// first the primitive types
-		if(o is bool) {
-			put_bool((bool)o);
-			return true;
-		}
-		if(o is byte) {
-			put_long((byte)o);
-			return true;
-		}
-		if(o is sbyte) {
-			put_long((sbyte)o);
-			return true;
-		}
-		if(o is short) {
-			put_long((short)o);
-			return true;
-		}
-		if(o is ushort) {
-			put_long((ushort)o);
-			return true;
-		}
-		if(o is int) {
-			put_long((int)o);
-			return true;
-		}
-		if(o is uint) {
-			put_long((uint)o);
-			return true;
-		}
-		if(o is long) {
-			put_long((long)o);
-			return true;
-		}
-		if(o is ulong) {
-			put_ulong((ulong)o);
-			return true;
-		}
-		if(o is float) {
-			put_float((float)o);
-			return true;
-		}
-		if(o is double) {
-			put_float((double)o);
-			return true;
-		}
-		if(o is char) {
-			put_string(""+o);
-			return true;
-		}
+        switch (Type.GetTypeCode(t))
+        {
+            case TypeCode.Boolean:
+			    put_bool((bool)o);
+			    return true;
+		    case TypeCode.Byte:
+			    put_long((byte)o);
+			    return true;
+            case TypeCode.SByte:
+			    put_long((sbyte)o);
+			    return true;
+            case TypeCode.Int16:
+			    put_long((short)o);
+			    return true;
+            case TypeCode.UInt16:
+			    put_long((ushort)o);
+			    return true;
+            case TypeCode.Int32:
+                put_long((int)o);
+                return true;
+            case TypeCode.UInt32:
+                put_long((uint)o);
+                return true;
+            case TypeCode.Int64:
+                put_long((long)o);
+			    return true;
+            case TypeCode.UInt64:
+                put_ulong((ulong)o);
+                return true;
+            case TypeCode.Single:
+			    put_float((float)o);
+			    return true;
+            case TypeCode.Double:
+			    put_float((double)o);
+			    return true;
+            case TypeCode.Char:
+			    put_string(((char)o).ToString());
+			    return true;
+            case TypeCode.String:
+                put_string((string)o);
+                return true;
+            case TypeCode.Decimal:
+                put_decimal((decimal)o);
+                return true;
+            case TypeCode.DateTime:
+                put_datetime((DateTime)o);
+                return true;
+        }
 		
 		// check registry
 		IObjectPickler custompickler = getCustomPickler(t);
@@ -259,19 +284,6 @@ public class Pickler : IDisposable {
 		}
 		
 		// more complex types
-		var s = o as string;
-		if(s != null) {
-			put_string(s);
-			return true;
-		}
-		if(o is decimal) {
-			put_decimal((decimal)o);
-			return true;
-		}
-		if(o is DateTime) {
-			put_datetime((DateTime)o);
-			return true;
-		}
 		if(o is TimeSpan) {
 			put_timespan((TimeSpan)o);
 			return true;
@@ -296,10 +308,6 @@ public class Pickler : IDisposable {
 		var enumerable = o as IEnumerable;
 		if(enumerable != null) {
 			put_enumerable(enumerable);
-			return true;
-		}
-		if(o is Enum) {
-			put_string(o.ToString());
 			return true;
 		}
 		
@@ -349,31 +357,29 @@ public class Pickler : IDisposable {
 
 	private void put_datetime(DateTime dt) {
 		outs.WriteByte(Opcodes.GLOBAL);
-		var bytes=Encoding.Default.GetBytes("datetime\ndatetime\n");
-		outs.Write(bytes,0,bytes.Length);
+		outs.Write(datetimeDatetimeBytes, 0, datetimeDatetimeBytes.Length);
 		outs.WriteByte(Opcodes.MARK);
-		save(dt.Year);
-		save(dt.Month);
-		save(dt.Day);
-		save(dt.Hour);
-		save(dt.Minute);
-		save(dt.Second);
-		save(dt.Millisecond*1000);
+        put_long(dt.Year);
+        put_long(dt.Month);
+        put_long(dt.Day);
+        put_long(dt.Hour);
+        put_long(dt.Minute);
+        put_long(dt.Second);
+        put_long(dt.Millisecond * 1000);
 		outs.WriteByte(Opcodes.TUPLE);
 		outs.WriteByte(Opcodes.REDUCE);
-		WriteMemo(dt);
+        WriteMemo(dt);
 	}
 
 	private void put_timespan(TimeSpan ts) {
 		outs.WriteByte(Opcodes.GLOBAL);
-		var bytes=Encoding.Default.GetBytes("datetime\ntimedelta\n");
-		outs.Write(bytes,0,bytes.Length);
-		save(ts.Days);
-		save(ts.Hours*3600+ts.Minutes*60+ts.Seconds);
-		save(ts.Milliseconds*1000);
+		outs.Write(datetimeTimedeltaBytes, 0, datetimeTimedeltaBytes.Length);
+        put_long(ts.Days);
+		put_long(ts.Hours*3600+ts.Minutes*60+ts.Seconds);
+        put_long(ts.Milliseconds*1000);
 		outs.WriteByte(Opcodes.TUPLE3);
-		outs.WriteByte(Opcodes.REDUCE);	
-		WriteMemo(ts);
+		outs.WriteByte(Opcodes.REDUCE);
+        WriteMemo(ts);
 	}
 
 	private void put_enumerable(IEnumerable list) {
@@ -399,8 +405,7 @@ public class Pickler : IDisposable {
 
 	private void put_set(IEnumerable o) {
 		outs.WriteByte(Opcodes.GLOBAL);
-		var output=Encoding.ASCII.GetBytes("__builtin__\nset\n");
-		outs.Write(output,0,output.Length);
+		outs.Write(builtinSetBytes, 0, builtinSetBytes.Length);
 		outs.WriteByte(Opcodes.EMPTY_LIST);
 		outs.WriteByte(Opcodes.MARK);
 		foreach(object x in o) {
@@ -426,20 +431,20 @@ public class Pickler : IDisposable {
 				break;
 			case 1:
 				if(array[0]==array)
-					throw new PickleException("recursive array not supported, use list");
+				    ThrowRecursiveArrayNotSupported();
 				save(array[0]);
 				outs.WriteByte(Opcodes.TUPLE1);
 				break;
 			case 2:
 				if(array[0]==array || array[1]==array)
-					throw new PickleException("recursive array not supported, use list");
+				    ThrowRecursiveArrayNotSupported();
 				save(array[0]);
 				save(array[1]);
 				outs.WriteByte(Opcodes.TUPLE2);
 				break;
 			case 3:
 				if(array[0]==array || array[1]==array || array[2]==array)
-					throw new PickleException("recursive array not supported, use list");
+				    ThrowRecursiveArrayNotSupported();
 				save(array[0]);
 				save(array[1]);
 				save(array[2]);
@@ -449,7 +454,7 @@ public class Pickler : IDisposable {
 				outs.WriteByte(Opcodes.MARK);
 				foreach(object o in array) {
 					if(o==array)
-						throw new PickleException("recursive array not supported, use list");
+						ThrowRecursiveArrayNotSupported();
 					save(o);
 				}
 				outs.WriteByte(Opcodes.TUPLE);
@@ -459,145 +464,164 @@ public class Pickler : IDisposable {
 		WriteMemo(array);		// tuples cannot contain self-references so it is fine to put this at the end
 	}
 
-	private void put_arrayOfPrimitives(Type t, object array) {
-			
-		byte[] output;
+    private static void ThrowRecursiveArrayNotSupported() =>
+        throw new PickleException("recursive array not supported, use list");
 
-		if(t==typeof(bool)) {
-			// a bool[] isn't written as an array but rather as a tuple
-			var source=(bool[])array;
-			// this is stupid, but seems to be necessary because you can't cast a bool[] to an object[]
-			var boolarray=new object[source.Length];
-			Array.Copy(source, boolarray, source.Length);
-			put_arrayOfObjects(boolarray);
-			return;
-		}
-		if(t==typeof(char)) {
-			// a char[] isn't written as an array but rather as a unicode string
-			string s=new string((char[])array);
-			put_string(s);
-			return;
-		}		
-		if(t==typeof(byte)) {
-			// a byte[] isn't written as an array but rather as a bytearray object
-			outs.WriteByte(Opcodes.GLOBAL);
-			output=Encoding.ASCII.GetBytes("__builtin__\nbytearray\n");
-			outs.Write(output,0,output.Length);
-			string str=PickleUtils.rawStringFromBytes((byte[])array);
-			put_string(str);
-			put_string("latin-1");	// this is what python writes in the pickle
-			outs.WriteByte(Opcodes.TUPLE2);
-			outs.WriteByte(Opcodes.REDUCE);
-			WriteMemo(array);
-			return;
+    private void put_arrayOfPrimitives(Type t, object array) {
+		TypeCode typeCode = Type.GetTypeCode(t);
+
+        // Special-case several array types written out specially.
+        switch (typeCode)
+        {
+            case TypeCode.Boolean:
+			    // a bool[] isn't written as an array but rather as a tuple
+			    var source=(bool[])array;
+			    // this is stupid, but seems to be necessary because you can't cast a bool[] to an object[]
+			    var boolarray=new object[source.Length];
+			    Array.Copy(source, boolarray, source.Length);
+			    put_arrayOfObjects(boolarray);
+			    return;
+
+            case TypeCode.Char:
+			    // a char[] isn't written as an array but rather as a unicode string
+			    string s=new string((char[])array);
+			    put_string(s);
+			    return;
+
+            case TypeCode.Byte:
+			    // a byte[] isn't written as an array but rather as a bytearray object
+			    outs.WriteByte(Opcodes.GLOBAL);
+			    outs.Write(builtinBytearrayBytes, 0, builtinBytearrayBytes.Length);
+			    put_string(PickleUtils.rawStringFromBytes((byte[])array));
+			    put_string("latin-1");	// this is what python writes in the pickle
+			    outs.WriteByte(Opcodes.TUPLE2);
+			    outs.WriteByte(Opcodes.REDUCE);
+			    WriteMemo(array);
+			    return;
 		} 
 		
 		outs.WriteByte(Opcodes.GLOBAL);
-		output=Encoding.ASCII.GetBytes("array\narray\n");
-		outs.Write(output,0,output.Length);
-		outs.WriteByte(Opcodes.SHORT_BINSTRING);		// array typecode follows
+		outs.Write(arrayArrayBytes, 0, arrayArrayBytes.Length);
+		outs.WriteByte(Opcodes.SHORT_BINSTRING); // array typecode follows
 		outs.WriteByte(1); // typecode is 1 char
-		
-		if(t==typeof(sbyte)) {
-			outs.WriteByte((byte)'b'); // signed char
-			outs.WriteByte(Opcodes.EMPTY_LIST);
-			outs.WriteByte(Opcodes.MARK);
-			foreach(sbyte s in (sbyte[])array) {
-				save(s);
-			}
-		} else if(t==typeof(short)) {
-			outs.WriteByte((byte)'h'); // signed short
-			outs.WriteByte(Opcodes.EMPTY_LIST);
-			outs.WriteByte(Opcodes.MARK);
-			foreach(short s in (short[])array) {
-				save(s);
-			}
-		} else if(t==typeof(ushort)) {
-			outs.WriteByte((byte)'H'); // unsigned short
-			outs.WriteByte(Opcodes.EMPTY_LIST);
-			outs.WriteByte(Opcodes.MARK);
-			foreach(ushort s in (ushort[])array) {
-				save(s);
-			}
-		} else if(t==typeof(int)) {
-			outs.WriteByte((byte)'i'); // signed int
-			outs.WriteByte(Opcodes.EMPTY_LIST);
-			outs.WriteByte(Opcodes.MARK);
-			foreach(int i in (int[])array) {
-				save(i);
-			}
-		} else if(t==typeof(uint)) {
-			outs.WriteByte((byte)'I'); // unsigned int
-			outs.WriteByte(Opcodes.EMPTY_LIST);
-			outs.WriteByte(Opcodes.MARK);
-			foreach(uint i in (uint[])array) {
-				save(i);
-			}
-		} else if(t==typeof(long)) {
-			outs.WriteByte((byte)'l');  // signed long
-			outs.WriteByte(Opcodes.EMPTY_LIST);
-			outs.WriteByte(Opcodes.MARK);
-			foreach(long v in (long[])array) {
-				save(v);
-			}
-		} else if(t==typeof(ulong)) {
-			outs.WriteByte((byte)'L');  // unsigned long
-			outs.WriteByte(Opcodes.EMPTY_LIST);
-			outs.WriteByte(Opcodes.MARK);
-			foreach(ulong v in (ulong[])array) {
-				save(v);
-			}
-		} else if(t==typeof(float)) {
-			outs.WriteByte((byte)'f');  // float
-			outs.WriteByte(Opcodes.EMPTY_LIST);
-			outs.WriteByte(Opcodes.MARK);
-			foreach(float f in (float[])array) {
-				save(f);
-			}
-		} else if(t==typeof(double)) {
-			outs.WriteByte((byte)'d');  // double
-			outs.WriteByte(Opcodes.EMPTY_LIST);
-			outs.WriteByte(Opcodes.MARK);
-			foreach(double d in (double[])array) {
-				save(d);
-			}
-		} 
+
+        switch (typeCode)
+        {
+            case TypeCode.SByte:
+			    outs.WriteByte((byte)'b'); // signed char
+			    outs.WriteByte(Opcodes.EMPTY_LIST);
+			    outs.WriteByte(Opcodes.MARK);
+			    foreach(sbyte s in (sbyte[])array) {
+			        put_long(s);
+			    }
+                break;
+
+            case TypeCode.Int16:
+			    outs.WriteByte((byte)'h'); // signed short
+			    outs.WriteByte(Opcodes.EMPTY_LIST);
+			    outs.WriteByte(Opcodes.MARK);
+			    foreach(short s in (short[])array) {
+			        put_long(s);
+			    }
+                break;
+
+            case TypeCode.UInt16:
+			    outs.WriteByte((byte)'H'); // unsigned short
+			    outs.WriteByte(Opcodes.EMPTY_LIST);
+			    outs.WriteByte(Opcodes.MARK);
+			    foreach(ushort s in (ushort[])array) {
+			        put_long(s);
+			    }
+                break;
+
+            case TypeCode.Int32:
+			    outs.WriteByte((byte)'i'); // signed int
+			    outs.WriteByte(Opcodes.EMPTY_LIST);
+			    outs.WriteByte(Opcodes.MARK);
+			    foreach(int i in (int[])array) {
+			        put_long(i);
+			    }
+                break;
+
+            case TypeCode.UInt32:
+			    outs.WriteByte((byte)'I'); // unsigned int
+			    outs.WriteByte(Opcodes.EMPTY_LIST);
+			    outs.WriteByte(Opcodes.MARK);
+			    foreach(uint i in (uint[])array) {
+			        put_long(i);
+			    }
+                break;
+
+            case TypeCode.Int64:
+			    outs.WriteByte((byte)'l');  // signed long
+			    outs.WriteByte(Opcodes.EMPTY_LIST);
+			    outs.WriteByte(Opcodes.MARK);
+			    foreach(long v in (long[])array) {
+			        put_long(v);
+			    }
+                break;
+
+            case TypeCode.UInt64:
+			    outs.WriteByte((byte)'L');  // unsigned long
+			    outs.WriteByte(Opcodes.EMPTY_LIST);
+			    outs.WriteByte(Opcodes.MARK);
+			    foreach(ulong v in (ulong[])array) {
+			        put_ulong(v);
+			    }
+                break;
+
+            case TypeCode.Single:
+			    outs.WriteByte((byte)'f');  // float
+			    outs.WriteByte(Opcodes.EMPTY_LIST);
+			    outs.WriteByte(Opcodes.MARK);
+			    foreach(float f in (float[])array) {
+			        put_float(f);
+			    }
+                break;
+
+            case TypeCode.Double:
+			    outs.WriteByte((byte)'d');  // double
+			    outs.WriteByte(Opcodes.EMPTY_LIST);
+			    outs.WriteByte(Opcodes.MARK);
+			    foreach(double d in (double[])array) {
+			        put_float(d);
+			    }
+                break;
+		}
 		
 		outs.WriteByte(Opcodes.APPENDS);
 		outs.WriteByte(Opcodes.TUPLE2);
 		outs.WriteByte(Opcodes.REDUCE);
 
-		WriteMemo(array);		// array of primitives can by definition never be recursive, so okay to put this at the end
+		WriteMemo(array); // array of primitives can by definition never be recursive, so okay to put this at the end
 	}
 
 	private void put_decimal(decimal d) {
 		//"cdecimal\nDecimal\nU\n12345.6789\u0085R."
 		outs.WriteByte(Opcodes.GLOBAL);
-		var output=Encoding.ASCII.GetBytes("decimal\nDecimal\n");
-		outs.Write(output,0,output.Length);
-		put_string(Convert.ToString(d, CultureInfo.InvariantCulture));
+		outs.Write(decimalDecimalBytes, 0, decimalDecimalBytes.Length);
+		put_string(d.ToString(CultureInfo.InvariantCulture));
 		outs.WriteByte(Opcodes.TUPLE1);
 		outs.WriteByte(Opcodes.REDUCE);
-		WriteMemo(d);
+        WriteMemo(d);
 	}
 
 	private void put_string(string str) {
-		var encoded=Encoding.UTF8.GetBytes(str);
 		outs.WriteByte(Opcodes.BINUNICODE);
-		var output=PickleUtils.integer_to_bytes(encoded.Length);
-		outs.Write(output,0,output.Length);
-		outs.Write(encoded,0,encoded.Length);
+		var encoded=Encoding.UTF8.GetBytes(str);
+        BinaryPrimitives.WriteInt32LittleEndian(byteBuffer, encoded.Length);
+		outs.Write(byteBuffer, 0, sizeof(int));
+		outs.Write(encoded, 0, encoded.Length);
 		WriteMemo(str);
 	}
 
 	private void put_float(double d) {
 		outs.WriteByte(Opcodes.BINFLOAT);
-		var output=PickleUtils.double_to_bytes_bigendian(d);
-		outs.Write(output,0,output.Length);
+        BinaryPrimitives.WriteInt64BigEndian(byteBuffer, BitConverter.DoubleToInt64Bits(d));
+		outs.Write(byteBuffer, 0, sizeof(double));
 	}
 
 	private void put_long(long v) {
-		byte[] output;
 		// choose optimal representation
 		// first check 1 and 2-byte unsigned ints:
 		if(v>=0) {
@@ -619,26 +643,25 @@ public class Pickler : IDisposable {
 		if(high_bits==0 || high_bits==-1) {
 			// All high bits are copies of bit 2**31, so the value fits in a 4-byte signed int.
 			outs.WriteByte(Opcodes.BININT);
-			output=PickleUtils.integer_to_bytes((int)v);
-			outs.Write(output,0,output.Length);
+            BinaryPrimitives.WriteInt32LittleEndian(byteBuffer, (int)v);
+			outs.Write(byteBuffer, 0, sizeof(int));
 			return;
 		}
 		
 		// int too big, store it as text
 		outs.WriteByte(Opcodes.INT);
-		output=Encoding.ASCII.GetBytes(""+v);
+		byte[] output=Encoding.ASCII.GetBytes(v.ToString(CultureInfo.InvariantCulture));
 		outs.Write(output, 0, output.Length);
 		outs.WriteByte((byte)'\n');
 	}
 
 	private void put_ulong(ulong u) {
 		if(u<=long.MaxValue) {
-			long l=(long)u;
-			put_long(l);
+			put_long((long)u);
 		} else {
 			// ulong too big for a signed long, store it as text instead.
 			outs.WriteByte(Opcodes.INT);
-			var output=Encoding.ASCII.GetBytes(u.ToString());
+			var output=Encoding.ASCII.GetBytes(u.ToString(CultureInfo.InvariantCulture));
 			outs.Write(output, 0, output.Length);
 			outs.WriteByte((byte)'\n');
 		}
