@@ -519,10 +519,7 @@ public class Unpickler : IDisposable {
         long len = BinaryPrimitives.ReadInt64LittleEndian(byteBuffer);
         EnsureByteBufferLength(len);
         PickleUtils.readbytes_into(input, byteBuffer, 0, len);
-        fixed (byte* lineByteBufferPtr = byteBuffer)
-        {
-            stack.add(Encoding.UTF8.GetString(lineByteBufferPtr, (int)len));
-        }
+        stack.add(Encoding.UTF8.GetString(byteBuffer, 0, (int)len));
 	}
 
 	private void load_short_binunicode() {

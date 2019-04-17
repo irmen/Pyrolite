@@ -274,13 +274,13 @@ public static class PickleUtils {
 	 * converted to the corresponding chars, without using a given character
 	 * encoding
 	 */
-	public static unsafe string rawStringFromBytes(byte[] data)
+	public static string rawStringFromBytes(byte[] data)
     {
         return rawStringFromBytes(new ReadOnlySpan<byte>(data));
     }
 
     internal static unsafe string rawStringFromBytes(ReadOnlySpan<byte> data) {
-        var result = new string('\0', data.Length);
+        var result = new string('\0', data.Length); // Use String.Create instead when it's available
         fixed (char* resultPtr = result)
         {
             for (int i = 0; i < data.Length; i++)

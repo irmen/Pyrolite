@@ -20,7 +20,8 @@ Razorvine.Serpent library dependency updated to 1.18.
     <copyright>Copyright 2015, 2016, 2017, 2018</copyright>
     <tags>pyro python rpc remote-objects</tags>
 	  <dependencies>
-	  	<dependency id="Razorvine.Serpent" version="1.18" />
+      <dependency id="Razorvine.Serpent" version="1.18" />
+      <dependency id="System.Memory" version="4.5.2" />
   	</dependencies>
   </metadata>
   <files>
