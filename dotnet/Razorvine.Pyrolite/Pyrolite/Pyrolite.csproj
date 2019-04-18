@@ -3,7 +3,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Razorvine.Pyrolite</AssemblyName>
     <RootNamespace>Razorvine</RootNamespace>
-    <LangVersion>6</LangVersion>
+    <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Authors>Irmen de Jong</Authors>
     <Product>Serpent Python literal expression serialization</Product>
     <PackageId>Razorvine.Pyrolite</PackageId>
@@ -24,5 +25,6 @@ More info about Pyro: https://pyro4.readthedocs.io/</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Razorvine.Serpent" Version="1.25.0" />
+    <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
+using System.Buffers.Binary;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
@@ -43,99 +44,88 @@ public class ArrayConstructor : IObjectConstructor {
 		case 'u':// Unicode character 2 -> char[]
 		{
 			var result = new char[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = ((string) c)[0];
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = ((string) values[i])[0];
 			}
 			return result;
 		}
 		case 'b':// signed char -> sbyte[]
 		{
 			var result = new sbyte[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToSByte(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToSByte(values[i]);
 			}
 			return result;
 		}
 		case 'B':// unsigned char -> byte[]
 		{
 			var result = new byte[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToByte(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToByte(values[i]);
 			}
 			return result;
 		}
 		case 'h':// signed short -> short[]
 		{
 			var result = new short[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToInt16(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToInt16(values[i]);
 			}
 			return result;
 		}
 		case 'H':// unsigned short -> ushort[]
 		{
 			var result = new ushort[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToUInt16(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToUInt16(values[i]);
 			}
 			return result;
 		}
 		case 'i':// signed integer -> int[]
 		{
 			var result = new int[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToInt32(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToInt32(values[i]);
 			}
 			return result;
 		}
 		case 'I':// unsigned integer 4 -> uint[]
 		{
 			var result = new uint[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToUInt32(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToUInt32(values[i]);
 			}
 			return result;
 		}
 		case 'l':// signed long -> long[]
 		{
 			var result = new long[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToInt64(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToInt64(values[i]);
 			}
 			return result;
 		}
 		case 'L':// unsigned long -> ulong[]
 		{
 			var result = new ulong[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToUInt64(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToUInt64(values[i]);
 			}
 			return result;
 		}
 		case 'f':// floating point 4 -> float[]
 		{
 			var result = new float[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToSingle(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToSingle(values[i]);
 			}
 			return result;
 		}
 		case 'd':// floating point 8 -> double[]
 		{
 			var result = new double[values.Count];
-			int i = 0;
-			foreach(var c in values) {
-				result[i++] = Convert.ToDouble(c);
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = Convert.ToDouble(values[i]);
 			}
 			return result;
 		}
@@ -296,89 +286,105 @@ public class ArrayConstructor : IObjectConstructor {
 	}
 
 	protected int[] constructIntArrayFromInt32(int machinecode, byte[] data) {
-		var result=new int[data.Length/4];
-		var bigendian=new byte[4];
-		for(int i=0; i<data.Length/4; i++) {
-			if(machinecode==8) {
-				result[i]=PickleUtils.bytes_to_integer(data, i*4, 4);
-			} else {
-				// big endian, swap
-				bigendian[0]=data[3+i*4];
-				bigendian[1]=data[2+i*4];
-				bigendian[2]=data[1+i*4];
-				bigendian[3]=data[0+i*4];
-				result[i]=PickleUtils.bytes_to_integer(bigendian);
-			}
-		}
+		var result = new int[data.Length/4];
+        if (machinecode == 8) {
+            for (int i = 0; i < result.Length; i++) {
+                result[i] = PickleUtils.bytes_to_integer(data, i * 4, 4);
+            }
+        }
+        else
+        {
+		    var bigendian = new byte[4];
+            for (int i = 0; i < result.Length; i++) {
+                // big endian, swap
+                bigendian[0] = data[3 + i * 4];
+                bigendian[1] = data[2 + i * 4];
+                bigendian[2] = data[1 + i * 4];
+                bigendian[3] = data[0 + i * 4];
+                result[i] = PickleUtils.bytes_to_integer(bigendian);
+            }
+        }
 		return result;
 	}
 
 	protected uint[] constructUIntArrayFromUInt32(int machinecode, byte[] data) {
 		var result=new uint[data.Length/4];
-		var bigendian=new byte[4];
-		for(int i=0; i<data.Length/4; i++) {
-			if(machinecode==6) {
-				result[i]=PickleUtils.bytes_to_uint(data, i*4);
-			} else {
+        if (machinecode == 6) {
+            for (int i = 0; i < result.Length; i++) {
+				result[i] = PickleUtils.bytes_to_uint(data, i*4);
+            }
+        }
+        else
+        {
+		    var bigendian = new byte[4];
+            for (int i = 0; i < result.Length; i++) {
 				// big endian, swap
 				bigendian[0]=data[3+i*4];
 				bigendian[1]=data[2+i*4];
 				bigendian[2]=data[1+i*4];
 				bigendian[3]=data[0+i*4];
 				result[i]=PickleUtils.bytes_to_uint(bigendian, 0);
-			}
-		}
+            }
+        }
 		return result;
 	}
 
 	protected ulong[] constructULongArrayFromUInt64(int machinecode, byte[] data) {
-		var result=new ulong[data.Length/8];
-		var swapped=new byte[8];
-		if(BitConverter.IsLittleEndian) {
-    		for(int i=0; i<data.Length/8; i++) {
-		        if(machinecode==10) {
-		            result[i]=BitConverter.ToUInt64(data, i*8);
-		        } else {
-    				swapped[0]=data[7+i*8];
-    				swapped[1]=data[6+i*8];
-    				swapped[2]=data[5+i*8];
-    				swapped[3]=data[4+i*8];
-    				swapped[4]=data[3+i*8];
-    				swapped[5]=data[2+i*8];
-    				swapped[6]=data[1+i*8];
-    				swapped[7]=data[0+i*8];
-		            result[i]=BitConverter.ToUInt64(swapped, 0);
-		        }
-		    }
-		} else {
-    		for(int i=0; i<data.Length/8; i++) {
-		        if(machinecode==11) {
-		            result[i]=BitConverter.ToUInt64(data, i*8);
-		        } else {
-    				swapped[0]=data[7+i*8];
-    				swapped[1]=data[6+i*8];
-    				swapped[2]=data[5+i*8];
-    				swapped[3]=data[4+i*8];
-    				swapped[4]=data[3+i*8];
-    				swapped[5]=data[2+i*8];
-    				swapped[6]=data[1+i*8];
-    				swapped[7]=data[0+i*8];
-		            result[i]=BitConverter.ToUInt64(swapped, 0);
-		        }
-		    }
-		    
-		}
+		var result = new ulong[data.Length/8];
+        if (BitConverter.IsLittleEndian) {
+            if (machinecode == 10) {
+                for (int i = 0; i < result.Length; i++) {
+                    result[i] = BitConverter.ToUInt64(data, i * 8);
+                }
+            } else {
+                var swapped = new byte[8];
+                for (int i = 0; i < result.Length; i++) {
+                    swapped[0] = data[7 + i * 8];
+                    swapped[1] = data[6 + i * 8];
+                    swapped[2] = data[5 + i * 8];
+                    swapped[3] = data[4 + i * 8];
+                    swapped[4] = data[3 + i * 8];
+                    swapped[5] = data[2 + i * 8];
+                    swapped[6] = data[1 + i * 8];
+                    swapped[7] = data[0 + i * 8];
+                    result[i] = BitConverter.ToUInt64(swapped, 0);
+                }
+            }
+        } else {
+            if (machinecode == 11) {
+                for (int i = 0; i < result.Length; i++) {
+                    result[i] = BitConverter.ToUInt64(data, i * 8);
+                }
+            }
+            else
+            {
+                var swapped = new byte[8];
+                for (int i = 0; i < result.Length; i++) {
+                    swapped[0] = data[7 + i * 8];
+                    swapped[1] = data[6 + i * 8];
+                    swapped[2] = data[5 + i * 8];
+                    swapped[3] = data[4 + i * 8];
+                    swapped[4] = data[3 + i * 8];
+                    swapped[5] = data[2 + i * 8];
+                    swapped[6] = data[1 + i * 8];
+                    swapped[7] = data[0 + i * 8];
+                    result[i] = BitConverter.ToUInt64(swapped, 0);
+                }
+            }
+        }
 		return result;
 	}
 
 	protected long[] constructLongArrayFromInt64(int machinecode, byte[] data) {
 		var result=new long[data.Length/8];
-		var bigendian=new byte[8];
-		for(int i=0; i<data.Length/8; i++) {
-			if(machinecode==12) {
-				// little endian can go
+        if (machinecode == 12) {
+            for (int i = 0; i < result.Length; i++) {
 				result[i]=PickleUtils.bytes_to_long(data, i*8);
-			} else {
+            }
+        }
+        else { 
+		    var bigendian=new byte[8];
+            for (int i = 0; i < result.Length; i++) {
 				// 13=big endian, swap
 				bigendian[0]=data[7+i*8];
 				bigendian[1]=data[6+i*8];
@@ -396,12 +402,14 @@ public class ArrayConstructor : IObjectConstructor {
 
 	protected double[] constructDoubleArray(int machinecode, byte[] data) {
 		var result = new double[data.Length / 8];
-		var bigendian=new byte[8];
-		for (int i = 0; i < data.Length / 8; ++i) {
-			if(machinecode==17) {
-				result[i] = PickleUtils.bytes_bigendian_to_double(data, i * 8);
-			} else {
-				// 16=little endian, flip the bytes
+        if (machinecode == 17) {
+            for (int i = 0; i < result.Length; i++) {
+                result[i] = PickleUtils.bytes_bigendian_to_double(data, i * 8);
+            }
+        } else {
+		    var bigendian=new byte[8];
+            for (int i = 0; i < result.Length; i++) {
+                // 16=little endian, flip the bytes
 				bigendian[0]=data[7+i*8];
 				bigendian[1]=data[6+i*8];
 				bigendian[2]=data[5+i*8];
@@ -411,67 +419,77 @@ public class ArrayConstructor : IObjectConstructor {
 				bigendian[6]=data[1+i*8];
 				bigendian[7]=data[0+i*8];
 				result[i] = PickleUtils.bytes_bigendian_to_double(bigendian, 0);
-			}
-		}
+            }
+        }
 		return result;
 	}
 
 	protected float[] constructFloatArray(int machinecode, byte[] data) {
 		var result = new float[data.Length / 4];
-		var bigendian=new byte[4];
-		for (int i = 0; i < data.Length / 4; ++i) {
-			if (machinecode == 15) {
-				result[i] = PickleUtils.bytes_bigendian_to_float(data, i * 4);
-			} else {
+        if (machinecode == 15) {
+            for (int i = 0; i < result.Length; i++) {
+                result[i] = PickleUtils.bytes_bigendian_to_float(data, i * 4);
+            }
+        } else {
+		    var bigendian=new byte[4];
+            for (int i = 0; i < result.Length; i++) {
 				// 14=little endian, flip the bytes
 				bigendian[0]=data[3+i*4];
 				bigendian[1]=data[2+i*4];
 				bigendian[2]=data[1+i*4];
 				bigendian[3]=data[0+i*4];
 				result[i] = PickleUtils.bytes_bigendian_to_float(bigendian, 0);
-			}
-		}
+            }
+        }
 		return result;
 	}
 
 	protected ushort[] constructUShortArrayFromUShort(int machinecode, byte[] data) {
 		var result = new ushort[data.Length / 2];
-		for(int i=0; i<data.Length/2; ++i) {
-			ushort b1=data[0+i*2];
-			ushort b2=data[1+i*2];
-			if(machinecode==2) {
+        if (machinecode == 2) {
+            for (int i = 0; i < result.Length; i++) {
+                ushort b1=data[0+i*2];
+			    ushort b2=data[1+i*2];
 			    result[i] = (ushort)((b2<<8) | b1);
-			} else {
+            }
+        } else {
+            for (int i = 0; i < result.Length; i++) {
+                ushort b1=data[0+i*2];
+			    ushort b2=data[1+i*2];
 				// big endian
 				result[i] = (ushort)((b1<<8) | b2);
-			}
-		}
+            }
+        }
 		return result;
 	}
 
 	protected short[] constructShortArraySigned(int machinecode, byte[] data) {
 		var result = new short[data.Length / 2];
-		var swapped=new byte[2];
 		if(BitConverter.IsLittleEndian) {
-    		for(int i=0; i<data.Length/2; ++i) {
-    			if(machinecode==4) {
+            if (machinecode == 4) { 
+                for (int i = 0; i < result.Length; i++) {
 		            result[i]=BitConverter.ToInt16(data, i*2);
-    			} else {
-		            swapped[0]=data[1+i*2];
+                }
+            } else {
+		        var swapped=new byte[2];
+                for (int i = 0; i < result.Length; i++) {
+                    swapped[0] = data[1+i*2];
 		            swapped[1]=data[0+i*2];
     			    result[i]=BitConverter.ToInt16(swapped,0);
-    			}
-    		}
+                }
+            }
 		} else {
-		    // big endian
-    		for(int i=0; i<data.Length/2; ++i) {
-    			if(machinecode==5) {
+            if (machinecode == 5) { 
+                for (int i = 0; i < result.Length; i++) {
     			    result[i]=BitConverter.ToInt16(data, i*2);
-    			} else {
-		            swapped[0]=data[1+i*2];
+                }
+            } else {
+		        var swapped=new byte[2];
+                for (int i = 0; i < result.Length; i++) {
+                    swapped[0]=data[1+i*2];
 		            swapped[1]=data[0+i*2];
     			    result[i]=BitConverter.ToInt16(swapped,0);
-    			}
+                }
     		}
 		}
 		return result;
@@ -479,17 +497,18 @@ public class ArrayConstructor : IObjectConstructor {
 
 	protected char[] constructCharArrayUTF32(int machinecode, byte[] data) {
 		var result = new char[data.Length / 4];
-		var bigendian=new byte[4];
-		for (int index = 0; index < data.Length / 4; ++index) {
-			if (machinecode == 20) { 
+        if (machinecode == 20) {
+            for (int index = 0; index < result.Length; ++index) {
 		        int codepoint=PickleUtils.bytes_to_integer(data, index*4, 4);
 		        string cc=char.ConvertFromUtf32(codepoint);
-				if(cc.Length>1)
+                if (cc.Length>1)
 					throw new PickleException("cannot process UTF-32 character codepoint "+codepoint);
 		        result[index] = cc[0];
-			}
-			else {
-				// big endian, swap
+            }
+        } else {
+		    var bigendian=new byte[4];
+            for (int index = 0; index < result.Length; ++index) {
+                // big endian, swap
 				bigendian[0]=data[3+index*4];
 				bigendian[1]=data[2+index*4];
 				bigendian[2]=data[1+index*4];
@@ -499,28 +518,28 @@ public class ArrayConstructor : IObjectConstructor {
 				if(cc.Length>1)
 					throw new PickleException("cannot process UTF-32 character codepoint "+codepoint);
 				result[index] = cc[0];
-			}
-		}
+            }
+        }
 		return result;
 	}
 
 	protected char[] constructCharArrayUTF16(int machinecode, byte[] data) {
 		var result = new char[data.Length / 2];
-		var bigendian=new byte[2];
-		for (int index = 0; index < data.Length / 2; ++index) {
-			if (machinecode == 18) { 
+        if (machinecode == 18) {
+		    for (int index = 0; index < result.Length; ++index) {
 				result[index] = (char) PickleUtils.bytes_to_integer(data, index*2, 2);
-			}
-			else {
-				// big endian, swap
+            }
+        } else {
+		    var bigendian=new byte[2];
+		    for (int index = 0; index < result.Length; ++index) {
+                // big endian, swap
 				bigendian[0]=data[1+index*2];
 				bigendian[1]=data[0+index*2];
 				result[index] = (char) PickleUtils.bytes_to_integer(bigendian);
-			}
-		}
+            }
+        }
 		return result;
 	}    
 }
-
 
 }

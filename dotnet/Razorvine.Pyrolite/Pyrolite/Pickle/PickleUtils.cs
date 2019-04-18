@@ -1,6 +1,8 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
+using System.Buffers.Binary;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 // ReSharper disable InconsistentNaming
@@ -22,9 +24,9 @@ public static class PickleUtils {
 		while (true) {
 			int c = input.ReadByte();
 			if (c == -1) {
-				if (sb.Length == 0)
-					throw new IOException("premature end of file");
-				break;
+                if (sb.Length == 0)
+                    ThrowPrematureEndOfInputStream();
+                break;
 			}
 			if (c != '\n' || includeLF)
 				sb.Append((char) c);
@@ -34,16 +36,57 @@ public static class PickleUtils {
 		return sb.ToString();
 	}
 
+    internal static int readline_into(Stream input, ref byte[] buffer, bool includeLF = false)
+    {
+        Debug.Assert(buffer != null);
+        byte[] localBuffer = buffer;
+
+        int count = 0;
+		while (true) {
+			int c = input.ReadByte();
+			if (c == -1) {
+				if (count == 0) ThrowPrematureEndOfInputStream();
+				break;
+			}
+			if (c != '\n' || includeLF)
+            {
+                if (count == localBuffer.Length)
+                {
+                    Array.Resize(ref localBuffer, localBuffer.Length == 0 ? 16 : localBuffer.Length * 2);
+                    buffer = localBuffer;
+                }
+                localBuffer[count++] = (byte)c;
+            }
+			if (c == '\n')
+			    break;
+		}
+
+		return count;
+    }
+
+    internal static bool IsWhitespace(ReadOnlySpan<byte> bytes)
+    {
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            if (!char.IsWhiteSpace((char)bytes[i]))
+                return false;
+        }
+        return true;
+    }
+
 	/**
 	 * read a single unsigned byte
 	 */
 	public static byte readbyte(Stream input) {
 		int b = input.ReadByte();
 		if(b<0) {
-			throw new IOException("premature end of input stream");
+			ThrowPrematureEndOfInputStream();
 		}
 		return (byte)b;
 	}
+
+    private static void ThrowPrematureEndOfInputStream() =>
+        throw new IOException("premature end of input stream");
 
 	/**
 	 * read a number of signed bytes
@@ -59,8 +102,7 @@ public static class PickleUtils {
 	 */
 	public static byte[] readbytes(Stream input, long n) {
 		try {
-			int small_n = Convert.ToInt32(n);
-			return readbytes(input, small_n);
+			return readbytes(input, checked((int)n));
 		} catch (OverflowException x) {
 			throw new PickleException("pickle too large, can't read more than maxint", x);
 		}
@@ -73,9 +115,20 @@ public static class PickleUtils {
 		while (length > 0) {
 			int read = input.Read(buffer, offset, length);
 			if (read <= 0)
-				throw new IOException("read error; expected more bytes");
-			offset += read;
+                ThrowPrematureEndOfInputStream();
+            offset += read;
 			length -= read;
+		}
+	}
+
+    /**
+	 * read a number of signed bytes into the specified location in an existing byte array
+	 */
+	internal static void readbytes_into(Stream input, byte[] buffer, int offset, long length) {
+        try {
+			readbytes_into(input, buffer, offset, checked((int)length));
+		} catch (OverflowException x) {
+			throw new PickleException("pickle too large, can't read more than maxint", x);
 		}
 	}
 
@@ -167,9 +220,7 @@ public static class PickleUtils {
 			throw new PickleException("decoding double: too few bytes");
 	    }
     	if(BitConverter.IsLittleEndian) {
-			// reverse the bytes to make them littleendian for the bitconverter
-			byte[] littleendian={ bytes[7+offset], bytes[6+offset], bytes[5+offset], bytes[4+offset], bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
-			return BitConverter.ToDouble(littleendian,0);
+            return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64BigEndian(bytes.AsSpan(offset)));
 		}
 		return BitConverter.ToDouble(bytes,offset);
 	}
@@ -182,9 +233,8 @@ public static class PickleUtils {
 			throw new PickleException("decoding float: too few bytes");
 	    }
     	if(BitConverter.IsLittleEndian) {
-			// reverse the bytes to make them littleendian for the bitconverter
-			byte[] littleendian={ bytes[3+offset], bytes[2+offset], bytes[1+offset], bytes[0+offset] };
-			return BitConverter.ToSingle(littleendian,0);
+            int intVal = BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(offset));
+            unsafe { return *(float*)&intVal; };
 		}
 		return BitConverter.ToSingle(bytes,offset);
 	}
@@ -198,7 +248,7 @@ public static class PickleUtils {
 		if (data.Length == 0)
 			return 0L;
 		if (data.Length>8)
-			throw new PickleException("value to large for long, biginteger needed");
+			throw new PickleException("value too large for long, biginteger needed");
 		if( data.Length<8) {
 			// bitconverter requires exactly 8 bytes so we need to extend it
 			var larger=new byte[8];
@@ -224,12 +274,19 @@ public static class PickleUtils {
 	 * converted to the corresponding chars, without using a given character
 	 * encoding
 	 */
-	public static string rawStringFromBytes(byte[] data) {
-		StringBuilder str = new StringBuilder(data.Length);
-		foreach (byte b in data) {
-			str.Append((char)b);
-		}
-		return str.ToString();
+	public static string rawStringFromBytes(byte[] data)
+    {
+        return rawStringFromBytes(new ReadOnlySpan<byte>(data));
+    }
+
+    internal static unsafe string rawStringFromBytes(ReadOnlySpan<byte> data) {
+        var result = new string('\0', data.Length); // Use String.Create instead when it's available
+        fixed (char* resultPtr = result)
+        {
+            for (int i = 0; i < data.Length; i++)
+                resultPtr[i] = (char)data[i];
+        }
+        return result;
 	}
 	
 	/**

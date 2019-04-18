@@ -1,8 +1,12 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
+using System.Buffers;
+using System.Buffers.Binary;
+using System.Buffers.Text;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -29,11 +33,26 @@ public class Unpickler : IDisposable {
 	protected readonly IDictionary<int, object> memo;
 	protected UnpickleStack stack;
 	protected Stream input;
-	protected static readonly IDictionary<string, IObjectConstructor> objectConstructors;
+	protected static readonly IDictionary<string, IObjectConstructor> objectConstructors = CreateObjectConstructorsDictionary();
 	protected static readonly object NO_RETURN_VALUE = new object();
+    private static readonly string[] quoteStrings = new [] { "\"", "'" };
+    private static readonly object boxedFalse = false;
+    private static readonly object boxedTrue = true;
+    private byte[] byteBuffer = new byte[sizeof(long)]; // at least large enough for any primitive being deserialized
+    private Dictionary<StringPair, string> concatenatedModuleNames;
 
-	static Unpickler() {
-		objectConstructors = new Dictionary<string, IObjectConstructor>
+    private readonly struct StringPair : IEquatable<StringPair>
+    {
+        public readonly string Item1, Item2;
+        public StringPair(string item1, string item2) { Item1 = item1; Item2 = item2; }
+        public bool Equals(StringPair other) => Item1 == other.Item1 && Item2 == other.Item2;
+        public override bool Equals(object obj) => obj is StringPair sp && Equals(sp);
+        public override int GetHashCode() => Item1.GetHashCode() ^ Item2.GetHashCode();
+    }
+
+    private static Dictionary<string, IObjectConstructor> CreateObjectConstructorsDictionary()
+    {
+        return new Dictionary<string, IObjectConstructor>(15)
 		{
 			["__builtin__.complex"] = new AnyClassConstructor(typeof(ComplexNumber)),
 			["builtins.complex"] = new AnyClassConstructor(typeof(ComplexNumber)),
@@ -341,34 +360,45 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_false() {
-		stack.add(false);
+		stack.add(boxedFalse);
 	}
 
 	private void load_true() {
-		stack.add(true);
+		stack.add(boxedTrue);
 	}
 
-	private void load_int() {
-		string data = PickleUtils.readline(input, true);
-		object val;
-		if (data==Opcodes.FALSE.Substring(1))
-			val = false;
-		else if (data==Opcodes.TRUE.Substring(1))
-			val = true;
-		else {
-			string number=data.Substring(0, data.Length - 1);
-			try {
-				val=int.Parse(number);
-			} catch (OverflowException) {
-				// hmm, integer didnt' work.. is it perhaps an int from a 64-bit python? so try long:
-				val = long.Parse(number);
-			}
-		}
-		stack.add(val);
-	}
+    private void load_int() {
+        int len = PickleUtils.readline_into(input, ref byteBuffer, includeLF: true);
+        object val;
+        if (len == 3 && byteBuffer[2] == (byte)'\n' && byteBuffer[0] == (byte)'0') {
+            if (byteBuffer[1] == (byte)'0') {
+                load_false();
+                return;
+            }
+            else if (byteBuffer[1] == (byte)'1') {
+                load_true();
+                return;
+            }
+        }
+
+        len--;
+        if (len > 0 && Utf8Parser.TryParse(byteBuffer.AsSpan(0, len), out int intNumber, out int bytesConsumed) && bytesConsumed == len) {
+            val = intNumber;
+        }
+        else if (len > 0 && Utf8Parser.TryParse(byteBuffer.AsSpan(0, len), out long longNumber, out bytesConsumed) && bytesConsumed == len) {
+            val = longNumber;
+        }
+        else {
+            val = long.Parse(PickleUtils.rawStringFromBytes(byteBuffer.AsSpan(0, len)));
+            Debug.Fail("long.Parse should have thrown.");
+        }
+
+        stack.add(val);
+    }
 
 	private void load_binint()  {
-		int integer = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(int));
+		int integer = BinaryPrimitives.ReadInt32LittleEndian(byteBuffer);
 		stack.add(integer);
 	}
 
@@ -377,7 +407,8 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_binint2() {
-		int integer = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 2));
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(short));
+		int integer = BinaryPrimitives.ReadUInt16LittleEndian(byteBuffer);
 		stack.add(integer);
 	}
 
@@ -401,26 +432,32 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_long4() {
-		int n = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(int));
+		int n = BinaryPrimitives.ReadInt32LittleEndian(byteBuffer);
 		var data = PickleUtils.readbytes(input, n);
 		stack.add(PickleUtils.decode_long(data));
 	}
 
 	private void load_float() {
-		string val = PickleUtils.readline(input, true);
-		double d=double.Parse(val, NumberStyles.Float|NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingSign, NumberFormatInfo.InvariantInfo);
+        int len = PickleUtils.readline_into(input, ref byteBuffer, includeLF: true);
+        ReadOnlySpan<byte> bytes = byteBuffer.AsSpan(0, len);
+        if (!Utf8Parser.TryParse(bytes, out double d, out int bytesConsumed) || !PickleUtils.IsWhitespace(bytes.Slice(bytesConsumed)))
+        {
+            throw new FormatException();
+        }
 		stack.add(d);
 	}
 
 	private void load_binfloat() {
-		double val = PickleUtils.bytes_bigendian_to_double(PickleUtils.readbytes(input, 8),0);
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(long));
+        double val = BitConverter.Int64BitsToDouble(BinaryPrimitives.ReadInt64BigEndian(byteBuffer));
 		stack.add(val);
 	}
 
 	private void load_string() {
 		string rep = PickleUtils.readline(input);
 		bool quotesOk = false;
-		foreach (string q in new [] { "\"", "'" }) // double or single quote
+		foreach (string q in quoteStrings) // double or single quote
 		{
 			if (rep.StartsWith(q)) {
 				if (!rep.EndsWith(q)) {
@@ -439,18 +476,22 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_binstring() {
-		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
-		var data = PickleUtils.readbytes(input, len);
-		stack.add(PickleUtils.rawStringFromBytes(data));
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(int));
+		int len = BinaryPrimitives.ReadInt32LittleEndian(byteBuffer);
+        EnsureByteBufferLength(len);
+        PickleUtils.readbytes_into(input, byteBuffer, 0, len);
+		stack.add(PickleUtils.rawStringFromBytes(byteBuffer.AsSpan(0, len)));
 	}
 
 	private void load_binbytes() {
-		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(int));
+		int len = BinaryPrimitives.ReadInt32LittleEndian(byteBuffer);
 		stack.add(PickleUtils.readbytes(input, len));
 	}
 
 	private void load_binbytes8() {
-		long len = PickleUtils.bytes_to_long(PickleUtils.readbytes(input, 8),0);
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(long));
+        long len = BinaryPrimitives.ReadInt64LittleEndian(byteBuffer);
 		stack.add(PickleUtils.readbytes(input, len));
 	}
 
@@ -460,15 +501,25 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_binunicode() {
-		int len = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(int));
+		int len = BinaryPrimitives.ReadInt32LittleEndian(byteBuffer);
 		var data = PickleUtils.readbytes(input, len);
 		stack.add(Encoding.UTF8.GetString(data));
 	}
 
-	private void load_binunicode8() {
-		long len = PickleUtils.bytes_to_long(PickleUtils.readbytes(input, 8),0);
-		var data = PickleUtils.readbytes(input, len);
-		stack.add(Encoding.UTF8.GetString(data));
+    private void EnsureByteBufferLength(long len) {
+        if (len > byteBuffer.Length)
+        {
+            byteBuffer = new byte[Math.Max(len, byteBuffer.Length * 2)];
+        }
+    }
+
+	private unsafe void load_binunicode8() {
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(long));
+        long len = BinaryPrimitives.ReadInt64LittleEndian(byteBuffer);
+        EnsureByteBufferLength(len);
+        PickleUtils.readbytes_into(input, byteBuffer, 0, len);
+        stack.add(Encoding.UTF8.GetString(byteBuffer, 0, (int)len));
 	}
 
 	private void load_short_binunicode() {
@@ -479,8 +530,9 @@ public class Unpickler : IDisposable {
 
 	private void load_short_binstring() {
 		byte len = PickleUtils.readbyte(input);
-		var data = PickleUtils.readbytes(input, len);
-		stack.add(PickleUtils.rawStringFromBytes(data));
+        EnsureByteBufferLength(len);
+		PickleUtils.readbytes_into(input, byteBuffer, 0, len);
+		stack.add(PickleUtils.rawStringFromBytes(byteBuffer.AsSpan(0, len)));
 	}
 
 	private void load_short_binbytes() {
@@ -489,12 +541,11 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_tuple() {
-		ArrayList top=stack.pop_all_since_marker();
-		stack.add(top.ToArray());
+		stack.add(stack.pop_all_since_marker_as_array());
 	}
 
 	private void load_empty_tuple() {
-		stack.add(new object[0]);
+		stack.add(Array.Empty<object>());
 	}
 
 	private void load_tuple1() {
@@ -532,9 +583,9 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_dict() {
-		ArrayList top = stack.pop_all_since_marker();
-		Hashtable map=new Hashtable(top.Count);
-		for (int i = 0; i < top.Count; i += 2) {
+		object[] top = stack.pop_all_since_marker_as_array();
+		Hashtable map=new Hashtable(top.Length);
+		for (int i = 0; i < top.Length; i += 2) {
 			object key = top[i];
 			object value = top[i+1];
 			map[key]=value;
@@ -543,7 +594,7 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_frozenset() {
-		ArrayList top = stack.pop_all_since_marker();
+		object[] top = stack.pop_all_since_marker_as_array();
 		var set = new HashSet<object>();
 		foreach(var element in top)
 			set.Add(element);
@@ -551,7 +602,7 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_additems() {
-		ArrayList top = stack.pop_all_since_marker();
+		object[] top = stack.pop_all_since_marker_as_array();
 		var set = (HashSet<object>) stack.pop();
 		foreach(object item in top)
 			set.Add(item);
@@ -559,9 +610,13 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_global() {
-		string module = PickleUtils.readline(input);
-		string name = PickleUtils.readline(input);
-		load_global_sub(module, name);
+        int stringLen = PickleUtils.readline_into(input, ref byteBuffer);
+        string module = Encoding.UTF8.GetString(byteBuffer, 0, stringLen);
+
+        stringLen = PickleUtils.readline_into(input, ref byteBuffer);
+        string name = Encoding.UTF8.GetString(byteBuffer, 0, stringLen);
+
+        load_global_sub(module, name);
 	}
 
 	private void load_stack_global() {
@@ -570,41 +625,47 @@ public class Unpickler : IDisposable {
 		load_global_sub(module, name);
 	}
 
-	private void load_global_sub(string module, string name) {
-		IObjectConstructor constructor;
-		string key=module+"."+name;
-		if(objectConstructors.ContainsKey(key)) {
-			 constructor = objectConstructors[module + "." + name];
-		} else
-		{
-			switch (module)
-			{
-				// check if it is an exception
-				case "exceptions":
-					// python 2.x
-					constructor=new ExceptionConstructor(typeof(PythonException), module, name);
-					break;
-				case "builtins":
-				case "__builtin__":
-					if(name.EndsWith("Error") || name.EndsWith("Warning") || name.EndsWith("Exception")
-					   || name=="GeneratorExit" || name=="KeyboardInterrupt"
-					   || name=="StopIteration" || name=="SystemExit")
-					{
-						// it's a python 3.x exception
-						constructor=new ExceptionConstructor(typeof(PythonException), module, name);
-					}
-					else
-					{
-						// return a dictionary with the class's properties
-						constructor=new ClassDictConstructor(module, name);
-					}
+    private string GetModuleNameKey(string module, string name) {
+        if (concatenatedModuleNames == null) {
+            concatenatedModuleNames = new Dictionary<StringPair, string>();
+        }
 
-					break;
-				default:
-					constructor=new ClassDictConstructor(module, name);
-					break;
-			}
-		}
+        var sp = new StringPair(module, name);
+        if (!concatenatedModuleNames.TryGetValue(sp, out string key)) {
+            key = module + "." + name;
+            concatenatedModuleNames.Add(sp, key);
+        }
+
+        return key;
+    }
+
+	private void load_global_sub(string module, string name) {
+        if (!objectConstructors.TryGetValue(GetModuleNameKey(module, name), out IObjectConstructor constructor)) {
+            switch (module) {
+                // check if it is an exception
+                case "exceptions":
+                    // python 2.x
+                    constructor = new ExceptionConstructor(typeof(PythonException), module, name);
+                    break;
+                case "builtins":
+                case "__builtin__":
+                    if (name.EndsWith("Error") || name.EndsWith("Warning") || name.EndsWith("Exception")
+                        || name == "GeneratorExit" || name == "KeyboardInterrupt"
+                        || name == "StopIteration" || name == "SystemExit") {
+                        // it's a python 3.x exception
+                        constructor = new ExceptionConstructor(typeof(PythonException), module, name);
+                    }
+                    else {
+                        // return a dictionary with the class's properties
+                        constructor = new ClassDictConstructor(module, name);
+                    }
+
+                    break;
+                default:
+                    constructor = new ClassDictConstructor(module, name);
+                    break;
+            }
+        }
 		stack.add(constructor);		
 	}
 
@@ -637,7 +698,8 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_long_binget() {
-		int i = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(int));
+		int i = BinaryPrimitives.ReadInt32LittleEndian(byteBuffer);
 		if(!memo.ContainsKey(i)) throw new PickleException("invalid memo key");
 		stack.add(memo[i]);
 	}
@@ -657,7 +719,8 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_long_binput() {
-		int i = PickleUtils.bytes_to_integer(PickleUtils.readbytes(input, 4));
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(int));
+		int i = BinaryPrimitives.ReadInt32LittleEndian(byteBuffer);
 		memo[i]=stack.peek();
 	}
 
@@ -668,10 +731,11 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_appends() {
-		ArrayList top = stack.pop_all_since_marker();
+		object[] top = stack.pop_all_since_marker_as_array();
 		ArrayList list = (ArrayList) stack.peek();
-		list.AddRange(top);
-		list.TrimToSize();
+        for (int i = 0; i < top.Length; i++) {
+            list.Add(top[i]);
+        }
 	}
 
 	private void load_setitem() {
@@ -722,7 +786,7 @@ public class Unpickler : IDisposable {
 
 	private void load_frame() {
 		// for now we simply skip the frame opcode and its length
-		PickleUtils.readbytes(input, 8);
+        PickleUtils.readbytes_into(input, byteBuffer, 0, sizeof(long));
 	}
 
 	private void load_persid() {
@@ -738,27 +802,36 @@ public class Unpickler : IDisposable {
 	}
 
 	private void load_obj() {
-		ArrayList args = stack.pop_all_since_marker();
-		IObjectConstructor constructor = (IObjectConstructor)args[0];
-		args = args.GetRange(1, args.Count-1);
-		object obj = constructor.construct(args.ToArray());
-		stack.add(obj);
+		object[] popped = stack.pop_all_since_marker_as_array();
+
+        object[] args;
+        if (popped.Length > 1)
+        {
+            args = new object[popped.Length - 1];
+            Array.Copy(popped, 1, args, 0, args.Length);
+        }
+        else
+        {
+            args = Array.Empty<object>();
+        }
+
+		stack.add(((IObjectConstructor)popped[0]).construct(args));
 	}
 
 	private void load_inst() {
-		string module = PickleUtils.readline(input);
-		string classname = PickleUtils.readline(input);
-		ArrayList args = stack.pop_all_since_marker();
-		IObjectConstructor constructor;
-		if(objectConstructors.ContainsKey(module+"."+classname)) {
-			constructor = objectConstructors[module + "." + classname];
-		}
-		else {
+        int stringLen = PickleUtils.readline_into(input, ref byteBuffer);
+        string module = Encoding.UTF8.GetString(byteBuffer, 0, stringLen);
+
+        stringLen = PickleUtils.readline_into(input, ref byteBuffer);
+        string classname = Encoding.UTF8.GetString(byteBuffer, 0, stringLen);
+
+		object[] args = stack.pop_all_since_marker_as_array();
+
+		if(!objectConstructors.TryGetValue(GetModuleNameKey(module, classname), out IObjectConstructor constructor)) {
 			constructor = new ClassDictConstructor(module, classname);
-			args.Clear();  // classdict doesn't have constructor args... so we may lose info here, hmm.
+            args = Array.Empty<object>(); // classdict doesn't have constructor args... so we may lose info here, hmm.
 		}
-		object obj = constructor.construct(args.ToArray());
-		stack.add(obj);
+		stack.add(constructor.construct(args));
 	}
 	
 	protected virtual object persistentLoad(string pid)

@@ -89,7 +89,7 @@ public class UnpickleComplexTests
 		UnpickleRealProxy(pickledProxy);
 	}
 
-	[Fact]
+	[Fact] // fails on Windows due to "\r\n" line ending
 	public void TestUnpickleProto0Bytes() {
 		var pickle = File.ReadAllBytes("pickled_bytes_level0.dat");
 
