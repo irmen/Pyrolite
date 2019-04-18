@@ -8,9 +8,9 @@
     <Authors>Irmen de Jong</Authors>
     <Product>Serpent Python literal expression serialization</Product>
     <PackageId>Razorvine.Pyrolite</PackageId>
-    <Version>4.21.0</Version>
-    <AssemblyVersion>4.21.0.0</AssemblyVersion>
-    <FileVersion>4.21.0.0</FileVersion>
+    <Version>4.24.0</Version>
+    <AssemblyVersion>4.24.0.0</AssemblyVersion>
+    <FileVersion>4.24.0.0</FileVersion>
     <Summary>Pyro (Python Remote Objects) client library</Summary>
     <Description>Thin client-side communication library to connect to Python applications, using the Pyro protocol.
 Also includes Pickle/Unpickle.
@@ -21,7 +21,8 @@ More info about Pyro: https://pyro4.readthedocs.io/</Description>
     <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>pyro python rpc remote-objects</PackageTags>
-    <PackageReleaseNotes>Code style and C# language level cleanups, serpent 1.25 dependency, Compatible with dotnet core and NetStandard 2.0</PackageReleaseNotes>
+    <PackageReleaseNotes>Moved to C# 7 language level
+        Pickle and Unpickle performance improvements by creating less intermedite objects</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Razorvine.Serpent" Version="1.25.0" />
