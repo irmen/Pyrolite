@@ -89,12 +89,13 @@ public class UnpickleComplexTests
 		UnpickleRealProxy(pickledProxy);
 	}
 
-	[Fact] // fails on Windows due to "\r\n" line ending
+	[Fact]
 	public void TestUnpickleProto0Bytes() {
-		var pickle = File.ReadAllBytes("pickled_bytes_level0.dat");
+		// note: convert \r\n that may be inserted in the data file on windows, back to \n that pickle expects
+		var pickle = File.ReadAllText("pickled_bytes_level0.dat").Replace("\r\n", "\n");
 
 		PickleSerializer ser = new PickleSerializer();
-		string x = (string)ser.deserializeData(pickle);
+		string x = (string)ser.deserializeData(Encoding.UTF8.GetBytes(pickle));
 		Assert.Equal(2496, x.Length);
 		
 		// validate that the bytes in the string are what we expect (based on md5 hash)

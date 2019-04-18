@@ -16,6 +16,10 @@
 Also includes Pickle/Unpickle.
 More info about Pyro: https://pyro4.readthedocs.io/</Description>
     <Copyright>Copyright Irmen de Jong</Copyright>
+      <!--
+    <PackageLicenseExpression>MIT</PackageLicenseExpression> 
+    <PackageLicenseFile>../LICENSE</PackageLicenseFile>
+    --> 
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/irmen/Pyrolite</PackageProjectUrl>
     <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
