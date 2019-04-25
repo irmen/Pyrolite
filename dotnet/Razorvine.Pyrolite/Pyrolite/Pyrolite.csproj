@@ -8,9 +8,9 @@
     <Authors>Irmen de Jong</Authors>
     <Product>Serpent Python literal expression serialization</Product>
     <PackageId>Razorvine.Pyrolite</PackageId>
-    <Version>4.24.0</Version>
-    <AssemblyVersion>4.24.0.0</AssemblyVersion>
-    <FileVersion>4.24.0.0</FileVersion>
+    <Version>4.25.0</Version>
+    <AssemblyVersion>4.25.0.0</AssemblyVersion>
+    <FileVersion>4.25.0.0</FileVersion>
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>Pyrolite.snk</AssemblyOriginatorKeyFile>
@@ -28,11 +28,11 @@ More info about Pyro: https://pyro4.readthedocs.io/</Description>
     <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>pyro python rpc remote-objects</PackageTags>
-    <PackageReleaseNotes>Moved to C# 7 language level
-        Pickle and Unpickle performance improvements by creating less intermedite objects</PackageReleaseNotes>
+    <PackageReleaseNotes>assembly is now strong-name signed (so other strong-named assemblies can reference it)
+    updated dependency to Razorvine.Serpent 1.29 to get the strong-name signed version of that as well</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Razorvine.Serpent" Version="1.25.0" />
+    <PackageReference Include="Razorvine.Serpent" Version="1.29.0" />
     <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 </Project>

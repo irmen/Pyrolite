@@ -145,7 +145,7 @@ namespace Razorvine.Pyro
 		{
 			Assembly serpentAssembly = Assembly.Load("Razorvine.Serpent");
 			Version serpentVersion = serpentAssembly.GetName().Version;
-			Version requiredSerpentVersion = new Version(1, 20);
+			Version requiredSerpentVersion = new Version(1, 29);
 			if(serpentVersion<requiredSerpentVersion)
 				throw new NotSupportedException("serpent version "+requiredSerpentVersion+" (or newer) is required");
 
