@@ -17,8 +17,8 @@ public class UnpickleStack {
 	private object[] _stack;
     private int _count;
 
-	public UnpickleStack() {
-		_stack = new object[DefaultCapacity];
+	public UnpickleStack(int capacity = DefaultCapacity) {
+		_stack = new object[capacity];
 		MARKER = new object(); // any new unique object
 	}
 
