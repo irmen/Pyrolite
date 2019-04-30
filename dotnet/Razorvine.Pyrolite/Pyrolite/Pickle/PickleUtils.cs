@@ -252,7 +252,7 @@ public static class PickleUtils {
 		if( data.Length<8) {
 			// bitconverter requires exactly 8 bytes so we need to extend it
 			var larger=new byte[8];
-            data.CopyTo(larger);
+			data.CopyTo(larger);
 			
 			// check if we need to sign-extend (if the original number was negative)
 			if((data[data.Length-1]&0x80) == 0x80) {
@@ -262,7 +262,7 @@ public static class PickleUtils {
 			}
 			data=larger;
 		}
-        return BinaryPrimitives.ReadInt64LittleEndian(data);
+		return BinaryPrimitives.ReadInt64LittleEndian(data);
 	}
 	
 	/**
