@@ -20,7 +20,7 @@ namespace Razorvine.Pickle
 
         public ReadOnlySpan<byte> ReadBytes(int bytesCount)
         {
-            var result = input.Slice(position, bytesCount).Span;
+            var result = input.Span.Slice(position, bytesCount);
             position += bytesCount;
             return result;
         }
@@ -45,7 +45,7 @@ namespace Razorvine.Pickle
 
         private int GetLineEndIndex(bool includeLF = false)
         {
-            var bytes = input.Slice(position).Span;
+            var bytes = input.Span.Slice(position);
 
             if (includeLF)
                 return bytes.IndexOf((byte) '\n') + 1;
