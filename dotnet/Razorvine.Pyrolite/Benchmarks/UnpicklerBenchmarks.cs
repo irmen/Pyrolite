@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System;
+using BenchmarkDotNet.Attributes;
 using Razorvine.Pickle;
 using System.IO;
 using System.Linq;
@@ -52,5 +53,17 @@ namespace Benchmarks
 
         [Benchmark]
         public object StringsFromArray() => new Unpickler().loads(_serializedStrings);
+
+        [Benchmark]
+        public object DoublesFromReadOnlyMemory() => new Unpickler().loads(new ReadOnlyMemory<byte>(_serializedDoubles));
+
+        [Benchmark]
+        public object IntegersFromReadOnlyMemory() => new Unpickler().loads(new ReadOnlyMemory<byte>(_serializedIntegers));
+
+        [Benchmark]
+        public object BooleansFromReadOnlyMemory() => new Unpickler().loads(new ReadOnlyMemory<byte>(_serializedBooleans));
+
+        [Benchmark]
+        public object StringsFromReadOnlyMemory() => new Unpickler().loads(new ReadOnlyMemory<byte>(_serializedStrings));
     }
 }

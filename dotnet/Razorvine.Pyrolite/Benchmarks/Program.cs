@@ -12,6 +12,6 @@ namespace Benchmarks
                 .FromAssembly(typeof(Program).Assembly)
                 .Run(args, DefaultConfig.Instance
                     .With(MemoryDiagnoser.Default)
-                    .With(Job.ShortRun));
+                    .With(Job.ShortRun.AsDefault()));
     }
 }
