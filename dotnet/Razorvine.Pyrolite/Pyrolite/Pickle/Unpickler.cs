@@ -87,6 +87,18 @@ public class Unpickler : IDisposable {
         return unpickler.Load();
     }
 
+    /// <summary>
+    /// Read a pickled object representation from the given pickle data memory buffer.
+    /// </summary>
+    /// <param name="pickledata">Serialized pickle data.</param>
+    /// <param name="stackCapacity">Optional parameter that suggests the initial capacity of stack. The default value is 4.</param>
+    /// <returns>the reconstituted object hierarchy specified in the memory buffer.</returns>
+    public object loads(ReadOnlyMemory<byte> pickledata, int stackCapacity = UnpickleStack.DefaultCapacity) {
+        stack = new UnpickleStack(stackCapacity);
+        var unpickler = new Unpickler<ReadOnlyMemoryReader>(new ReadOnlyMemoryReader(pickledata), memo, stack, this);
+        return unpickler.Load();
+    }
+
 	/**
 	 * Close the unpickler and frees the resources such as the unpickle stack and memo table.
 	 */
