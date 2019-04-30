@@ -71,18 +71,19 @@ public class Unpickler : IDisposable {
 	 */
 	public object load(Stream stream) {
         stack = new UnpickleStack();
-        var unpickler = new GenericUnpickler<StreamReader>(new StreamReader(stream), memo, stack, this);
+        var unpickler = new Unpickler<StreamReader>(new StreamReader(stream), memo, stack, this);
         return unpickler.Load();
     }
 
-	/**
-	 * Read a pickled object representation from the given pickle data bytes.
-	 * 
-	 * @return the reconstituted object hierarchy specified in the file.
-	 */
-	public object loads(byte[] pickledata) {
-        stack = new UnpickleStack();
-        var unpickler = new GenericUnpickler<ArrayReader>(new ArrayReader(pickledata), memo, stack, this);
+    /// <summary>
+    /// Read a pickled object representation from the given pickle data bytes.
+    /// </summary>
+    /// <param name="pickledata">Serialized pickle data.</param>
+    /// <param name="stackCapacity">Optional parameter that suggests the initial capacity of stack. The default value is 4.</param>
+    /// <returns>the reconstituted object hierarchy specified in the memory buffer.</returns>
+    public object loads(byte[] pickledata, int stackCapacity = UnpickleStack.DefaultCapacity) {
+        stack = new UnpickleStack(stackCapacity);
+        var unpickler = new Unpickler<ArrayReader>(new ArrayReader(pickledata), memo, stack, this);
         return unpickler.Load();
     }
 
