@@ -42,7 +42,15 @@ namespace Razorvine.Pickle
 
         public void Skip(int bytesCount)
         {
-            input.Position += bytesCount;
+            if (input.CanSeek)
+            {
+                input.Seek(bytesCount, SeekOrigin.Current);
+            }
+            else
+            {
+                EnsureByteBufferLength(bytesCount);
+                input.Read(buffer, 0, bytesCount);
+            }
         }
 
         private void EnsureByteBufferLength(int bytesCount)
