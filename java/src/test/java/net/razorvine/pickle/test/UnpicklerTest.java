@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
@@ -630,4 +631,40 @@ public class UnpicklerTest {
 
         System.out.println(System.currentTimeMillis() - start);
     }
+
+	@Test
+	public void testNestedLists() throws PickleException, IOException
+	{
+		byte[][] array = new byte[2][20];
+
+		array[0] = new byte[] { -128, 4, -107, 11, 0, 0, 0, 0, 0, 0, 0, 93, -108, 93, -108, 75, 1, 97, -123, -108, 97, 46 };
+		array[1] = new byte[] { -128, 4, -107, 31, 0, 0, 0, 0, 0, 0, 0, 93, -108, 40, 93, -108, 75, 1, 97, -123, -108, 93, -108, 75, 1, 97, -123, -108, 104, 3, -123, -108, 104, 3, -123, -108, 104, 3, -123, -108, 101, 46 };
+
+		ArrayList<Integer> expected = new ArrayList<>();
+		expected.add(1);
+
+		// We reuse this Unpickler to unpickle each bytes without calling close.
+		Unpickler unpickler = new Unpickler();
+
+		for (int bytesIdx = 0; bytesIdx < array.length; bytesIdx++) {
+			ArrayList<ArrayList<Object>> pickled1 = (ArrayList<ArrayList<Object>>) unpickler.loads(array[bytesIdx]);
+			ArrayList<ArrayList<Object>> pickled2 = (ArrayList<ArrayList<Object>>) U(array[bytesIdx]);
+
+			Iterator iter1 = pickled1.iterator();
+			Iterator iter2 = pickled2.iterator();
+
+			while (iter1.hasNext()) {
+				Object[] obj1 = (Object[]) iter1.next();
+				Object[] obj2 = (Object[]) iter2.next();
+
+				for (int idx = 0; idx < obj1.length; idx++) {
+					assertEquals(expected, (ArrayList<Integer>)obj1[idx]);
+				}
+
+				// Unpickled results from an reused Unpickler should be the same as the Unpickler
+				// that closes after each unpickling.
+				assertArrayEquals(obj1, obj2);
+			}
+		}
+	}
 }
