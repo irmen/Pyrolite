@@ -43,6 +43,7 @@ namespace Razorvine.Pickle
 
             object value = stack.pop();
             stack.clear();
+            unpickler.memo.Clear();
             return value; // final result value
         }
 
