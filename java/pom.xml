@@ -9,7 +9,7 @@
 
 	<groupId>net.razorvine</groupId>
 	<artifactId>pyrolite</artifactId>
-	<version>4.24-SNAPSHOT</version>
+	<version>4.26-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>pyrolite</name>
@@ -100,7 +100,7 @@ Pyrolite only implements part of the client side Pyro library, hence its name 'l
 
 (More info about Pyro itself: https://pyro4.readthedocs.io/ )
 
-Version 4.24 changes:
-....
+Version 4.26 changes:
+....@TODO@....
 </description>
 </project>

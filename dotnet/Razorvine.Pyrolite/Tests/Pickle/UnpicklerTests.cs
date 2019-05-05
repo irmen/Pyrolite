@@ -25,10 +25,10 @@ public class UnpicklerTests {
 
 	private static object U(byte[] data) 
 	{
-		Unpickler u=new Unpickler();
-		object o=u.loads(data);
-		u.close();
-		return o;		
+		using (var u = new Unpickler())
+		{
+			return u.loads(data);
+		}
 	}
 	
 	
@@ -533,6 +533,54 @@ public class UnpicklerTests {
 
         Console.WriteLine(DateTime.Now - start);
     }	
+    
+    
+    [Fact]
+    public void TestUnpicklerNoMapReuse()
+    {
+	    var array = new List<byte[]>
+	    {
+		    // [([1],)]
+		    new byte[] {0x80, 4, 0x95, 11, 0, 0, 0, 0, 0, 0, 0, 93, 0x94, 93, 0x94, 75, 1, 97, 0x85, 0x94, 97, 46},
+		    // [([1],), ([1],), ([1],), ([1],), ([1],)]
+		    new byte[]
+		    {
+			    0x80, 4, 0x95, 31, 0, 0, 0, 0, 0, 0, 0, 93, 0x94, 40, 93, 0x94, 75, 1, 97, 0x85, 0x94, 93, 0x94,
+			    75, 1, 97, 0x85, 0x94, 104, 3, 0x85, 0x94, 104, 3, 0x85, 0x94, 104, 3, 0x85, 0x94, 101, 46
+		    }
+	    };
+
+	    var expected = new ArrayList {1};
+
+	    // We reuse this Unpickler to unpickle each bytes without calling close.
+	    var unpickler = new Unpickler();
+
+	    foreach (var picklebytes in array)
+	    {
+		    var unpickled1 = (ArrayList) unpickler.loads(picklebytes);
+		    ArrayList unpickled2;
+		    using (var up2 = new Unpickler())
+		    {
+			    unpickled2 = (ArrayList) up2.loads(picklebytes);
+		    }
+
+		    var iter1 = unpickled1.GetEnumerator();
+		    var iter2 = unpickled2.GetEnumerator();
+
+		    while (iter1.MoveNext() && iter2.MoveNext())
+		    {
+			    var obj1 = (object[]) iter1.Current;
+			    var obj2 = (object[]) iter2.Current;
+			    foreach (var obj in obj1)
+			    {
+				    Assert.Equal(expected, obj);
+			    }
+			    // Unpickled results from a reused Unpickler should be the same as the Unpickler
+			    // that closes after each unpickling.
+			    Assert.Equal(obj1, obj2);
+		    }
+	    }
+    }    
 }
 
 }
