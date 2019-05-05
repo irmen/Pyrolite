@@ -12,7 +12,7 @@
  * Note that Pyrolite only supports Pyro4.
  *
  * @author Irmen de Jong (irmen@razorvine.net)
- * @version 4.24
+ * @version 4.26
  * @see net.razorvine.pickle
  */
 package net.razorvine.pyro;

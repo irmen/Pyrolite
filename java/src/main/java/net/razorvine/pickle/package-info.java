@@ -10,7 +10,7 @@
  * functionality.
  *
  * @author Irmen de Jong (irmen@razorvine.net)
- * @version 4.24
+ * @version 4.26
  */
 package net.razorvine.pickle;
 
