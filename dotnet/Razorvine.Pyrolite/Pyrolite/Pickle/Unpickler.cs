@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.InteropServices;
 using Razorvine.Pickle.Objects;
 
 namespace Razorvine.Pickle
@@ -105,6 +106,11 @@ public class Unpickler : IDisposable {
     /// <param name="stackCapacity">Optional parameter that suggests the initial capacity of stack. The default value is 4.</param>
     /// <returns>the reconstituted object hierarchy specified in the memory buffer.</returns>
     public object loads(ReadOnlyMemory<byte> pickledata, int stackCapacity = UnpickleStack.DefaultCapacity) {
+        // ROM is super fast for .NET Core 3.0, but Array is fast for all the runtimes
+        // if we can get an array out of ROM, we use the Array instead
+        if (MemoryMarshal.TryGetArray(pickledata, out ArraySegment<byte> arraySegment))
+            return loads(arraySegment.Array, stackCapacity);
+
         stack = new UnpickleStack(stackCapacity);
         var unpickler = new Unpickler<ReadOnlyMemoryReader>(new ReadOnlyMemoryReader(pickledata), memo, stack, this);
         return unpickler.Load();

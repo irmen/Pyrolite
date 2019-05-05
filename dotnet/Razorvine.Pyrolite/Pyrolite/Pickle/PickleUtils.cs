@@ -101,11 +101,7 @@ public static class PickleUtils {
 	 * read a number of signed bytes
 	 */
 	public static byte[] readbytes(Stream input, long n) {
-		try {
-			return readbytes(input, checked((int)n));
-		} catch (OverflowException x) {
-			throw new PickleException("pickle too large, can't read more than maxint", x);
-		}
+		return readbytes(input, CheckedCast(n));
 	}
 
 	/**
@@ -125,11 +121,7 @@ public static class PickleUtils {
 	 * read a number of signed bytes into the specified location in an existing byte array
 	 */
 	internal static void readbytes_into(Stream input, byte[] buffer, int offset, long length) {
-        try {
-			readbytes_into(input, buffer, offset, checked((int)length));
-		} catch (OverflowException x) {
-			throw new PickleException("pickle too large, can't read more than maxint", x);
-		}
+        readbytes_into(input, buffer, offset, CheckedCast(length));
 	}
 
 	/**
@@ -287,14 +279,16 @@ public static class PickleUtils {
 
     internal static int CheckedCast(long length)
     {
-        try
-        {
-            return checked((int)length);
-        }
-        catch (OverflowException x)
-        {
-            throw new PickleException("pickle too large, can't read more than maxint", x);
-        }
+        if (length > int.MaxValue)
+            ThrowPickleTooLargeForInt32Overflow(length);
+
+        return (int)length;
+    }
+    
+    private static void ThrowPickleTooLargeForInt32Overflow(long length)
+    {
+        // this throw is kept in a separate method to allow for the CheckedCast method inlining
+        throw new PickleException($"pickle too large ({length}), can't read more than maxint");
     }
 
     internal static string GetStringFromUtf8(in ReadOnlySpan<byte> utf8)
