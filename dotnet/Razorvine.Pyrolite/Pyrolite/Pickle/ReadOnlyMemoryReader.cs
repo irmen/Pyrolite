@@ -46,11 +46,10 @@ namespace Razorvine.Pickle
         private int GetLineEndIndex(bool includeLF = false)
         {
             var bytes = input.Span.Slice(position);
-
+            int index = bytes.IndexOf((byte)'\n');
             if (includeLF)
-                return bytes.IndexOf((byte) '\n') + 1;
-            else
-                return bytes.IndexOf((byte) '\n');
+                index++;
+            return index;
         }
     }
 }
