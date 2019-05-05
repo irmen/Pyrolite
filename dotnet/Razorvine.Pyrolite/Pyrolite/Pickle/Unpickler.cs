@@ -132,6 +132,7 @@ public class Unpickler : IDisposable {
 		case Opcodes.STOP:
 			object value = stack.pop();
 			stack.clear();
+			memo.Clear();
 			return value;		// final result value
 		case Opcodes.POP:
 			load_pop();
