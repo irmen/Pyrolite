@@ -21,11 +21,10 @@ namespace Razorvine.Pickle
 [SuppressMessage("ReSharper", "InvertIf")]
 public class Unpickler : IDisposable {
 
-	protected internal const int HIGHEST_PROTOCOL = 4;
+	public const int HIGHEST_PROTOCOL = 4;
 
-	protected readonly IDictionary<int, object> memo;
-	protected UnpickleStack stack;
-	protected Stream input;
+	internal readonly IDictionary<int, object> memo;
+	private UnpickleStack stack;
 	protected internal static readonly IDictionary<string, IObjectConstructor> objectConstructors = CreateObjectConstructorsDictionary();
 
     private static Dictionary<string, IObjectConstructor> CreateObjectConstructorsDictionary()
@@ -122,7 +121,6 @@ public class Unpickler : IDisposable {
 	public void close() {
 		stack?.clear();
 		memo?.Clear();
-		input?.Close();
 	}
 
 	protected internal virtual object persistentLoad(string pid)
