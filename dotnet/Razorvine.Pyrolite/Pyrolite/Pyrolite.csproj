@@ -28,7 +28,9 @@ More info about Pyro: https://pyro4.readthedocs.io/</Description>
     <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>pyro python rpc remote-objects</PackageTags>
-    <PackageReleaseNotes>@TODO@</PackageReleaseNotes>
+    <PackageReleaseNotes>Unpickler performance improved when reading from memory buffer. 
+Unpickler memo cleared after STOP opcode to fix invalid memo reuse when unpickler wasn't disposed/closed.
+</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Razorvine.Serpent" Version="1.29.0" />
