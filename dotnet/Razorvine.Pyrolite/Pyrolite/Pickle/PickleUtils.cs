@@ -101,11 +101,7 @@ public static class PickleUtils {
 	 * read a number of signed bytes
 	 */
 	public static byte[] readbytes(Stream input, long n) {
-		try {
-			return readbytes(input, checked((int)n));
-		} catch (OverflowException x) {
-			throw new PickleException("pickle too large, can't read more than maxint", x);
-		}
+		return readbytes(input, CheckedCast(n));
 	}
 
 	/**
@@ -125,11 +121,7 @@ public static class PickleUtils {
 	 * read a number of signed bytes into the specified location in an existing byte array
 	 */
 	internal static void readbytes_into(Stream input, byte[] buffer, int offset, long length) {
-        try {
-			readbytes_into(input, buffer, offset, checked((int)length));
-		} catch (OverflowException x) {
-			throw new PickleException("pickle too large, can't read more than maxint", x);
-		}
+        readbytes_into(input, buffer, offset, CheckedCast(length));
 	}
 
 	/**
@@ -244,7 +236,7 @@ public static class PickleUtils {
 	 * because c# doesn't have a bigint, we look if stuff fits into a regular long,
 	 * and raise an exception if it's bigger.
 	 */
-	public static long decode_long(byte[] data) {
+	public static long decode_long(ReadOnlySpan<byte> data) {
 		if (data.Length == 0)
 			return 0L;
 		if (data.Length>8)
@@ -252,7 +244,7 @@ public static class PickleUtils {
 		if( data.Length<8) {
 			// bitconverter requires exactly 8 bytes so we need to extend it
 			var larger=new byte[8];
-			Array.Copy(data,larger,data.Length);
+			data.CopyTo(larger);
 			
 			// check if we need to sign-extend (if the original number was negative)
 			if((data[data.Length-1]&0x80) == 0x80) {
@@ -262,11 +254,7 @@ public static class PickleUtils {
 			}
 			data=larger;
 		}
-		if(!BitConverter.IsLittleEndian) {
-			// reverse the byte array because pickle stores it little-endian	
-			Array.Reverse(data);
-		}
-		return BitConverter.ToInt64(data,0);
+		return BinaryPrimitives.ReadInt64LittleEndian(data);
 	}
 	
 	/**
@@ -288,7 +276,35 @@ public static class PickleUtils {
         }
         return result;
 	}
-	
+
+    internal static int CheckedCast(long length)
+    {
+        if (length > int.MaxValue)
+            ThrowPickleTooLargeForInt32Overflow(length);
+
+        return (int)length;
+    }
+    
+    private static void ThrowPickleTooLargeForInt32Overflow(long length)
+    {
+        // this throw is kept in a separate method to allow for the CheckedCast method inlining
+        throw new PickleException($"pickle too large ({length}), can't read more than maxint");
+    }
+
+    internal static string GetStringFromUtf8(in ReadOnlySpan<byte> utf8)
+    {
+        if (utf8.IsEmpty)
+            return string.Empty;
+
+        unsafe
+        {
+            fixed (byte* bytes = utf8)
+            {
+                return Encoding.UTF8.GetString(bytes, utf8.Length);
+            }
+        }
+    }
+
 	/**
 	 * Convert a string to a byte array, no encoding is used. String must only contain characters <256.
 	 */
