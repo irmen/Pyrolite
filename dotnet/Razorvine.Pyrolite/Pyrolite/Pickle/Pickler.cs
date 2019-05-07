@@ -30,7 +30,7 @@ namespace Razorvine.Pickle
 public class Pickler : IDisposable {
 
 	// ReSharper disable once UnusedMember.Global
-	public static int HIGHEST_PROTOCOL = 2;
+	public const int HIGHEST_PROTOCOL = 2;
 	protected const int MAX_RECURSE_DEPTH = 200;
 	protected const int PROTOCOL = 2;
 
