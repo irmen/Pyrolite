@@ -1,33 +1,43 @@
-# Pyrolite - Python Pyro "light" and Pickle for Java/.NET
+# Pyrolite - Pyro client and Python Pickle library for Java and .NET
 
 Pyrolite is written by Irmen de Jong (irmen@razorvine.net).
 This software is distributed under the terms written in the file `LICENSE`.
 
 
-## Introduction
-
+## Introduction: Pyro and Pickle
 
 This library allows your Java or .NET program to interface very easily with
-the Python world. It uses the Pyro protocol to call methods on remote objects.
-(See https://github.com/irmen/Pyro4). To that end, it contains and uses a
-feature complete pickle protocol implementation -read and write- to exchange
-data with Pyro/Python.
+a Python program, using the Pyro protocol to call methods on remote objects
+(see https://github.com/irmen/Pyro4). 
 
-Pyrolite only implements part of the client side Pyro library, hence its name
-'lite'...  But because Pyrolite has no dependencies, it is a much lighter way
-to use Pyro from Java/.NET than a solution with Jython+Pyro or IronPython+Pyro
-would provide. So if you don't need Pyro's full feature set, and don't require
-your Java/.NET code to host Pyro objects itself, Pyrolite may be a good choice
-to connect java or .NET and python.
+It also provides a feature complete pickle protocol implementation -read and write- 
+to exchange data with Pyro/Python.  This part of the library can also be 
+used in stand alone scenarios to just read and write Python pickle files.
 
-The library's code is living in:
+In fact, this is what the [Apache Spark™ / PySpark](http://spark.apache.org/) and [.NET for Apache Spark™](https://dotnet.microsoft.com/apps/data/spark)
+projects are using Pyrolite for!
 
-**Java** packages:   ``net.razorvine.pickle``,  ``net.razorvine.pyro``
+Pyrolite only implements a part of the *client side* Pyro library, hence its name
+'lite'...  For the full Pyro experience (and the ability to host servers and
+expose these via Pyro) you have to run Pyro itself in Python.
+But if you don't need Pyro's full feature set, and don't require
+your Java/.NET code to host Pyro objects but rather only call them,
+Pyrolite could be a good choice to connect Java or .NET and Python!
 
-**.NET** namespaces: ``Razorvine.Pickle``, ``Razorvine.Pyro``
 
+## Installation and usage
 
-Bit example code in Java:
+Precompiled libraries are available:
+
+* **Java**: from Maven, group id ``net.razorvine`` artifact id ``pyrolite``.
+* **.NET**: nuget Razorvine.Pyrolite; https://www.nuget.org/packages/Razorvine.Pyrolite/
+
+The library is living in:
+
+* **Java** packages:   ``net.razorvine.pickle``,  ``net.razorvine.pyro``
+* **.NET** namespaces: ``Razorvine.Pickle``, ``Razorvine.Pyro``
+
+Some Java example code:
 
     import net.razorvine.pyro.*;
     
@@ -40,7 +50,7 @@ Bit example code in Java:
     ns.close();
     
 
-Same piece of example code, in C#:
+Some C# example code:
 
     using Razorvine.Pyro;
     
@@ -72,26 +82,20 @@ unit tests. These include a lot of code dealing with just the pickle subsystem
 as well.
 
 
-## Installation
+## Optional (but recommended) dependency: Serpent serializer 
 
-Precompiled libraries are available in the usual sources.
-
-For .NET you can get it with nuget; https://www.nuget.org/packages/Razorvine.Pyrolite/
-For Java you can get it from Maven central, groupid `net.razorvine` artifactid `pyrolite`.
-
-## Recommended serializer: Serpent 
-
-The default serializer is set to serpent. Unless you change the configuration
-to use pickle instead, Pyrolite will require the ``Razorvine.Serpent`` assembly (.NET)
+The default serializer is set to 'serpent' (a special serilization protocol
+that I designed for the Pyro library)
+For this to work, Pyrolite will require the ``Razorvine.Serpent`` assembly (.NET)
 or the ``net.razorvine`` ``serpent`` artifact (serpent.jar, Java) to be available.
-If you do not supply this library, Pyrolite
-will still work but only with the -built in- pickle serializer.
- 
-Serpent is a separate project (als by me), you'll have to install this dependency yourself.
 
+Serpent is a separate project (als by me), you'll have to install this dependency yourself.
 You can find it at: https://github.com/irmen/Serpent
 Download instructions are there as well.
 
+If you do not supply the serpent library, Pyrolite
+will still work but only with the -built in- pickle serializer.
+You'll have to tell Pyrolite that you want to use pickle though by setting the ``Config.SERIALIZER`` variable accordingly. 
 
 
 ## About the library
