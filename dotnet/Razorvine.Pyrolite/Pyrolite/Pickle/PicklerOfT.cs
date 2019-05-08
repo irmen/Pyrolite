@@ -238,17 +238,7 @@ namespace Razorvine.Pickle
                 }
                 else if (output is ArrayWriter arrayWriter)
                 {
-                    var memoryStream = new MemoryStream();
-                    custompickler.pickle(o, memoryStream, pickler);
-                    if (memoryStream.TryGetBuffer(out var segment))
-                    {
-                        output.Write(segment.Array, segment.Offset, segment.Count);
-                    }
-                    else
-                    {
-                        var bytes = memoryStream.ToArray();
-                        output.Write(bytes, 0, bytes.Length);
-                    }
+                    throw new NotSupportedException("todo adsitnik");
                 }
                 WriteMemo(o);
                 return true;
