@@ -185,7 +185,7 @@ namespace Razorvine.Pickle
                     put_bool((bool)o);
                     return true;
                 case TypeCode.Byte:
-                    put_long((byte)o);
+                    put_byte((byte)o);
                     return true;
                 case TypeCode.SByte:
                     put_long((sbyte)o);
@@ -578,19 +578,24 @@ namespace Razorvine.Pickle
             output.WriteInt64BigEndian(BitConverter.DoubleToInt64Bits(d));
         }
 
+        private void put_byte(byte value)
+        {
+            output.WriteBytes(Opcodes.BININT1, value);
+        }
+
         private void put_long(long v)
         {
             // choose optimal representation
             // first check 1 and 2-byte unsigned ints:
             if (v >= 0)
             {
-                if (v <= 0xff)
+                if (v <= byte.MaxValue)
                 {
                     output.WriteByte(Opcodes.BININT1);
                     output.WriteByte((byte)v);
                     return;
                 }
-                if (v <= 0xffff)
+                if (v <= ushort.MaxValue)
                 {
                     output.WriteByte(Opcodes.BININT2);
                     output.WriteByte((byte)(v & 0xff));
