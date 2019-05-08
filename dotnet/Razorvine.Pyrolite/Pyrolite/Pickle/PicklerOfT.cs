@@ -568,9 +568,7 @@ namespace Razorvine.Pickle
         private void put_string(string str)
         {
             output.WriteByte(Opcodes.BINUNICODE);
-            var encoded = Encoding.UTF8.GetBytes(str);
-            output.WriteInt32LittleEndian(encoded.Length);
-            output.Write(encoded, 0, encoded.Length);
+            output.WriteAsUtf8String(str);
             WriteMemo(str);
         }
 

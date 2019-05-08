@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Razorvine.Pickle
 {
@@ -15,6 +16,7 @@ namespace Razorvine.Pickle
 
         void WriteInt32LittleEndian(int value);
         void WriteInt64BigEndian(long value);
+        void WriteAsUtf8String(string str);
     }
 
     internal struct StreamWriter : IOutputWriter
@@ -59,6 +61,13 @@ namespace Razorvine.Pickle
         {
             BinaryPrimitives.WriteInt64BigEndian(_byteBuffer, value);
             _stream.Write(_byteBuffer, 0, sizeof(long));
+        }
+
+        public void WriteAsUtf8String(string str)
+        {
+            var encoded = Encoding.UTF8.GetBytes(str);
+            WriteInt32LittleEndian(encoded.Length);
+            Write(encoded, 0, encoded.Length);
         }
     }
 
@@ -121,6 +130,25 @@ namespace Razorvine.Pickle
             EnsureSize(sizeof(long));
             BinaryPrimitives.WriteInt64BigEndian(_output.AsSpan(_position, sizeof(long)), value);
             _position += sizeof(long);
+        }
+
+        public void WriteAsUtf8String(string str)
+        {
+            int byteCount = Encoding.UTF8.GetByteCount(str);
+            WriteInt32LittleEndian(byteCount);
+
+            EnsureSize(byteCount);
+
+            unsafe
+            {
+                fixed (char* source = str)
+                fixed (byte* destination = _output)
+                {
+                    Encoding.UTF8.GetBytes(source, str.Length, destination + _position, byteCount);
+                }
+            }
+
+            _position += byteCount;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
