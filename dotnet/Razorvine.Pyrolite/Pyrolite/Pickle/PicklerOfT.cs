@@ -20,7 +20,7 @@ namespace Razorvine.Pickle
         void save(object o);
     }
 
-    internal class Pickler<T> : IPickler
+    internal class Pickler<T> : Stream, IPickler
         where T : struct, IOutputWriter
     {
         private static readonly byte[] datetimeDatetimeBytes = Encoding.ASCII.GetBytes("datetime\ndatetime\n");
@@ -232,14 +232,7 @@ namespace Razorvine.Pickle
             IObjectPickler custompickler = pickler.getCustomPickler(t);
             if (custompickler != null)
             {
-                if (output is StreamWriter streamWriter)
-                {
-                    custompickler.pickle(o, streamWriter.Stream, pickler);
-                }
-                else if (output is ArrayWriter arrayWriter)
-                {
-                    throw new NotSupportedException("todo adsitnik");
-                }
+                custompickler.pickle(o, this, pickler);
                 WriteMemo(o);
                 return true;
             }
@@ -762,5 +755,18 @@ namespace Razorvine.Pickle
 
             save(map);
         }
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() => throw new NotSupportedException();
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override bool CanWrite => true;
+        public override void Write(byte[] buffer, int offset, int count) => output.Write(buffer, offset, count);
+        public override void WriteByte(byte value) => output.WriteByte(value);
     }
 }
