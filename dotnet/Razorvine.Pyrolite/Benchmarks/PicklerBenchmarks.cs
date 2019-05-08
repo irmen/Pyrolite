@@ -15,6 +15,8 @@ namespace Benchmarks
         private bool[] _booleans;
         private string[] _strings;
 
+        private byte[] _reusable;
+
         [GlobalSetup]
         public void Setup()
         {
@@ -22,12 +24,18 @@ namespace Benchmarks
             _integers = Enumerable.Range(0, Count).ToArray();
             _booleans = Enumerable.Range(0, Count).Select(x => x % 2 == 0).ToArray();
             _strings = _doubles.Select(x => x.ToString()).ToArray();
+            _reusable = new byte[Count * 10];
         }
 
         [Benchmark] public byte[] DoublesToByteArray() => new Pickler().dumps(_doubles);
         [Benchmark] public byte[] IntegersToByteArray() => new Pickler().dumps(_integers);
         [Benchmark] public byte[] BooleansToByteArray() => new Pickler().dumps(_booleans);
         [Benchmark] public byte[] StringsToByteArray() => new Pickler().dumps(_strings);
+
+        [Benchmark] public int DoublesToReusableByteArray() => new Pickler().dumps(_doubles, ref _reusable);
+        [Benchmark] public int IntegersToReusableByteArray() => new Pickler().dumps(_integers, ref _reusable);
+        [Benchmark] public int BooleansToReusableByteArray() => new Pickler().dumps(_booleans, ref _reusable);
+        [Benchmark] public int StringsToReusableByteArray() => new Pickler().dumps(_strings, ref _reusable);
 
         [Benchmark] public void DoublesToStream() => new Pickler().dump(_doubles, new MemoryStream());
         [Benchmark] public void IntegersToStream() => new Pickler().dump(_integers, new MemoryStream());
