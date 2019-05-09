@@ -172,61 +172,77 @@ namespace Razorvine.Pickle
                 return true;
             }
 
-            // first check for enums, as GetTypeCode will return the underlying type.
-            if (o is Enum)
+            if (t.IsPrimitive)
             {
-                put_string(o.ToString());
-                return true;
+                switch (o)
+                {
+                    case double v:
+                        put_float(v);
+                        return true;
+                    case int v:
+                        put_long(v);
+                        return true;
+                    case bool v:
+                        put_bool(v);
+                        return true;
+                    case float v:
+                        put_float(v);
+                        return true;
+                    case long v:
+                        put_long(v);
+                        return true;
+                    case byte v:
+                        put_byte(v);
+                        return true;
+                    case sbyte v:
+                        put_long(v);
+                        return true;
+                    case short v:
+                        put_long(v);
+                        return true;
+                    case ushort v:
+                        put_long(v);
+                        return true;
+                    case uint v:
+                        put_long(v);
+                        return true;
+                    case ulong v:
+                        put_ulong(v);
+                        return true;
+                    case char v:
+                        put_string(v.ToString());
+                        return true;
+                }
             }
-
-            // first the primitive types
-            switch (Type.GetTypeCode(t))
+            else
             {
-                case TypeCode.Boolean:
-                    put_bool((bool)o);
-                    return true;
-                case TypeCode.Byte:
-                    put_byte((byte)o);
-                    return true;
-                case TypeCode.SByte:
-                    put_long((sbyte)o);
-                    return true;
-                case TypeCode.Int16:
-                    put_long((short)o);
-                    return true;
-                case TypeCode.UInt16:
-                    put_long((ushort)o);
-                    return true;
-                case TypeCode.Int32:
-                    put_long((int)o);
-                    return true;
-                case TypeCode.UInt32:
-                    put_long((uint)o);
-                    return true;
-                case TypeCode.Int64:
-                    put_long((long)o);
-                    return true;
-                case TypeCode.UInt64:
-                    put_ulong((ulong)o);
-                    return true;
-                case TypeCode.Single:
-                    put_float((float)o);
-                    return true;
-                case TypeCode.Double:
-                    put_float((double)o);
-                    return true;
-                case TypeCode.Char:
-                    put_string(((char)o).ToString());
-                    return true;
-                case TypeCode.String:
-                    put_string((string)o);
-                    return true;
-                case TypeCode.Decimal:
-                    put_decimal((decimal)o);
-                    return true;
-                case TypeCode.DateTime:
-                    put_datetime((DateTime)o);
-                    return true;
+                switch (o)
+                {
+                    case string v:
+                        put_string(v);
+                        return true;
+                    case Enum v:
+                        put_string(o.ToString());
+                        return true;
+                    case decimal v:
+                        put_decimal(v);
+                        return true;
+                    case DateTime v:
+                        put_datetime(v);
+                        return true;
+                    case TimeSpan v:
+                        put_timespan(v);
+                        return true;
+                    case IDictionary v:
+                        put_map(v);
+                        return true;
+                    case IList v:
+                        put_enumerable(v);
+                        return true;
+                    case IEnumerable v:
+                        put_enumerable(v);
+                        return true;
+                }
             }
 
             // check registry
@@ -240,38 +256,6 @@ namespace Razorvine.Pickle
             }
 
             // more complex types
-            if (o is TimeSpan)
-            {
-                put_timespan((TimeSpan)o);
-                return true;
-            }
-            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(HashSet<>))
-            {
-                put_set((IEnumerable)o);
-                return true;
-            }
-
-            var dictionary = o as IDictionary;
-            if (dictionary != null)
-            {
-                put_map(dictionary);
-                return true;
-            }
-
-            var list = o as IList;
-            if (list != null)
-            {
-                put_enumerable(list);
-                return true;
-            }
-
-            var enumerable = o as IEnumerable;
-            if (enumerable != null)
-            {
-                put_enumerable(enumerable);
-                return true;
-            }
-
             DataContractAttribute dca = (DataContractAttribute)Attribute.GetCustomAttribute(t, typeof(DataContractAttribute));
             if (dca != null)
             {
@@ -286,7 +270,7 @@ namespace Razorvine.Pickle
                 return true;
             }
 
-            if (hasPublicProperties(o))
+            if (hasPublicProperties(t))
             {
                 put_objwithproperties(o);
                 return true;
@@ -295,7 +279,7 @@ namespace Razorvine.Pickle
             return false;
         }
 
-        private static bool hasPublicProperties(object o) => o.GetType().GetProperties().Length > 0;
+        private static bool hasPublicProperties(Type t) => t.GetProperties().Length > 0;
 
         private void put_datetime(DateTime dt)
         {
