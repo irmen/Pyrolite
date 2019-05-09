@@ -76,7 +76,7 @@ namespace Razorvine.Pickle
             // null type?
             if (o == null)
             {
-                output.WriteByte(Opcodes.NONE);
+                put_null();
                 recurse--;
                 return;
             }
@@ -158,6 +158,10 @@ namespace Razorvine.Pickle
                 if (componentType != null && componentType.IsPrimitive)
                 {
                     put_arrayOfPrimitives(componentType, o);
+                }
+                else if (o is string[] strings)
+                {
+                    put_arrayOfStrings(strings);
                 }
                 else
                 {
@@ -404,6 +408,42 @@ namespace Razorvine.Pickle
             WriteMemo(array);       // tuples cannot contain self-references so it is fine to put this at the end
         }
 
+        // special case of put_arrayOfObjects to improve perf for arrays of strings scenario
+        private void put_arrayOfStrings(string[] array)
+        {
+            switch (array.Length)
+            {
+                case 0:
+                    output.WriteByte(Opcodes.EMPTY_TUPLE);
+                    break;
+                case 1:
+                    put_string(array[0]);
+                    output.WriteByte(Opcodes.TUPLE1);
+                    break;
+                case 2:
+                    put_string(array[0]);
+                    put_string(array[1]);
+                    output.WriteByte(Opcodes.TUPLE2);
+                    break;
+                case 3:
+                    put_string(array[0]);
+                    put_string(array[1]);
+                    put_string(array[2]);
+                    output.WriteByte(Opcodes.TUPLE3);
+                    break;
+                default:
+                    output.WriteByte(Opcodes.MARK);
+                    foreach (string o in array)
+                    {
+                        put_string(o);
+                    }
+                    output.WriteByte(Opcodes.TUPLE);
+                    break;
+            }
+
+            WriteMemo(array);       // tuples cannot contain self-references so it is fine to put this at the end
+        }
+
         private static void ThrowRecursiveArrayNotSupported() =>
             throw new PickleException("recursive array not supported, use list");
 
@@ -554,11 +594,20 @@ namespace Razorvine.Pickle
             WriteMemo(d);
         }
 
+        private void put_null() => output.WriteByte(Opcodes.NONE);
+
         private void put_string(string str)
         {
-            output.WriteByte(Opcodes.BINUNICODE);
-            output.WriteAsUtf8String(str);
-            WriteMemo(str);
+            if (str == null)
+            {
+                put_null();
+            }
+            else
+            {
+                output.WriteByte(Opcodes.BINUNICODE);
+                output.WriteAsUtf8String(str);
+                WriteMemo(str);
+            }
         }
 
         private void put_float(double d)
