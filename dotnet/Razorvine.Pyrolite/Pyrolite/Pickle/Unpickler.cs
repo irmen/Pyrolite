@@ -71,7 +71,7 @@ public class Unpickler : IDisposable {
 	 */
 	public object load(Stream stream) {
         stack = new UnpickleStack();
-        var unpickler = new Unpickler<StreamReader>(new StreamReader(stream), memo, stack, this);
+        var unpickler = new UnpicklerImplementation<StreamReader>(new StreamReader(stream), memo, stack, this);
         return unpickler.Load();
     }
 
@@ -82,7 +82,7 @@ public class Unpickler : IDisposable {
     /// <returns>the reconstituted object hierarchy specified in the memory buffer.</returns>
     public object loads(byte[] pickledata) {
         stack = new UnpickleStack();
-        var unpickler = new Unpickler<ArrayReader>(new ArrayReader(pickledata), memo, stack, this);
+        var unpickler = new UnpicklerImplementation<ArrayReader>(new ArrayReader(pickledata), memo, stack, this);
         return unpickler.Load();
     }
 
@@ -94,7 +94,7 @@ public class Unpickler : IDisposable {
     /// <returns>the reconstituted object hierarchy specified in the memory buffer.</returns>
     public object loads(byte[] pickledata, int stackCapacity) {
         stack = new UnpickleStack(stackCapacity);
-        var unpickler = new Unpickler<ArrayReader>(new ArrayReader(pickledata), memo, stack, this);
+        var unpickler = new UnpicklerImplementation<ArrayReader>(new ArrayReader(pickledata), memo, stack, this);
         return unpickler.Load();
     }
 
@@ -111,7 +111,7 @@ public class Unpickler : IDisposable {
             return loads(arraySegment.Array, stackCapacity);
 
         stack = new UnpickleStack(stackCapacity);
-        var unpickler = new Unpickler<ReadOnlyMemoryReader>(new ReadOnlyMemoryReader(pickledata), memo, stack, this);
+        var unpickler = new UnpicklerImplementation<ReadOnlyMemoryReader>(new ReadOnlyMemoryReader(pickledata), memo, stack, this);
         return unpickler.Load();
     }
 

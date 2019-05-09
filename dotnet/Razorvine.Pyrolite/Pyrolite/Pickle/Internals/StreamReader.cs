@@ -1,4 +1,6 @@
-﻿using System;
+﻿/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
+
+using System;
 using System.IO;
 
 namespace Razorvine.Pickle
@@ -14,10 +16,7 @@ namespace Razorvine.Pickle
             this.buffer = new byte[sizeof(long)]; // at least large enough for any primitive being deserialized;
         }
 
-        public byte ReadByte()
-        {
-            return PickleUtils.readbyte(input);
-        }
+        public byte ReadByte() => PickleUtils.readbyte(input);
 
         public ReadOnlySpan<byte> ReadBytes(int bytesCount)
         {
@@ -28,10 +27,7 @@ namespace Razorvine.Pickle
             return new ReadOnlySpan<byte>(buffer, 0, bytesCount);
         }
 
-        public string ReadLine(bool includeLF = false)
-        {
-            return PickleUtils.readline(input, includeLF);
-        }
+        public string ReadLine(bool includeLF = false) => PickleUtils.readline(input, includeLF);
 
         public ReadOnlySpan<byte> ReadLineBytes(bool includeLF = false)
         {

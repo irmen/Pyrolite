@@ -32,10 +32,10 @@ namespace Benchmarks
         [Benchmark] public byte[] BooleansToByteArray() => new Pickler().dumps(_booleans);
         [Benchmark] public byte[] StringsToByteArray() => new Pickler().dumps(_strings);
 
-        [Benchmark] public int DoublesToReusableByteArray() => new Pickler().dumps(_doubles, ref _reusable);
-        [Benchmark] public int IntegersToReusableByteArray() => new Pickler().dumps(_integers, ref _reusable);
-        [Benchmark] public int BooleansToReusableByteArray() => new Pickler().dumps(_booleans, ref _reusable);
-        [Benchmark] public int StringsToReusableByteArray() => new Pickler().dumps(_strings, ref _reusable);
+        [Benchmark] public void DoublesToReusableByteArray() => new Pickler().dumps(_doubles, ref _reusable, out _);
+        [Benchmark] public void IntegersToReusableByteArray() => new Pickler().dumps(_integers, ref _reusable, out _);
+        [Benchmark] public void BooleansToReusableByteArray() => new Pickler().dumps(_booleans, ref _reusable, out _);
+        [Benchmark] public void StringsToReusableByteArray() => new Pickler().dumps(_strings, ref _reusable, out _);
 
         [Benchmark] public void DoublesToStream() => new Pickler().dump(_doubles, new MemoryStream());
         [Benchmark] public void IntegersToStream() => new Pickler().dump(_integers, new MemoryStream());

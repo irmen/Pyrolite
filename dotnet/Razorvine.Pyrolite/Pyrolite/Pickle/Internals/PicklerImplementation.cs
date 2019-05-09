@@ -1,4 +1,6 @@
-﻿using System;
+﻿/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,17 +12,11 @@ using System.Text;
 
 namespace Razorvine.Pickle
 {
-    internal interface IPickler : IDisposable
-    {
-        int BytesWritten { get; }
-
-        byte[] GetByteArray();
-
-        void dump(object o);
-        void save(object o);
-    }
-
-    internal class Pickler<T> : Stream, IPickler
+    // the following type is generic in order to allow for 
+    // IInputReader interface method devirtualizaiton and inlining
+    // please see https://adamsitnik.com/Value-Types-vs-Reference-Types/#how-to-avoid-boxing-with-value-types-that-implement-interfaces for more
+    // it also derives from Stream to allow to treat it as stream to support IObjectPickler scenario which exposes the writer as Stream
+    internal class PicklerImplementation<T> : Stream, IPicklerImplementation
         where T : struct, IOutputWriter
     {
         private static readonly byte[] datetimeDatetimeBytes = Encoding.ASCII.GetBytes("datetime\ndatetime\n");
@@ -34,9 +30,9 @@ namespace Razorvine.Pickle
 
         private T output; // must NOT be readonly, it's a mutable struct
         private Dictionary<object, int> memo; // maps objects to memo index
-        private int recurse;	// recursion level
+        private int recurse; // recursion level
 
-        internal Pickler(T output, Pickler pickler, bool useMemo)
+        internal PicklerImplementation(T output, Pickler pickler, bool useMemo)
         {
             this.output = output;
             this.pickler = pickler;
@@ -44,19 +40,17 @@ namespace Razorvine.Pickle
             recurse = 0;
         }
 
-        void IDisposable.Dispose() => output.Dispose();
+        protected override void Dispose(bool disposing)
+        {
+            output.Dispose();
+            memo = null;
+        }
 
         private bool useMemo => memo != null;
 
-        public int BytesWritten
-            => output is ArrayWriter arrayWriter
-                ? arrayWriter.Position
-                : throw new InvalidOperationException();
+        public int BytesWritten => output.BytesWritten;
 
-        public byte[] GetByteArray()
-            => output is ArrayWriter arrayWriter
-                ? arrayWriter.Output
-                : throw new InvalidOperationException();
+        public byte[] Buffer => output.Buffer;
 
         public void dump(object o)
         {
@@ -68,6 +62,7 @@ namespace Razorvine.Pickle
             memo = null;  // get rid of the memo table
 
             output.WriteByte(Opcodes.STOP);
+            output.Flush();
             if (recurse != 0)  // sanity check
                 throw new PickleException("recursive structure error, please report this problem");
         }
@@ -232,6 +227,7 @@ namespace Razorvine.Pickle
             IObjectPickler custompickler = pickler.getCustomPickler(t);
             if (custompickler != null)
             {
+                // to support this scenario this type derives from Stream and implements Write methods
                 custompickler.pickle(o, this, pickler);
                 WriteMemo(o);
                 return true;
@@ -758,15 +754,16 @@ namespace Razorvine.Pickle
 
         public override bool CanRead => false;
         public override bool CanSeek => false;
+        public override bool CanWrite => true;
+
         public override long Length => throw new NotSupportedException();
         public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        public override void Flush() => throw new NotSupportedException();
         public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
         public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
         public override void SetLength(long value) => throw new NotSupportedException();
-
-        public override bool CanWrite => true;
+        
         public override void Write(byte[] buffer, int offset, int count) => output.Write(buffer, offset, count);
         public override void WriteByte(byte value) => output.WriteByte(value);
+        public override void Flush() => output.Flush();
     }
 }
