@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -96,7 +97,8 @@ namespace Razorvine.Pickle
          * Write the object to the memo table and output a memo write opcode
          * Only works for hashable objects
         */
-        private void WriteMemo<TValue>(TValue value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // important for performance when useMemo = false
+        private void WriteMemo<TValue>(TValue value) // this method is generic to prevent boxing when useMemo = false
         {
             if (useMemo)
                 WriteMemoPrivate(value);
