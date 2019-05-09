@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Razorvine.Pickle
@@ -53,6 +54,7 @@ namespace Razorvine.Pickle
             position += count;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // crucial for the performance, do NOT remove
         public void WriteInt32LittleEndian(int value)
         {
             EnsureSize(sizeof(int));
@@ -60,6 +62,7 @@ namespace Razorvine.Pickle
             position += sizeof(int);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // crucial for the performance, do NOT remove
         public void WriteInt64BigEndian(long value)
         {
             EnsureSize(sizeof(long));
@@ -90,6 +93,7 @@ namespace Razorvine.Pickle
 
         public void Flush() { } // does nothing on purpose
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // crucial for the performance, do NOT remove
         private void EnsureSize(int requested)
         {
             if (output.Length < position + requested)
