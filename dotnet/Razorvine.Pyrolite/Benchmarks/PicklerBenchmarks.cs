@@ -16,7 +16,7 @@ namespace Benchmarks
         [Params(1000)]
         public int Count { get; set; }
 
-        [Params(false)]
+        [Params(false, true)]
         public bool UseMemo { get; set; }
 
         [Params(false, true)]

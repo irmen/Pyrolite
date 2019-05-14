@@ -49,7 +49,7 @@ namespace Razorvine.Pickle
         /// <summary>
         /// Close the pickler stream, discard any internal buffers.
         /// </summary>
-        public void close() => _picklerImplementation.Dispose();
+        public void close() => _picklerImplementation?.Dispose();
 
         /// <summary>
         /// Register additional object picklers for custom classes.
@@ -57,9 +57,9 @@ namespace Razorvine.Pickle
         /// the whole inheritance tree of all classes ultimately implementing that interface or abstract base class.
         /// If you register a normal concrete class, the pickler is only used for objects of exactly that particular class.
         /// </summary>
-        /// <param name="class">the custom class</param>
+        /// <param name="clazz">the custom class</param>
         /// <param name="pickler">additional object picklers</param>
-        public static void registerCustomPickler(Type @class, IObjectPickler pickler) => customPicklers[@class] = pickler;
+        public static void registerCustomPickler(Type clazz, IObjectPickler pickler) => customPicklers[clazz] = pickler;
 
         /// <summary>
         /// Pickle a given object graph, returning the result as a byte array.
@@ -68,6 +68,8 @@ namespace Razorvine.Pickle
         /// <returns>result as byte array</returns>
         public byte[] dumps(object o)
         {
+            close(); // the instance of this class can be reused so it needs to be closed first
+
             _picklerImplementation = new PicklerImplementation<ArrayWriter>(new ArrayWriter(new byte[64]), this, useMemo);
 
             _picklerImplementation.dump(o);
@@ -86,6 +88,8 @@ namespace Razorvine.Pickle
         /// <remarks>if the array is not big enought it's going to be resized</remarks>
         public void dumps(object o, ref byte[] output, out int bytesWritten)
         {
+            close();
+
             _picklerImplementation = new PicklerImplementation<ArrayWriter>(new ArrayWriter(output), this, useMemo);
 
             _picklerImplementation.dump(o);
@@ -101,6 +105,8 @@ namespace Razorvine.Pickle
         /// <param name="stream">output stream</param>
         public void dump(object o, Stream stream)
         {
+            close();
+
             _picklerImplementation = new PicklerImplementation<StreamWriter>(new StreamWriter(stream), this, useMemo);
 
             _picklerImplementation.dump(o);
