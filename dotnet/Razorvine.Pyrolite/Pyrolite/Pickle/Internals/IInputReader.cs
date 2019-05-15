@@ -1,4 +1,6 @@
-﻿using System;
+﻿/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
+
+using System;
 
 namespace Razorvine.Pickle
 {

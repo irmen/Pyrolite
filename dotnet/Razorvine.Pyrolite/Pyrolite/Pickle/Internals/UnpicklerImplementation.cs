@@ -1,4 +1,6 @@
-﻿using Razorvine.Pickle.Objects;
+﻿/* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
+
+using Razorvine.Pickle.Objects;
 using System;
 using System.Buffers.Binary;
 using System.Buffers.Text;
@@ -12,7 +14,7 @@ namespace Razorvine.Pickle
     // the following type is generic in order to allow for 
     // IInputReader interface method devirtualizaiton and inlining
     // please see https://adamsitnik.com/Value-Types-vs-Reference-Types/#how-to-avoid-boxing-with-value-types-that-implement-interfaces for more
-    internal class Unpickler<T> where T : struct, IInputReader
+    internal class UnpicklerImplementation<T> where T : struct, IInputReader
     {
         private static readonly string[] quoteStrings = new[] { "\"", "'" };
         private static readonly object boxedFalse = false;
@@ -25,7 +27,7 @@ namespace Razorvine.Pickle
         private T input; // must NOT be readonly, it's a mutable struct
         private Dictionary<StringPair, string> concatenatedModuleNames;
 
-        public Unpickler(T input, IDictionary<int, object> memo, UnpickleStack stack, Unpickler unpickler)
+        public UnpicklerImplementation(T input, IDictionary<int, object> memo, UnpickleStack stack, Unpickler unpickler)
         {
             this.input = input;
             this.memo = memo;
