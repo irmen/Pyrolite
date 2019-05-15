@@ -240,7 +240,10 @@ namespace Razorvine.Pickle
                         put_enumerable(v);
                         return true;
                     case IEnumerable v:
-                        put_enumerable(v);
+                        if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(HashSet<>))
+                            put_set(v);
+                        else
+                            put_enumerable(v);
                         return true;
                 }
             }
