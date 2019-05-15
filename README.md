@@ -1,5 +1,12 @@
 # Pyrolite - Pyro client and Python Pickle library for Java and .NET
 
+[![saythanks](https://img.shields.io/badge/say-thanks-ff69b4.svg)](https://saythanks.io/to/irmen)
+[![Build Status](https://travis-ci.org/irmen/Pyrolite.svg?branch=master)](https://travis-ci.org/irmen/Pyrolite)
+[![Maven Central](https://img.shields.io/maven-central/v/net.razorvine/pyrolite.svg)](http://search.maven.org/#search|ga|1|g%3A%22net.razorvine%22%20AND%20a%3A%22pyrolite%22)
+[![NuGet](https://img.shields.io/nuget/v/Razorvine.Pyrolite.svg)](https://www.nuget.org/packages/Razorvine.Pyrolite/)
+
+
+
 Pyrolite is written by Irmen de Jong (irmen@razorvine.net).
 This software is distributed under the terms written in the file `LICENSE`.
 
