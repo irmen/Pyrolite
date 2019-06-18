@@ -9,7 +9,7 @@
 
 	<groupId>net.razorvine</groupId>
 	<artifactId>pyrolite</artifactId>
-	<version>4.26-SNAPSHOT</version>
+	<version>4.30-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>pyrolite</name>
@@ -100,7 +100,7 @@ Pyrolite only implements part of the client side Pyro library, hence its name 'l
 
 (More info about Pyro itself: https://pyro4.readthedocs.io/ )
 
-Version 4.26 changes:
-....@TODO@....
+Version 4.30 changes:
+Support for unpickling protocol 5 pickles with out-of-band buffers (Python 3.8)
 </description>
 </project>

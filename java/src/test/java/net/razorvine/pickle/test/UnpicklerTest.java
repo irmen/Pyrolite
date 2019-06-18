@@ -610,7 +610,53 @@ public class UnpicklerTest {
 		assertEquals(9090,result);
 	}
 
-    @Test
+	@Test
+	public void testProtocol5bytearray() throws PickleException, IOException
+	{
+		// ["string", bytearray(b'irmen')]  ->  produces a protocol 5 pickle with opcode BYTEARRAY8
+		Unpickler u = new Unpickler();
+		byte[] data = PickleUtils.str2bytes("\u0080\u0005\u0095\u001d\u0000\u0000\u0000\u0000\u0000\u0000\u0000]\u0094(\u008c\u0006string\u0094\u0096\u0005\u0000\u0000\u0000\u0000\u0000\u0000\u0000irmen\u0094e.");
+		ArrayList result = (ArrayList) u.loads(data);
+		assertEquals(2, result.size());
+		assertEquals("string", result.get(0));
+		assertArrayEquals(new byte[] {'i', 'r', 'm', 'e', 'n'}, (byte[]) result.get(1));
+	}
+
+	@Test
+	public void testProtocol5Buffers() throws PickleException, IOException
+	{
+		// TODO pickles with NEXT_BUFFER and READONLY_BUFFER opcodes
+		/*
+NEXT_BUFFER      = b'\x97'  # push next out-of-band buffer
+READONLY_BUFFER = b'\x98' # make top of stack readonly
+		 */
+		byte[] data = PickleUtils.str2bytes("\u0080\u0005\u0095\u0006\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0097\u0098\u0097\u0086\u0094.");
+		try {
+			Unpickler u = new Unpickler();
+			u.loads(data);
+			fail("should give error");
+		} catch(PickleException x) {
+			assertTrue(x.getMessage().contains("out-of-band"));
+		}
+
+		Unpickler u = new OutOfBandUnpickler();
+		Object[] result = (Object[]) u.loads(data);
+		assertEquals(2, result.length);
+		assertEquals("bufferdata1", result[0]);
+		assertEquals("bufferdata2", result[1]);
+	}
+
+	class OutOfBandUnpickler extends Unpickler {
+		int buffer_counter = 0;
+
+		@Override
+		protected Object next_buffer() throws PickleException, IOException {
+			buffer_counter++;
+			return "bufferdata"+buffer_counter;
+		}
+	}
+
+	@Test
     @Ignore("performancetest")
     public void testUnpicklingPerformance() throws PickleException, IOException {
         Pickler pickler = new Pickler();

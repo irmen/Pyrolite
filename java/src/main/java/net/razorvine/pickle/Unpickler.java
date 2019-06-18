@@ -24,6 +24,7 @@ import net.razorvine.pickle.objects.TimeZoneConstructor;
 import net.razorvine.pickle.objects.Reconstructor;
 import net.razorvine.pickle.objects.SetConstructor;
 
+
 /**
  * Unpickles an object graph from a pickle data inputstream. Supports all pickle protocol versions.
  * Maps the python objects on the corresponding java equivalents or similar types.
@@ -43,7 +44,7 @@ public class Unpickler {
 	/**
 	 * The highest Python Pickle protocol version supported by this library.
 	 */
-	protected final int HIGHEST_PROTOCOL = 4;
+	protected final int HIGHEST_PROTOCOL = 5;
 
 	/**
 	 * Internal cache of memoized objects.
@@ -147,6 +148,17 @@ public class Unpickler {
 			} catch (IOException e) {
 			}
 	}
+
+
+	/**
+	 * Buffer support for protocol 5 out of band data
+	 * If you want to unpickle such pickles, you'll have to subclass the unpickler
+	 * and override this method to return the buffer data you want.
+	 */
+	protected Object next_buffer() throws PickleException, IOException {
+		throw new PickleException("pickle stream refers to out-of-band data but no user-overridden next_buffer() method is used\n");
+	}
+
 
 	/**
 	 * Process a single pickle stream opcode.
@@ -320,7 +332,7 @@ public class Unpickler {
 			load_short_binbytes();
 			break;
 
-		// Protocol 4 (Python 3.4+)
+		// Protocol 4 (Python 3.4-3.7)
 		case Opcodes.BINUNICODE8:
 			load_binunicode8();
 			break;
@@ -352,11 +364,39 @@ public class Unpickler {
 			load_stack_global();
 			break;
 
+		// protocol 5 (python 3.8+)
+		case Opcodes.BYTEARRAY8:
+			load_bytearray8();
+			break;
+		case Opcodes.READONLY_BUFFER:
+			load_readonly_buffer();
+			break;
+		case Opcodes.NEXT_BUFFER:
+			load_next_buffer();
+			break;
+
+
 		default:
 			throw new InvalidOpcodeException("invalid pickle opcode: " + key);
 		}
 
 		return NO_RETURN_VALUE;
+	}
+
+
+	void load_readonly_buffer() {
+		// this opcode is ignored, we don't distinguish between readonly and read/write buffers
+	}
+
+	void load_next_buffer() throws PickleException, IOException {
+		stack.add(next_buffer());
+	}
+
+	void load_bytearray8() throws IOException {
+		// this is the same as load_binbytes8 because we make no distinction
+		// here between the bytes and bytearray python types
+		long len = PickleUtils.bytes_to_long(PickleUtils.readbytes(input, 8),0);
+		stack.add(PickleUtils.readbytes(input, len));
 	}
 
 	void load_build() {

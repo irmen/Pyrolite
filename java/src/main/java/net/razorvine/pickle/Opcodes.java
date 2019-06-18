@@ -79,14 +79,20 @@ public interface Opcodes {
 
 	// Protocol 4 (Python 3.4+)
 
-	short SHORT_BINUNICODE = 0x8c;  // push short string; UTF-8 length < 256 bytes
-	short BINUNICODE8 = 0x8d;  // push very long string
-	short BINBYTES8 = 0x8e;  // push very long bytes string
-	short EMPTY_SET = 0x8f;  // push empty set on the stack
-	short ADDITEMS = 0x90;  // modify set by adding topmost stack items
-	short FROZENSET = 0x91;  // build frozenset from topmost stack items
-	short MEMOIZE = 0x94;  // store top of the stack in memo
-	short FRAME = 0x95;  // indicate the beginning of a new frame
-	short NEWOBJ_EX = 0x92;  // like NEWOBJ but work with keyword only arguments
-	short STACK_GLOBAL = 0x93;  // same as GLOBAL but using names on the stacks
+	short  SHORT_BINUNICODE = 0x8c;  // push short string; UTF-8 length < 256 bytes
+	short  BINUNICODE8 = 0x8d;  // push very long string
+	short  BINBYTES8 = 0x8e;  // push very long bytes string
+	short  EMPTY_SET = 0x8f;  // push empty set on the stack
+	short  ADDITEMS = 0x90;  // modify set by adding topmost stack items
+	short  FROZENSET = 0x91;  // build frozenset from topmost stack items
+	short  MEMOIZE = 0x94;  // store top of the stack in memo
+	short  FRAME = 0x95;  // indicate the beginning of a new frame
+	short  NEWOBJ_EX = 0x92;  // like NEWOBJ but work with keyword only arguments
+	short  STACK_GLOBAL = 0x93;  // same as GLOBAL but using names on the stacks
+
+	// Protocol 5 (Python 3.8+)
+
+	short  BYTEARRAY8 = 0x96;		// push bytearray
+	short  NEXT_BUFFER = 0x97;		// push next out-of-band buffer
+	short  READONLY_BUFFER = 0x98;	//  make top of stack readonly
 }

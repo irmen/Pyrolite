@@ -29,7 +29,7 @@ import org.junit.Test;
 
 /**
  * Unit tests for Unpickling every pickle opcode (all protocols).
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class UnpickleOpcodesTest {
@@ -37,7 +37,7 @@ public class UnpickleOpcodesTest {
 	Unpickler u;
 	static String STRING256;
 	static String STRING255;
-	
+
 	static {
 		StringBuilder sb=new StringBuilder();
 		for(int i=0; i<256; ++i) {
@@ -46,11 +46,11 @@ public class UnpickleOpcodesTest {
 		STRING256=sb.toString();
 		STRING255=STRING256.substring(1);
 	}
-	
+
 	Object U(String strdata) throws PickleException, IOException {
 		return u.loads(PickleUtils.str2bytes(strdata));
 	}
-	
+
 	@Before
 	public void setUp() throws Exception {
 		u=new Unpickler();
@@ -70,7 +70,7 @@ public class UnpickleOpcodesTest {
 			assertEquals("byte@"+i, i, b);
 		}
 	}
-	
+
 	@Test(expected=InvalidOpcodeException.class)
 	public void testNotExisting() throws PickleException, IOException {
 		U("%.");  // non existing opcode '%' should crash
@@ -209,7 +209,7 @@ public class UnpickleOpcodesTest {
 		u.loads(pickle);
 	}
 
-	
+
 	class PersistentIdUnpickler extends Unpickler
 	{
 		@Override
@@ -221,7 +221,7 @@ public class UnpickleOpcodesTest {
 				throw new IllegalArgumentException("unknown persistent_id "+pid);
 		}
 	}
-		
+
 	@Test
 	public void testPERSID() throws PickleException, IOException {
 		//PERSID         = b'P'   # push persistent object; id is taken from string arg
@@ -265,7 +265,7 @@ public class UnpickleOpcodesTest {
 		assertEquals("'", U("S'\\''\n."));
 		assertEquals("\u00a1\u00a2\u00a3", U("S'\\xa1\\xa2\\xa3'\n."));
 		assertEquals("a\\x00y", U("S'a\\\\x00y'\n."));
-		
+
 		StringBuilder p=new StringBuilder("S'");
 		for(int i=0;i<256;++i) {
 			p.append("\\x");
@@ -274,7 +274,7 @@ public class UnpickleOpcodesTest {
 		}
 		p.append("'\n.");
 		assertEquals(STRING256, U(p.toString()));
-		
+
 		try {
 			U("S'bla\n."); // missing quote
 			fail("expected pickle exception");
@@ -342,7 +342,7 @@ public class UnpickleOpcodesTest {
 			// ok
 		}
 	}
-	
+
 	@Test
 	public void testAPPEND() throws PickleException, IOException {
 		//APPEND         = b'a'   # append stack top to list below it
@@ -352,7 +352,7 @@ public class UnpickleOpcodesTest {
 		assertEquals(list, U("]I42\naI43\na."));
 	}
 
-	
+
 	public class ThingyWithSetstate {
 		public String a;
 		public ThingyWithSetstate(String param) {
@@ -407,7 +407,7 @@ public class UnpickleOpcodesTest {
 	public void testGET_and_PUT() throws PickleException, IOException {
 		//GET            = b'g'   # push item from memo on stack; index is string arg
 		//PUT            = b'p'   # store stack top in memo; index is string arg
-		
+
 		// a list with three times the same string in it.
 		// the string is stored ('p') and retrieved from the memo ('g').
 		List<String> list=new ArrayList<String>();
@@ -572,7 +572,7 @@ public class UnpickleOpcodesTest {
 		assertEquals(Double.NEGATIVE_INFINITY, u.loads(new byte[]{Opcodes.BINFLOAT, (byte)0xff,(byte)0xf0,0,0,0,0,0,0, Opcodes.STOP}));
 		assertEquals(Double.NaN, u.loads(new byte[]{Opcodes.BINFLOAT, (byte)0xff,(byte)0xf8,0,0,0,0,0,0, Opcodes.STOP}));
 	}
-	
+
 
 	@Test
 	public void testTRUE() throws PickleException, IOException {
@@ -595,7 +595,7 @@ public class UnpickleOpcodesTest {
 		U("\u0080\u0003N.");
 		U("\u0080\u0004N.");
 		try {
-			U("\u0080\u0005N."); // unsupported protocol 5.
+			U("\u0080\u0009N."); // unsupported protocol 9.
 			fail("expected pickle exception");
 		} catch (PickleException x) {
 			// ok
@@ -616,7 +616,7 @@ public class UnpickleOpcodesTest {
 		//NEWOBJ_EX = 0x92;  // like NEWOBJ but work with keyword only arguments
 		BigDecimal dec=new BigDecimal("123.456");
 		assertEquals(dec, (BigDecimal)U("cdecimal\nDecimal\n(V123.456\nt}\u0092."));
-		
+
 		try {
 			assertEquals(dec, (BigDecimal)U("cdecimal\nDecimal\n(V123.456\nt}\u008c\u0004testK1s\u0092."));
 			fail("expected exception");
@@ -688,7 +688,7 @@ public class UnpickleOpcodesTest {
 		assertEquals(513L, U("\u008a\u0002\u0001\u0002."));
 		assertEquals(-256L, U("\u008a\u0002\u0000\u00ff."));
 		assertEquals(65280L, U("\u008a\u0003\u0000\u00ff\u0000."));
-		
+
 		assertEquals(0x12345678L, U("\u008a\u0004\u0078\u0056\u0034\u0012."));
 		assertEquals(-231451016L, U("\u008a\u0004\u0078\u0056\u0034\u00f2."));
 		assertEquals(0xf2345678L, U("\u008a\u0005\u0078\u0056\u0034\u00f2\u0000."));
@@ -753,7 +753,16 @@ public class UnpickleOpcodesTest {
 		}
 		assertArrayEquals(bytes, (byte[]) U("\u008e\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000"+STRING256+STRING256+"."));
 	}
-	
+
+	@Test
+	public void testBYTEARRAY8() throws PickleException, IOException {
+		// BYTEARRAY8 = 0x96 (pickle protocol 5)
+		Unpickler u = new Unpickler();
+		byte[] data = PickleUtils.str2bytes("\u0080\u0005\u0095\u000e\u0000\u0000\u0000\u0000\u0000\u0000\u0090\u0096\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000abc\u0094.");
+		byte[] result = (byte[]) u.loads(data);
+		assertArrayEquals(new byte[]{'a','b','c'}, result);
+	}
+
 	@Test
 	public void testSHORT_BINBYTES() throws PickleException, IOException {
 		//SHORT_BINBYTES = b'C'   #  push bytes; counted binary string argument < 256 bytes
@@ -778,11 +787,11 @@ public class UnpickleOpcodesTest {
 		Object[] result = (Object[]) U("K\u0001\u0094K\u0002\u0094h\u0000h\u0001h\u0001\u0087.");
 		assertArrayEquals(value, result);
 	}
-	
+
 	@Test
 	public void testFRAME() throws PickleException, IOException {
 		// FRAME = 0x95;  // indicate the beginning of a new frame
-		Object[] result = (Object[]) u.loads(new byte[] { (byte)Opcodes.FRAME, 6,0,0,0,0,0,0,0, 
+		Object[] result = (Object[]) u.loads(new byte[] { (byte)Opcodes.FRAME, 6,0,0,0,0,0,0,0,
 		                     	Opcodes.BININT1, 42, Opcodes.BININT1, 43, Opcodes.BININT1, 44,
 		                     	(byte)Opcodes.FRAME, 2,0,0,0,0,0,0,0, (byte)Opcodes.TUPLE3, Opcodes.STOP});
 		Object[] value = new Object[] {42,43,44};
@@ -805,5 +814,5 @@ public class UnpickleOpcodesTest {
 		assertEquals(DateTimeConstructor.class,  result.getClass());
 		result = U("\u008c\u0008builtins\u008c\u0009bytearray\u0093.");
 		assertEquals(ByteArrayConstructor.class,  result.getClass());
-	}	
+	}
 }
