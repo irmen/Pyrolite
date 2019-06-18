@@ -82,17 +82,22 @@ public static class Opcodes {
 
 	// Protocol 4 (Python 3.4+)
 
-	public const byte SHORT_BINUNICODE = 0x8c;  // push short string; UTF-8 length < 256 bytes
-	public const byte BINUNICODE8 = 0x8d;  // push very long string
-	public const byte BINBYTES8 = 0x8e;  // push very long bytes string
-	public const byte EMPTY_SET = 0x8f;  // push empty set on the stack
-	public const byte ADDITEMS = 0x90;  // modify set by adding topmost stack items
-	public const byte FROZENSET = 0x91;  // build frozenset from topmost stack items
-	public const byte MEMOIZE = 0x94;  // store top of the stack in memo
-	public const byte FRAME = 0x95;  // indicate the beginning of a new frame
-	public const byte NEWOBJ_EX = 0x92;  // like NEWOBJ but work with keyword only arguments
-	public const byte STACK_GLOBAL = 0x93;  // same as GLOBAL but using names on the stacks
+	public const byte  SHORT_BINUNICODE = 0x8c;  // push short string; UTF-8 length < 256 bytes
+	public const byte  BINUNICODE8 = 0x8d;  // push very long string
+	public const byte  BINBYTES8 = 0x8e;  // push very long bytes string
+	public const byte  EMPTY_SET = 0x8f;  // push empty set on the stack
+	public const byte  ADDITEMS = 0x90;  // modify set by adding topmost stack items
+	public const byte  FROZENSET = 0x91;  // build frozenset from topmost stack items
+	public const byte  MEMOIZE = 0x94;  // store top of the stack in memo
+	public const byte  FRAME = 0x95;  // indicate the beginning of a new frame
+	public const byte  NEWOBJ_EX = 0x92;  // like NEWOBJ but work with keyword only arguments
+	public const byte  STACK_GLOBAL = 0x93;  // same as GLOBAL but using names on the stacks
 
+	// Protocol 5 (Python 3.8+)
+
+	public const byte  BYTEARRAY8 = 0x96;		// push bytearray
+	public const byte  NEXT_BUFFER = 0x97;		// push next out-of-band buffer
+	public const byte  READONLY_BUFFER = 0x98;	//  make top of stack readonly
 }
 
 }

@@ -21,7 +21,7 @@ namespace Razorvine.Pickle
 [SuppressMessage("ReSharper", "InvertIf")]
 public class Unpickler : IDisposable {
 
-	public const int HIGHEST_PROTOCOL = 4;
+	public const int HIGHEST_PROTOCOL = 5;
 
 	internal readonly IDictionary<int, object> memo;
 	private UnpickleStack stack;
@@ -123,6 +123,16 @@ public class Unpickler : IDisposable {
 		memo?.Clear();
 	}
 
+	
+	/**
+	 * Buffer support for protocol 5 out of band data
+	 * If you want to unpickle such pickles, you'll have to subclass the unpickler
+	 * and override this method to return the buffer data you want.
+	 */
+	public virtual object nextBuffer()  {
+		throw new PickleException("pickle stream refers to out-of-band data but no user-overridden nextBuffer() method is used\n");
+	}
+	
 	protected internal virtual object persistentLoad(string pid)
 	{
 		throw new PickleException("A load persistent id instruction was encountered, but no persistentLoad function was specified. (implement it in custom Unpickler subclass)");

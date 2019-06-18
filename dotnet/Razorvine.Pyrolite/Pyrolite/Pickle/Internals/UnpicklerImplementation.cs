@@ -48,7 +48,7 @@ namespace Razorvine.Pickle
             unpickler.memo.Clear();
             return value; // final result value
         }
-
+        
         private void Dispatch(byte key)
         {
             switch (key)
@@ -215,7 +215,7 @@ namespace Razorvine.Pickle
                     load_short_binbytes();
                     return;
 
-                // Protocol 4 (Python 3.4+)
+                // Protocol 4 (Python 3.4-3.7)
                 case Opcodes.BINUNICODE8:
                     load_binunicode8();
                     return;
@@ -246,12 +246,43 @@ namespace Razorvine.Pickle
                 case Opcodes.STACK_GLOBAL:
                     load_stack_global();
                     return;
+                
+                // protocol 5 (Python 3.8+)
+                case Opcodes.BYTEARRAY8:
+                    load_bytearray8();
+                    break;
+                case Opcodes.READONLY_BUFFER:
+                    load_readonly_buffer();
+                    break;
+                case Opcodes.NEXT_BUFFER:
+                    load_next_buffer();
+                    break;                
 
                 default:
                     throw new InvalidOpcodeException("invalid pickle opcode: " + key);
             }
         }
 
+
+        private void load_bytearray8()
+        {
+            // this is the same as load_binbytes8 because we make no distinction
+            // here between the bytes and bytearray python types
+            long len = BinaryPrimitives.ReadInt64LittleEndian(input.ReadBytes(sizeof(long)));
+            stack.add(input.ReadBytes(PickleUtils.CheckedCast(len)).ToArray());
+        }
+
+        private void load_readonly_buffer()
+        {
+            // this opcode is ignored, we don't distinguish between readonly and read/write buffers
+        }
+
+        private void load_next_buffer()
+        {
+            stack.add(unpickler.nextBuffer());
+        }
+        
+        
         private void load_build()
         {
             object args = stack.pop();

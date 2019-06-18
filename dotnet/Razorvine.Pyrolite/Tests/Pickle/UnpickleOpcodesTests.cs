@@ -588,7 +588,7 @@ public class UnpickleOpcodesTests: IDisposable {
 		U("\u0080\u0003N.");
 		U("\u0080\u0004N.");
 		try {
-			U("\u0080\u0005N."); // unsupported protocol 5.
+			U("\u0080\u0009N."); // unsupported protocol 9.
 			Assert.True(false, "expected pickle exception");
 		} catch (PickleException) {
 			// ok
@@ -756,6 +756,15 @@ public class UnpickleOpcodesTests: IDisposable {
 			bytes[i]=(byte)(i&0xff);
 		}
 		Assert.Equal(bytes, (byte[]) U("\u008e\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000"+STRING256+STRING256+"."));
+	}
+	
+	[Fact]
+	public void TestBYTEARRAY8() {
+		// BYTEARRAY8 = 0x96 (pickle protocol 5)
+		Unpickler u = new Unpickler();
+		byte[] data = PickleUtils.str2bytes("\u0080\u0005\u0095\u000e\u0000\u0000\u0000\u0000\u0000\u0000\u0090\u0096\u0003\u0000\u0000\u0000\u0000\u0000\u0000\u0000abc\u0094.");
+		byte[] result = (byte[]) u.loads(data);
+		Assert.Equal(new byte[]{97, 98, 99}, result);
 	}
 
 	[Fact]

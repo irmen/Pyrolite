@@ -625,10 +625,9 @@ public class UnpicklerTest {
 	@Test
 	public void testProtocol5Buffers() throws PickleException, IOException
 	{
-		// TODO pickles with NEXT_BUFFER and READONLY_BUFFER opcodes
 		/*
-NEXT_BUFFER      = b'\x97'  # push next out-of-band buffer
-READONLY_BUFFER = b'\x98' # make top of stack readonly
+			NEXT_BUFFER      = b'\x97'  # push next out-of-band buffer
+			READONLY_BUFFER = b'\x98' # make top of stack readonly
 		 */
 		byte[] data = PickleUtils.str2bytes("\u0080\u0005\u0095\u0006\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0097\u0098\u0097\u0086\u0094.");
 		try {

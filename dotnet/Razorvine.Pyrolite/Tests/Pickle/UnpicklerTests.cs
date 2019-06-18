@@ -581,6 +581,53 @@ public class UnpicklerTests {
 		    }
 	    }
     }    
+    
+    [Fact]
+    public void TestProtocol5bytearray()
+    {
+	    // ["string", bytearray(b'irmen')]  ->  produces a protocol 5 pickle with opcode BYTEARRAY8
+	    Unpickler u = new Unpickler();
+	    byte[] data = PickleUtils.str2bytes("\u0080\u0005\u0095\u001d\u0000\u0000\u0000\u0000\u0000\u0000\u0000]\u0094(\u008c\u0006string\u0094\u0096\u0005\u0000\u0000\u0000\u0000\u0000\u0000\u0000irmen\u0094e.");
+	    ArrayList result = (ArrayList) u.loads(data);
+	    Assert.Equal(2, result.Count);
+	    Assert.Equal("string", result[0]);
+	    Assert.Equal(new byte[]{105, 114, 109, 101, 110}, result[1]);
+    }
+
+    [Fact]
+    public void TestProtocol5Buffers()
+    {
+	    /*
+			NEXT_BUFFER      = b'\x97'  # push next out-of-band buffer
+			READONLY_BUFFER = b'\x98' # make top of stack readonly
+	     */
+	    byte[] data = PickleUtils.str2bytes("\u0080\u0005\u0095\u0006\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0097\u0098\u0097\u0086\u0094.");
+	    try {
+		    Unpickler fu = new Unpickler();
+		    fu.loads(data);
+		    Assert.True(false, "should give error");
+	    } catch(PickleException x) {
+		    Assert.Contains("out-of-band", x.Message);
+	    }
+
+	    Unpickler u = new OutOfBandUnpickler();
+	    Object[] result = (Object[]) u.loads(data);
+	    Assert.Equal(2, result.Length);
+	    Assert.Equal("bufferdata1", result[0]);
+	    Assert.Equal("bufferdata2", result[1]);
+    }
+
+    class OutOfBandUnpickler : Unpickler
+    {
+	    int _buffercounter = 0;
+
+	    public override object nextBuffer()
+	    {
+		    _buffercounter++;
+		    return "bufferdata" + _buffercounter;
+	    }
+    }
+
 }
 
 }
