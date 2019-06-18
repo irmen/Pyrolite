@@ -113,12 +113,13 @@ including memoization. It is fully compatible with pickles from Python 2.x and
 Python 3.x, and you can use it idependently from the rest of the library, to
 read and write Python pickle structures.
 
-Pickle protocol version support: reading: 0,1,2,3,4; writing: 2.
-Pyrolite can read all pickle protocol versions  (0 to 4, so this includes
-the latest additions made in Python 3.4).
+Pickle protocol version support: reading: 0,1,2,3,4,5;  writing: 2.
+Pyrolite can read all pickle protocol versions (0 to 5, so this includes
+the latest additions made in Python 3.8 related to out-of-band buffers).
 Pyrolite always writes pickles in protocol version 2. There are no plans on 
 including protocol version 1 support. Protocols 3 and 4 contain some nice new
-features which may eventually be utilized, but for now, only version 2 is used.
+features which may eventually be utilized (protocol 5 is quite obscure),
+but for now, only version 2 is used.
 
 
 The source archive contains the full source, and also unit test code and a
