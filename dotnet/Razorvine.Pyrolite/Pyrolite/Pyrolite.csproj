@@ -8,9 +8,9 @@
     <Authors>Irmen de Jong</Authors>
     <Product>Serpent Python literal expression serialization</Product>
     <PackageId>Razorvine.Pyrolite</PackageId>
-    <Version>4.30.0</Version>
-    <AssemblyVersion>4.30.0.0</AssemblyVersion>
-    <FileVersion>4.30.0.0</FileVersion>
+    <Version>4.31.0</Version>
+    <AssemblyVersion>4.31.0.0</AssemblyVersion>
+    <FileVersion>4.31.0.0</FileVersion>
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>Pyrolite.snk</AssemblyOriginatorKeyFile>
@@ -28,7 +28,7 @@ More info about Pyro: https://pyro4.readthedocs.io/</Description>
     <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>pyro python rpc remote-objects</PackageTags>
-    <PackageReleaseNotes>Support for unpickling protocol 5 pickles with out-of-band buffers (Python 3.8)</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed deserialization issue when pickle is used as serializer in Pyrolite (exception when deserializing the handshake dictionary)</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Razorvine.Serpent" Version="1.29.0" />
