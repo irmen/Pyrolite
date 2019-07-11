@@ -122,7 +122,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// Extract meta data and store it in the relevant properties on the proxy.
 	/// If no attribute or method is exposed at all, throw an exception.
 	/// </summary>
-	private void _processMetadata(IDictionary result)
+	protected void _processMetadata(IDictionary result)
 	{
 		// the collections in the result can be either an object[] or a HashSet<object> or List<object>, 
 		// depending on the serializer and Pyro version that is used
@@ -132,11 +132,17 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		pyroMethods = methods_array != null ? new HashSet<string>(methods_array.Select(o => o as string)) : GetStringSet(result["methods"]);
 		pyroAttrs = attrs_array != null ? new HashSet<string>(attrs_array.Select(o => o as string)) : GetStringSet(result["attrs"]);
-		pyroOneway = oneway_array != null ? new HashSet<string>(oneway_array.Select(o => o as string)) : GetStringSet(result["attrs"]);
+		pyroOneway = oneway_array != null ? new HashSet<string>(oneway_array.Select(o => o as string)) : GetStringSet(result["oneway"]);
 		
 		if(!pyroMethods.Any() && !pyroAttrs.Any()) {
 			throw new PyroException("remote object doesn't expose any methods or attributes");
 		}
+	}
+
+	protected void _processMetadata(IDictionary<object, object> data)
+	{
+		var dict = (IDictionary) data;
+		_processMetadata(dict);
 	}
 	
 	protected static HashSet<string> GetStringSet(object strings)

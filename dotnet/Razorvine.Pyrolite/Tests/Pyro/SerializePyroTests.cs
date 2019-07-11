@@ -164,6 +164,97 @@ namespace Pyrolite.Tests.Pyro
 		}
 	}
 
+
+	/// <summary>
+	/// Some tests about the peculiarities of the handshake
+	/// </summary>
+	public class HandshakeTests
+	{
+		class MetadataProxy : PyroProxy
+		{
+			public MetadataProxy() : base("test", 999, "object42")
+			{
+			}
+
+			public void TestMetadataHashtable(Hashtable table)
+			{
+				base._processMetadata(table);
+			}
+
+			public void TestMetadataDictionary(IDictionary dict)
+			{
+				base._processMetadata(dict);
+			}
+
+			public void TestMetadataGenericDict(IDictionary<object, object> dict)
+			{
+				base._processMetadata(dict);
+			}
+		}
+		
+		
+		[Fact]
+		public void TestHandshakeDicts()
+		{
+			var proxy = new MetadataProxy();
+
+			var hashtable = new Hashtable
+			{
+				{"methods", new object[] {"method1"}},
+				{"attrs", new List<object>() {"attr1"}}, 
+				{"oneway", new HashSet<object>() {"oneway1"}}
+			};
+			var dict = new SortedList
+			{
+				{"methods", new object[] {"method1"}},
+				{"attrs", new List<object>() {"attr1"}}, 
+				{"oneway", new HashSet<object>() {"oneway1"}}
+			};
+			var gdict = new Dictionary<object, object>
+			{
+				{"methods", new object[] {"method1"}},
+				{"attrs", new List<object>() {"attr1"}}, 
+				{"oneway", new HashSet<object>() {"oneway1"}}
+			};
+
+			var expectedMethods = new HashSet<string> {"method1"};
+			var expectedAttrs = new HashSet<string> {"attr1"};
+			var expectedOneway = new HashSet<string> {"oneway1"};
+
+			proxy.pyroMethods.Clear();
+			proxy.pyroAttrs.Clear();
+			proxy.pyroOneway.Clear();
+			proxy.TestMetadataHashtable(hashtable);
+			Assert.Equal(expectedMethods, proxy.pyroMethods);
+			Assert.Equal(expectedAttrs, proxy.pyroAttrs);
+			Assert.Equal(expectedOneway, proxy.pyroOneway);
+
+			proxy.pyroMethods.Clear();
+			proxy.pyroAttrs.Clear();
+			proxy.pyroOneway.Clear();
+			proxy.TestMetadataDictionary(dict);
+			Assert.Equal(expectedMethods, proxy.pyroMethods);
+			Assert.Equal(expectedAttrs, proxy.pyroAttrs);
+			Assert.Equal(expectedOneway, proxy.pyroOneway);
+			
+			proxy.pyroMethods.Clear();
+			proxy.pyroAttrs.Clear();
+			proxy.pyroOneway.Clear();
+			proxy.TestMetadataDictionary(gdict);
+			Assert.Equal(expectedMethods, proxy.pyroMethods);
+			Assert.Equal(expectedAttrs, proxy.pyroAttrs);
+			Assert.Equal(expectedOneway, proxy.pyroOneway);
+			
+			proxy.pyroMethods.Clear();
+			proxy.pyroAttrs.Clear();
+			proxy.pyroOneway.Clear();
+			proxy.TestMetadataGenericDict(gdict);
+			Assert.Equal(expectedMethods, proxy.pyroMethods);
+			Assert.Equal(expectedAttrs, proxy.pyroAttrs);
+			Assert.Equal(expectedOneway, proxy.pyroOneway);
+		}
+	}
+	
 	/// <summary>
 	/// Miscellaneous tests.
 	/// </summary>
