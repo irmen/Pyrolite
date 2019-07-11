@@ -28,7 +28,8 @@ More info about Pyro: https://pyro4.readthedocs.io/</Description>
     <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>pyro python rpc remote-objects</PackageTags>
-    <PackageReleaseNotes>Fixed deserialization issue when pickle is used as serializer in Pyrolite (exception when deserializing the handshake dictionary)</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed deserialization issue when pickle is used as serializer in Pyrolite (exception when deserializing the handshake dictionary).
+    PyroProxy now gets the correct pyroOneway settings from the metdata.</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Razorvine.Serpent" Version="1.29.0" />
