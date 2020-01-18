@@ -1,5 +1,9 @@
 # Pyrolite - Pyro client and Python Pickle library for Java and .NET
 
+* You're looking at the legacy branch of this library, compatible with Pyro4 *
+
+
+
 [![saythanks](https://img.shields.io/badge/say-thanks-ff69b4.svg)](https://saythanks.io/to/irmen)
 [![Build Status](https://travis-ci.org/irmen/Pyrolite.svg?branch=master)](https://travis-ci.org/irmen/Pyrolite)
 [![Maven Central](https://img.shields.io/maven-central/v/net.razorvine/pyrolite.svg)](http://search.maven.org/#search|ga|1|g%3A%22net.razorvine%22%20AND%20a%3A%22pyrolite%22)
