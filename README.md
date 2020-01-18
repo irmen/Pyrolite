@@ -1,6 +1,6 @@
 # Pyrolite - Pyro client and Python Pickle library for Java and .NET
 
-* You're looking at the legacy branch of this library, compatible with Pyro4 *
+### You're looking at the legacy branch of this library, compatible with Pyro4 
 
 
 
