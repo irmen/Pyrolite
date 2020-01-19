@@ -16,18 +16,11 @@ public final class Config implements Serializable {
 	public static int NS_BCPORT = 9091;
 
 	public final static int PROTOCOL_VERSION = 48;	// Pyro 4.38 and later
-	public final static String PYROLITE_VERSION = "4.30";
-
-	public enum SerializerType {
-		pickle,
-		serpent
-	}
+	public final static String PYROLITE_VERSION = "5.0";
 
 	public static boolean SERPENT_INDENT = false;
 	public static boolean SERPENT_SET_LITERALS = false;     // set to true if talking to Python 3.2 or newer
-	public static SerializerType SERIALIZER = SerializerType.serpent;
 	public static boolean METADATA = true;		// get metadata from server?
-	public static boolean PICKLE_CALENDAR_PYTZ_LOCALIZE = true;		// use pytz localize() pickle for Calendar with timezones
 
 	public static String DAEMON_NAME = "Pyro.Daemon";
 }

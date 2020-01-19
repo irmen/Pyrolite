@@ -11,23 +11,21 @@ import net.razorvine.pyro.PyroURI;
 
 /**
  * Simple example that shows the use of the iterator item streaming feature.
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class StreamingExample {
 
-	static protected byte[] hmacKey = null; // "irmen".getBytes(); 
-	
-	
+	static protected byte[] hmacKey = null; // "irmen".getBytes();
+
+
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws IOException {
 
 		setConfig();
-		/// Config.SERIALIZER = Config.SerializerType.pickle;
 
 		System.out.println("Testing Pyro iterator item streaming");
 		System.out.println("Pyrolite version: "+Config.PYROLITE_VERSION);
-		System.out.println("serializer used: " + Config.SERIALIZER);
 
 		Scanner scanner = new Scanner(System.in);
 		System.out.println("\r\nEnter the streaming server URI: ");
@@ -41,14 +39,14 @@ public class StreamingExample {
 		for(int i: iter) {
 			System.out.println(i);
 		}
-		
+
 		System.out.println("ITERATOR:");
 		result = p.call("iterator");
 		iter = (Iterable<Integer>) result;
 		for(int i: iter) {
 			System.out.println(i);
 		}
-		
+
 		System.out.println("GENERATOR:");
 		result = p.call("generator");
 		iter = (Iterable<Integer>) result;
@@ -62,7 +60,7 @@ public class StreamingExample {
 		for(int i: iter) {
 			System.out.println(i);
 		}
-		
+
 		System.out.println("STOPPING GENERATOR HALFWAY:");
 		result = p.call("slow_generator");
 		Iterable<Integer> iterable = (Iterable<Integer>) result;
@@ -72,7 +70,7 @@ public class StreamingExample {
 		System.out.println("...stopping...");
 		// the call below is a rather nasty way to force the iterator to close before reaching the end
 		((StreamResultIterable.StreamResultIterator) iterator).close();
-		
+
 		iterable = null;
 		iterator = null;
 
@@ -80,21 +78,13 @@ public class StreamingExample {
 		p.close();
 		scanner.close();
 	}
-	
+
 	static void setConfig() {
 		String tracedir=System.getenv("PYRO_TRACE_DIR");
 		if(System.getProperty("PYRO_TRACE_DIR")!=null) {
 			tracedir=System.getProperty("PYRO_TRACE_DIR");
 		}
-		
-		String serializer=System.getenv("PYRO_SERIALIZER");
-		if(System.getProperty("PYRO_SERIALIZER")!=null) {
-			serializer=System.getProperty("PYRO_SERIALIZER");
-		}
-		if(serializer!=null) {
-			Config.SERIALIZER = Enum.valueOf(Config.SerializerType.class, serializer);
-		}
 
 		Config.MSG_TRACE_DIR=tracedir;
-	}	
+	}
 }

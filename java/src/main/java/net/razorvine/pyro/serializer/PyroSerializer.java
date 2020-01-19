@@ -1,11 +1,9 @@
 package net.razorvine.pyro.serializer;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-import net.razorvine.pyro.Config;
 import net.razorvine.pyro.PyroException;
 
 /**
@@ -19,42 +17,29 @@ public abstract class PyroSerializer
 	public abstract byte[] serializeData(Object obj) throws IOException;
 	public abstract Object deserializeData(byte[] data) throws IOException;
 
-	protected static Map<Config.SerializerType, PyroSerializer> AvailableSerializers = new HashMap<Config.SerializerType, PyroSerializer>();
-	
-	protected static PickleSerializer pickleSerializer = new PickleSerializer();  // built-in
 	protected static SerpentSerializer serpentSerializer;   // loaded if serpent.jar is available
-	
-	public static PyroSerializer getFor(Config.SerializerType type)
+
+	public static PyroSerializer getSerpentSerializer()
 	{
-		switch(type)
+		synchronized(PyroSerializer.class)
 		{
-			case pickle:
-				return pickleSerializer;
-			case serpent:
+			if(serpentSerializer==null)
 			{
-				synchronized(PyroSerializer.class)
-				{
-					if(serpentSerializer==null)
+				// try loading it
+				try {
+					serpentSerializer = new SerpentSerializer();
+					final String requiredSerpentVersion = "1.23";
+					if(compareLibraryVersions(net.razorvine.serpent.LibraryVersion.VERSION, requiredSerpentVersion) < 0)
 					{
-						// try loading it
-						try {
-							serpentSerializer = new SerpentSerializer();
-							final String requiredSerpentVersion = "1.23";
-							if(compareLibraryVersions(net.razorvine.serpent.LibraryVersion.VERSION, requiredSerpentVersion) < 0)
-							{
-								throw new java.lang.RuntimeException("serpent version "+requiredSerpentVersion+" (or newer) is required");
-							}
-							return serpentSerializer;
-						} catch (LinkageError x) {
-							throw new PyroException("serpent serializer unavailable", x);
-						}
+						throw new java.lang.RuntimeException("serpent version "+requiredSerpentVersion+" (or newer) is required");
 					}
+					return serpentSerializer;
+				} catch (LinkageError x) {
+					throw new PyroException("serpent serializer unavailable", x);
 				}
-				return serpentSerializer;
 			}
-			default:
-				throw new IllegalArgumentException("unrecognised serializer type: "+type);
 		}
+		return serpentSerializer;
 	}
 
 	public static PyroSerializer getFor(int serializer_id) {
@@ -62,9 +47,7 @@ public abstract class PyroSerializer
 			if(serializer_id == serpentSerializer.getSerializerId())
 				return serpentSerializer;
 		}
-		if(serializer_id==pickleSerializer.getSerializerId())
-			return pickleSerializer;
-		
+
 		throw new IllegalArgumentException("unsupported serializer id: "+serializer_id);
 	}
 

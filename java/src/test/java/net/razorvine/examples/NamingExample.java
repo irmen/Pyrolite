@@ -9,7 +9,7 @@ import net.razorvine.pyro.*;
 
 /**
  * Test Pyro with the Pyro name server.
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class NamingExample {
@@ -26,7 +26,7 @@ public class NamingExample {
 		NameServerProxy ns=NameServerProxy.locateNS(null, hmacKey);
 		System.out.println("discovered ns at "+ns.hostname+":"+ns.port);
 		ns.ping();
-		
+
 		System.out.println("lookup of name server object:");
 		PyroURI uri = ns.lookup("Pyro.NameServer");
 		System.out.println("   "+uri);
@@ -44,7 +44,7 @@ public class NamingExample {
 		for (String name : objects.keySet()) {
 			System.out.println(name + " --> " + objects.get(name));
 		}
-		
+
 		System.out.println("\nobjects registered in the name server, with metadata:");
 		Map<String, Object[]> objects_meta = ns.list_with_meta(null, null);
 		for (String name : objects_meta.keySet()) {
@@ -95,7 +95,7 @@ public class NamingExample {
 			// ok
 			System.out.println("got a Pyro Exception (expected): "+x);
 		}
-		
+
 		p.close();
 		ns.close();
 	}
@@ -104,14 +104,6 @@ public class NamingExample {
 		String tracedir=System.getenv("PYRO_TRACE_DIR");
 		if(System.getProperty("PYRO_TRACE_DIR")!=null) {
 			tracedir=System.getProperty("PYRO_TRACE_DIR");
-		}
-
-		String serializer=System.getenv("PYRO_SERIALIZER");
-		if(System.getProperty("PYRO_SERIALIZER")!=null) {
-			serializer=System.getProperty("PYRO_SERIALIZER");
-		}
-		if(serializer!=null) {
-			Config.SERIALIZER = Enum.valueOf(Config.SerializerType.class, serializer);
 		}
 
 		Config.MSG_TRACE_DIR=tracedir;

@@ -9,10 +9,10 @@
  *
  * This package makes heavy use of the {@link net.razorvine.pickle} package to be able to
  * serialize and de-serialize object graphs, which is used in the Pyro communication protocol.
- * Note that Pyrolite only supports Pyro4.
+ * Note that Pyrolite version 5.0 and newer only support Pyro5.
  *
  * @author Irmen de Jong (irmen@razorvine.net)
- * @version 4.30
+ * @version 5.0
  * @see net.razorvine.pickle
  */
 package net.razorvine.pyro;

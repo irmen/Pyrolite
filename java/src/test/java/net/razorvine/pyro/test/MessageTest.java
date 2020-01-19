@@ -19,22 +19,22 @@ import org.junit.Test;
 
 /**
  * Unit tests for the Pyro message. Sets HMAC.
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class MessageTest {
-	
+
 	PyroSerializer ser;
-	
+
 	@Before
 	public void setUp() {
-		this.ser = new PickleSerializer();
+		this.ser = new SerpentSerializer();
 	}
 
 	@After
 	public void tearDown() {
 	}
-	
+
 	public byte[] getHeaderBytes(byte[] data)
 	{
 		return Arrays.copyOfRange(data,  0, Message.HEADER_SIZE);
@@ -44,7 +44,7 @@ public class MessageTest {
 	public void TestMessage()
 	{
 		byte[] hmac = "secret".getBytes();
-		
+
 		new Message(99, new byte[0], this.ser.getSerializerId(), 0, 0, null, null);  // doesn't check msg type here
 		try {
 			Message.from_header("FOOBAR".getBytes());
@@ -94,7 +94,7 @@ public class MessageTest {
 		byte[] msg_bytes2 = new Message(Message.MSG_INVOKE, data, this.ser.getSerializerId(), Message.FLAGS_COMPRESSED, 0, null, hmac).to_bytes();
 		assertEquals(msg_bytes1.length, msg_bytes2.length);
 	}
-	
+
 	@Test
 	public void testMessageHeaderDatasize()
 	{
@@ -108,7 +108,7 @@ public class MessageTest {
 		assertEquals(12345, msg.serializer_id);
 		assertEquals(30003, msg.seq);
 	}
-	
+
 	@Test
 	public void TestAnnotations()
 	{
@@ -118,7 +118,7 @@ public class MessageTest {
 		annotations.put("TES2", new byte[]{20,30,40,50,60});
 		annotations.put("TES3", new byte[]{30,40,50,60,70});
 		annotations.put("TES4", new byte[]{40,50,60,70,80});
-		
+
 		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, annotations, "secret".getBytes());
 		byte[] data = msg.to_bytes();
 		int annotations_size = 4+2+20 + (4+2+5)*4;
@@ -131,7 +131,7 @@ public class MessageTest {
 		assertArrayEquals(new byte[]{40,50,60,70,80}, msg.annotations.get("TES4"));
 		byte[] mac = msg.hmac(key);
 		assertArrayEquals(mac, msg.annotations.get("HMAC"));
-		
+
 		annotations = new TreeMap<String,byte[]>();
 		annotations.put("TES4", new byte[]{40,50,60,70,80});
 		annotations.put("TES3", new byte[]{30,40,50,60,70});
@@ -145,7 +145,7 @@ public class MessageTest {
 		Message msg3 = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, annotations, "secret".getBytes());
 		assertNotEquals(Arrays.asList(msg.hmac(key)), Arrays.asList(msg3.hmac(key)));
 	}
-	
+
 	@Test
 	public void testAnnotationsIdLength4()
 	{
@@ -168,7 +168,7 @@ public class MessageTest {
 			//ok
 		}
 	}
-	
+
 	@Test
 	public void testRecvAnnotations() throws IOException
 	{
@@ -185,7 +185,7 @@ public class MessageTest {
 		assertArrayEquals(new byte[]{10,20,30,40,50}, msg.annotations.get("TEST"));
 		assertTrue(msg.annotations.containsKey("HMAC"));
 	}
-	
+
 	@SuppressWarnings("serial")
 	class CustomAnnProxy extends PyroProxy
 	{
@@ -193,7 +193,7 @@ public class MessageTest {
 		{
 			super(uri);
 		}
-		
+
 		@Override
 		public SortedMap<String, byte[]> annotations()
 		{
@@ -202,7 +202,7 @@ public class MessageTest {
 			return ann;
 		}
 	}
-	
+
 	@Test
 	public void testProxyAnnotations() throws IOException
 	{
@@ -214,8 +214,8 @@ public class MessageTest {
 		assertTrue(annotations.containsKey("CORR"));
 		assertTrue(annotations.containsKey("XYZZ"));
 	}
-	
-	
+
+
 	@Test
 	public void testProtocolVersionKaputt()
 	{
@@ -235,7 +235,7 @@ public class MessageTest {
 	{
 		byte[] msg = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 1, null, null).to_bytes());
 		msg[4] = 0;
-		msg[5] = 47;	
+		msg[5] = 47;
 		try {
 			Message.from_header(msg);
 			fail("should crash");
@@ -249,7 +249,7 @@ public class MessageTest {
 	{
 		byte[] msg = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 1, null, null).to_bytes());
 		msg[4] = 0;
-		msg[5] = 49;	
+		msg[5] = 49;
 		try {
 			Message.from_header(msg);
 			fail("should crash");
@@ -257,7 +257,7 @@ public class MessageTest {
 			assertEquals("invalid protocol version: 49", x.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void testHmac() throws IOException
 	{
@@ -293,7 +293,7 @@ public class MessageTest {
 			assertTrue(x.getMessage().contains("hmac key config"));
 		}
 	}
-	
+
 	@Test
 	public void testChecksum() throws IOException
 	{
@@ -302,7 +302,7 @@ public class MessageTest {
 		byte[] data = msg.to_bytes();
 		data[Message.HEADER_SIZE-2] = 0;
 		data[Message.HEADER_SIZE-1] = 0;
-		
+
 		InputStream is = new ByteArrayInputStream(data);
 		try {
 			Message.recv(is, null, null);
@@ -312,7 +312,7 @@ public class MessageTest {
 			assertTrue(x.getMessage().contains("checksum"));
 		}
 	}
-	
+
 	@Test
 	public void testProxyCorrelationId() throws IOException
 	{
@@ -324,7 +324,7 @@ public class MessageTest {
 		ann = p.annotations();
 		assertEquals(1, ann.size());
 		assertTrue(ann.containsKey("CORR"));
-		
+
 		ByteBuffer bb = ByteBuffer.wrap(ann.get("CORR"));
 		UUID uuid = new UUID(bb.getLong(), bb.getLong());
 		assertEquals(p.correlation_id, uuid);

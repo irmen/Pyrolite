@@ -34,15 +34,15 @@ public class SerpentSerializerNoSetsTest {
 		List<Object> list = new LinkedList<Object>();
 		list.add("hello");
 		list.add(42);
-		
-		PyroSerializer ser = PyroSerializer.getFor(Config.SerializerType.serpent);
+
+		PyroSerializer ser = PyroSerializer.getSerpentSerializer();
 		byte[] data = ser.serializeData(list);
 		String str = new String(data);
 		assertEquals("# serpent utf-8 python2.6\n['hello',42]", str);
-		
+
 		List<Object> list_obj = (List<Object>)ser.deserializeData(data);
 		assertEquals(list, list_obj);
-		
+
 		Set<String> s = new HashSet<String>();
 		s.add("element1");
 		s.add("element2");
@@ -50,7 +50,7 @@ public class SerpentSerializerNoSetsTest {
 		str = new String(data);
 		assertTrue(str.equals("# serpent utf-8 python2.6\n('element1','element2')") ||
 				   str.equals("# serpent utf-8 python2.6\n('element2','element1')"));
-		
+
 		Object[] array_obj = (Object[]) ser.deserializeData(data);
 		assertArrayEquals(s.toArray(), array_obj);
 	}
@@ -58,17 +58,17 @@ public class SerpentSerializerNoSetsTest {
 	@Test
 	public void testSerializeCall() throws IOException
 	{
-		PyroSerializer ser = PyroSerializer.getFor(Config.SerializerType.serpent);
+		PyroSerializer ser = PyroSerializer.getSerpentSerializer();
 		Map<String, Object> kwargs = new HashMap<String, Object>();
 		kwargs.put("arg", 42);
 		Object[] vargs = new Object[] {"hello"};
-		
+
 		byte[] data = ser.serializeCall("objectid", "method", vargs, kwargs);
 		String s = new String(data);
 		assertEquals("# serpent utf-8 python2.6\n('objectid','method',('hello',),{'arg':42})", s);
-		
+
 		Object[] call = (Object[])ser.deserializeData(data);
-		
+
 		kwargs = new HashMap<String, Object>();
 		kwargs.put("arg", 42);
 		Object[] expected = new Object[] {

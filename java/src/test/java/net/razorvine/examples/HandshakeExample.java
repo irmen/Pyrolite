@@ -14,7 +14,7 @@ import net.razorvine.pyro.PyroURI;
 /**
  * Test Pyro with the Handshake example server to see
  * how custom annotations and handshake handling is done.
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 
@@ -25,7 +25,7 @@ import net.razorvine.pyro.PyroURI;
 @SuppressWarnings("serial")
 class CustomAnnotationsProxy extends PyroProxy
 {
-	public CustomAnnotationsProxy(PyroURI uri) throws IOException 
+	public CustomAnnotationsProxy(PyroURI uri) throws IOException
 	{
 		super(uri);
 	}
@@ -49,7 +49,7 @@ class CustomAnnotationsProxy extends PyroProxy
 		}
 		System.out.println("Proxy received handshake response data: "+msg);
 	}
-	
+
 	@Override
 	public void responseAnnotations(SortedMap<String, byte[]> annotations, int msgtype)
 	{
@@ -66,7 +66,7 @@ class CustomAnnotationsProxy extends PyroProxy
 			}
 			System.out.println("      " + ann + " -> " + value);
 		}
-		
+
 	}
 }
 
@@ -78,7 +78,6 @@ public class HandshakeExample {
 		setConfig();
 		System.out.println("Testing Pyro handshake and custom annotations. Make sure the server from the pyro handshake example is running.");
 		System.out.println("Pyrolite version: "+Config.PYROLITE_VERSION);
-		System.out.println("serializer used: " + Config.SERIALIZER);
 
 		Scanner scanner = new Scanner(System.in);
 		System.out.println("\r\nEnter the server URI: ");
@@ -86,34 +85,26 @@ public class HandshakeExample {
 		System.out.println("Enter the secret code as printed by the server: ");
 		String secret = scanner.next().trim();
 		scanner.close();
-		
+
 		PyroProxy p = new CustomAnnotationsProxy(new PyroURI(uri));
 		p.pyroHandshake = secret;
 		p.correlation_id = UUID.randomUUID();
 		System.out.println("Correlation id set to: "+p.correlation_id);
 		p.call("ping");
 		System.out.println("Connection Ok!");
-		
+
 		// tidy up:
 		p.close();
 	}
 
-	
+
 	static void setConfig() {
 		String tracedir=System.getenv("PYRO_TRACE_DIR");
 		if(System.getProperty("PYRO_TRACE_DIR")!=null) {
 			tracedir=System.getProperty("PYRO_TRACE_DIR");
 		}
-		
-		String serializer=System.getenv("PYRO_SERIALIZER");
-		if(System.getProperty("PYRO_SERIALIZER")!=null) {
-			serializer=System.getProperty("PYRO_SERIALIZER");
-		}
-		if(serializer!=null) {
-			Config.SERIALIZER = Enum.valueOf(Config.SerializerType.class, serializer);
-		}
 
 		Config.MSG_TRACE_DIR=tracedir;
-	}	
+	}
 }
 

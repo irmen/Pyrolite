@@ -11,12 +11,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import net.razorvine.pickle.PickleException;
-
 /**
- * A wrapper proxy for the Pyro Name Server, 
+ * A wrapper proxy for the Pyro Name Server,
  * to simplify the access to its remote methods.
- * 
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class NameServerProxy extends PyroProxy implements Serializable {
@@ -26,24 +24,24 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 	public NameServerProxy(PyroURI uri) throws UnknownHostException, IOException {
 		this(uri.host, uri.port, uri.objectid);
 	}
-	
+
 	public NameServerProxy(String hostname, int port, String objectid) throws UnknownHostException, IOException {
 		super(hostname, port, objectid);
 	}
-	
+
 	public NameServerProxy(String hostname, int port) throws IOException {
 		this(hostname, port, "Pyro.NameServer");
 	}
-		
-	public void ping() throws PickleException, IOException {
+
+	public void ping() throws IOException {
 		this.call("ping");
 	}
-	
-	public PyroURI lookup(String name) throws PickleException, IOException {
+
+	public PyroURI lookup(String name) throws IOException {
 		return (PyroURI) this.call("lookup", name);
 	}
-	
-	public Object[] lookup(String name, boolean return_metadata) throws PickleException, IOException {
+
+	public Object[] lookup(String name, boolean return_metadata) throws IOException {
 		Object[] result = (Object[]) this.call("lookup", name, return_metadata);
 		if(return_metadata) {
 			result[1] = getSetOfStrings(result[1]);  // convert the metadata string lists to sets
@@ -51,30 +49,30 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		return result;
 	}
 
-	public int remove(String name, String prefix, String regex) throws PickleException, IOException {
+	public int remove(String name, String prefix, String regex) throws IOException {
 		return (Integer) this.call("remove", name, prefix, regex);
 	}
 
-	public void register(String name, PyroURI uri, boolean safe) throws PickleException, IOException {
+	public void register(String name, PyroURI uri, boolean safe) throws IOException {
 		this.call("register", name, uri, safe);
 	}
-	
-	public void register(String name, PyroURI uri, boolean safe, String[] metadata) throws PickleException, IOException {
+
+	public void register(String name, PyroURI uri, boolean safe, String[] metadata) throws IOException {
 		this.call("register", name, uri, safe, metadata);
 	}
 
 	@SuppressWarnings("unchecked")
-	public Map<String,String> list(String prefix, String regex) throws PickleException, IOException {
+	public Map<String,String> list(String prefix, String regex) throws IOException {
 		return (Map<String,String>) this.call("list", prefix, regex);
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	public Map<String,String> list(String prefix, String regex, String[] metadata_all, String[] metadata_any) throws PickleException, IOException {
+	public Map<String,String> list(String prefix, String regex, String[] metadata_all, String[] metadata_any) throws IOException {
 		return (Map<String,String>) this.call("list", prefix, regex, metadata_all, metadata_any);
 	}
 
 	@SuppressWarnings("unchecked")
-	public Map<String, Object[]> list_with_meta(String prefix, String regex) throws PickleException, IOException {
+	public Map<String, Object[]> list_with_meta(String prefix, String regex) throws IOException {
 		Map<String, Object[]> result = (Map<String, Object[]>) this.call("list", prefix, regex, null, null, true);
 		// meta to sets
 		for(Entry<String, Object[]> entry: result.entrySet()) {
@@ -83,9 +81,9 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		}
 		return result;
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	public Map<String, Object[]> list_with_meta(String prefix, String regex, String[] metadata_all, String[] metadata_any) throws PickleException, IOException {
+	public Map<String, Object[]> list_with_meta(String prefix, String regex, String[] metadata_all, String[] metadata_any) throws IOException {
 		Map<String, Object[]> result = (Map<String, Object[]>) this.call("list", prefix, regex, metadata_all, metadata_any, true);
 		// meta to sets
 		for(Entry<String, Object[]> entry: result.entrySet()) {
@@ -95,7 +93,7 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		return result;
 	}
 
-	public void set_metadata(String name, Set<String> metadata) throws PickleException, IOException {
+	public void set_metadata(String name, Set<String> metadata) throws IOException {
 		this.call("set_metadata", name, metadata);
 	}
 
@@ -106,7 +104,7 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 	public static NameServerProxy locateNS(String host, byte[] hmacKey) throws IOException {
 		return locateNS(host,0,hmacKey);
 	}
-	
+
 	public static NameServerProxy locateNS(String host, int port, byte[] hmacKey) throws IOException {
 		if(host!=null) {
 			if(port==0)
@@ -127,7 +125,7 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		InetAddress address=InetAddress.getByName(host);
 		DatagramPacket packet=new DatagramPacket(buf, buf.length, address, port);
 		udpsock.send(packet);
-		
+
 		DatagramPacket response=new DatagramPacket(new byte[100], 100);
 		try
 		{

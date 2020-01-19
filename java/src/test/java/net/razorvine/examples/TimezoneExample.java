@@ -11,7 +11,7 @@ import net.razorvine.pyro.PyroProxy;
 /**
  * Simple example that shows the use of Pyro with timezone support.
  * (when using the pickle serializer)
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class TimezoneExample {
@@ -21,13 +21,11 @@ public class TimezoneExample {
 		System.out.println("Testing Pyro timezone example server (make sure it's running, with nameserver enabled, and pickle as serializer)...");
 		System.out.println("Pyrolite version: "+Config.PYROLITE_VERSION);
 
-		setConfig();
-
 		NameServerProxy ns = NameServerProxy.locateNS(null);
 		PyroProxy p = new PyroProxy(ns.lookup("example.timezones"));
 		ns.close();
 
-		
+
 		Calendar cal;
 
 		System.out.println("\nPYTZ...:");
@@ -57,13 +55,8 @@ public class TimezoneExample {
 		System.out.println("Timezone="+cal2.getTimeZone());
 		if(!cal.equals(cal2))
 			System.err.println("returned calendar is different!");
-		
+
 		// tidy up:
 		p.close();
 	}
-	
-	static void setConfig() {
-		Config.SERIALIZER = Config.SerializerType.pickle;
-		// Config.MSG_TRACE_DIR="L:/pyrolite_traces";
-	}	
 }

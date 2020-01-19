@@ -13,8 +13,6 @@ import java.util.*;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
-import net.razorvine.pickle.PickleException;
-import net.razorvine.pickle.PythonException;
 import net.razorvine.pyro.serializer.PyroSerializer;
 
 /**
@@ -92,7 +90,7 @@ public class PyroProxy implements Serializable {
 	/**
 	 * get metadata from server (methods, attrs, oneway, ...) and remember them in some attributes of the proxy
 	 */
-	protected void getMetadata(String objectId) throws PickleException, PyroException, IOException {
+	protected void getMetadata(String objectId) throws PyroException, IOException {
 		// get metadata from server (methods, attrs, oneway, ...) and remember them in some attributes of the proxy
 		if(objectId==null) objectId=this.objectid;
 		if(sock==null) {
@@ -174,7 +172,7 @@ public class PyroProxy implements Serializable {
 	 * @param arguments zero or more arguments for the remote method
 	 * @return the result Object from the remote method call (can be anything, you need to typecast/introspect yourself).
 	 */
-	public Object call(String method, Object... arguments) throws PickleException, PyroException, IOException {
+	public Object call(String method, Object... arguments) throws PyroException, IOException {
 		return internal_call(method, null, 0, true, arguments);
 	}
 
@@ -183,7 +181,7 @@ public class PyroProxy implements Serializable {
 	 * @param method the name of the method you want to call
 	 * @param arguments zero or more arguments for the remote method
 	 */
-	public void call_oneway(String method, Object... arguments) throws PickleException, PyroException, IOException {
+	public void call_oneway(String method, Object... arguments) throws PyroException, IOException {
 		internal_call(method, null, Message.FLAGS_ONEWAY, true, arguments);
 	}
 
@@ -191,7 +189,7 @@ public class PyroProxy implements Serializable {
 	 * Get the value of a remote attribute.
 	 * @param attr the attribute name
 	 */
-	public Object getattr(String attr) throws PickleException, PyroException, IOException {
+	public Object getattr(String attr) throws PyroException, IOException {
 		return this.internal_call("__getattr__", null, 0, false, attr);
 	}
 
@@ -200,7 +198,7 @@ public class PyroProxy implements Serializable {
 	 * @param attr the attribute name
 	 * @param value the new value for the attribute
 	 */
-	public void setattr(String attr, Object value) throws PickleException, PyroException, IOException {
+	public void setattr(String attr, Object value) throws PyroException, IOException {
 		this.internal_call("__setattr__", null, 0, false, attr, value);
 	}
 
@@ -222,7 +220,7 @@ public class PyroProxy implements Serializable {
 	/**
 	 * Internal call method to actually perform the Pyro method call and process the result.
 	 */
-	private Object internal_call(String method, String actual_objectId, int flags, boolean checkMethodName, Object... parameters) throws PickleException, PyroException, IOException {
+	private Object internal_call(String method, String actual_objectId, int flags, boolean checkMethodName, Object... parameters) throws PyroException, IOException {
 		if(actual_objectId==null) actual_objectId=this.objectid;
 		synchronized (this) {
 			connect();
@@ -239,7 +237,7 @@ public class PyroProxy implements Serializable {
 		}
 		if (parameters == null)
 			parameters = new Object[] {};
-		PyroSerializer ser = PyroSerializer.getFor(Config.SERIALIZER);
+		PyroSerializer ser = PyroSerializer.getSerpentSerializer();
 		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, Collections.emptyMap());
 		Message msg = new Message(Message.MSG_INVOKE, pickle, ser.getSerializerId(), flags, sequenceNr, annotations(), pyroHmacKey);
 		Message resultmsg;
@@ -273,16 +271,15 @@ public class PyroProxy implements Serializable {
 			if (rx instanceof PyroException) {
 				throw (PyroException) rx;
 			} else {
-				PyroException px;
+				PyroException px = new PyroException(null, rx);
 
 				// if the source was a PythonException, copy its message and python exception type
-				if(rx instanceof PythonException) {
-					PythonException rxp = (PythonException)rx;
-					px = new PyroException(rxp.getMessage(), rxp);
-					px.pythonExceptionType = rxp.pythonExceptionType;
-				} else {
-					px = new PyroException(null, rx);
-				}
+				// TODO how to do this without pickle?
+//				if(rx instanceof PythonException) {
+//					PythonException rxp = (PythonException)rx;
+//					px = new PyroException(rxp.getMessage(), rxp);
+//					px.pythonExceptionType = rxp.pythonExceptionType;
+//				}
 
 				try {
 					Field remotetbField = rx.getClass().getDeclaredField("_pyroTraceback");
@@ -345,7 +342,7 @@ public class PyroProxy implements Serializable {
 	protected void _handshake() throws IOException {
 		// do connection handshake
 
-		PyroSerializer ser = PyroSerializer.getFor(Config.SERIALIZER);
+		PyroSerializer ser = PyroSerializer.getSerpentSerializer();
 		Map<String, Object> handshakedata = new HashMap<String, Object>();
 		handshakedata.put("handshake", pyroHandshake);
 		if(Config.METADATA)
@@ -558,7 +555,7 @@ public class PyroProxy implements Serializable {
 				if(this.proxy!=null && this.proxy.sock!=null) {
 					try {
 						this.proxy.internal_call("close_stream", Config.DAEMON_NAME, Message.FLAGS_ONEWAY, false, this.streamId);
-					} catch (PickleException|IOException x) {
+					} catch (IOException x) {
 						// meh
 					}
 				}
