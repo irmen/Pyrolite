@@ -6,18 +6,17 @@
     <LangVersion>7.3</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Authors>Irmen de Jong</Authors>
-    <Product>Serpent Python literal expression serialization</Product>
+    <Product>Pyro5 client communication library</Product>
     <PackageId>Razorvine.Pyrolite</PackageId>
-    <Version>4.31.0</Version>
-    <AssemblyVersion>4.31.0.0</AssemblyVersion>
-    <FileVersion>4.31.0.0</FileVersion>
+    <Version>5.0.0</Version>
+    <AssemblyVersion>5.0.0.0</AssemblyVersion>
+    <FileVersion>5.0.0.0</FileVersion>
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>Pyrolite.snk</AssemblyOriginatorKeyFile>
     <Summary>Pyro (Python Remote Objects) client library</Summary>
-    <Description>Thin client-side communication library to connect to Python applications, using the Pyro protocol.
-Also includes Pickle/Unpickle.
-More info about Pyro: https://pyro4.readthedocs.io/</Description>
+    <Description>Thin client-side communication library to connect to Python applications, using the Pyro5 protocol.
+More info about Pyro: https://pyro5.readthedocs.io/</Description>
     <Copyright>Copyright Irmen de Jong</Copyright>
       <!--
     <PackageLicenseExpression>MIT</PackageLicenseExpression> 
@@ -28,8 +27,7 @@ More info about Pyro: https://pyro4.readthedocs.io/</Description>
     <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>pyro python rpc remote-objects</PackageTags>
-    <PackageReleaseNotes>Fixed deserialization issue when pickle is used as serializer in Pyrolite (exception when deserializing the handshake dictionary).
-    PyroProxy now gets the correct pyroOneway settings from the metdata.</PackageReleaseNotes>
+    <PackageReleaseNotes>Removed pickle to prepare for Pyro5 only protocol support.  </PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Razorvine.Serpent" Version="1.29.0" />
