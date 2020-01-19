@@ -14,7 +14,7 @@ namespace Pyrolite.Tests.Pyro
 {
 
 public class MessageTestsHmac {
-	private readonly ushort _serializerId = new PickleSerializer().serializer_id;
+	private readonly ushort _serializerId = new SerpentSerializer().serializer_id;
 	
 	[Fact]
 	public void TestMessage()

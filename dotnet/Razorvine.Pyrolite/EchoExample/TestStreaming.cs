@@ -17,7 +17,6 @@ public static class TestStreaming {
 	public static void Run() {
 
 		SetConfig();
-		// Config.SERIALIZER = Config.SerializerType.pickle;
 
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 		Console.Write("Enter stream server URI: ");
@@ -78,10 +77,6 @@ public static class TestStreaming {
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {
 			Config.MSG_TRACE_DIR=tracedir;
-		}
-		string serializer=Environment.GetEnvironmentVariable("PYRO_SERIALIZER");
-		if(serializer!=null) {
-			Config.SERIALIZER=(Config.SerializerType) Enum.Parse(typeof(Config.SerializerType), serializer, true);
 		}
 	}
 }

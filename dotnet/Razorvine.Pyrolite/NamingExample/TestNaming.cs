@@ -28,12 +28,7 @@ public static class TestNaming {
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
 		SetConfig();
-		// Config.SERIALIZER = Config.SerializerType.pickle;
 		
-		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
-		if(Config.SERIALIZER==Config.SerializerType.serpent)
-			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
-
 		using(NameServerProxy ns=NameServerProxy.locateNS(null, hmacKey: HmacKey))
 		{
 			Console.WriteLine("discovered ns at "+ns.hostname+":"+ns.port);
@@ -114,10 +109,6 @@ public static class TestNaming {
 		string tracedir=Environment.GetEnvironmentVariable("PYRO_TRACE_DIR");
 		if(tracedir!=null) {
 			Config.MSG_TRACE_DIR=tracedir;
-		}
-		string serializer=Environment.GetEnvironmentVariable("PYRO_SERIALIZER");
-		if(serializer!=null) {
-			Config.SERIALIZER=(Config.SerializerType) Enum.Parse(typeof(Config.SerializerType), serializer, true);
 		}
 	}
 }

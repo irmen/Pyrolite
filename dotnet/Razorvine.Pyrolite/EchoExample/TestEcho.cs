@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.Collections.Generic;
-using Razorvine.Pickle;
 using Razorvine.Pyro;
 // ReSharper disable CheckNamespace
 
@@ -41,12 +40,6 @@ public static class TestEcho {
 		Console.WriteLine("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
-		//Config.SERIALIZER = Config.SerializerType.pickle;
-		
-		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
-		if(Config.SERIALIZER==Config.SerializerType.serpent)
-			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
-
 		NameServerProxy ns = NameServerProxy.locateNS(null, hmacKey: HmacKey);
 		using(dynamic p = new PyroProxy(ns.lookup("test.echoserver")))
 		{
@@ -59,12 +52,12 @@ public static class TestEcho {
 			Console.WriteLine("echo(), param=42:");
 			object result=p.echo(42);
 			Console.WriteLine("return value:");
-			PrettyPrint.print(result);
+			Console.WriteLine(result);
 			
 			Console.WriteLine("oneway_echo(), param=999:");
 			result=p.oneway_echo(999);
 			Console.WriteLine("return value:");
-			PrettyPrint.print(result);
+			Console.WriteLine(result);
 			
 			// attribute access
 			result = p.verbose;
@@ -81,10 +74,10 @@ public static class TestEcho {
 			string s="This string is way too long. This string is way too long. This string is way too long. This string is way too long. ";
 			s=s+s+s+s+s;
 			Console.WriteLine("echo param:");
-			PrettyPrint.print(s);
+			Console.WriteLine(s);
 			result=p.echo(s);
 			Console.WriteLine("return value:");
-			PrettyPrint.print(result);
+			Console.WriteLine(result);
 	
 			Console.WriteLine("dict test.");
 			IDictionary<string, object> map = new Dictionary<string, object>
@@ -95,7 +88,7 @@ public static class TestEcho {
 			};
 			result = p.echo(map);
 			Console.WriteLine("return value:");
-			PrettyPrint.print(result);
+			Console.WriteLine(result);
 			
 			// echo a pyro proxy and validate that all relevant attributes are also present on the proxy we got back.
 			Console.WriteLine("proxy test.");

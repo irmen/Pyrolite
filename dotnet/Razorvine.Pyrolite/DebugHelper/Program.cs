@@ -1,7 +1,6 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
 
 using System;
-using Razorvine.Pickle;
 
 namespace DebugHelper
 {

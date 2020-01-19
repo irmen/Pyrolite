@@ -28,7 +28,7 @@ namespace Pyrolite.Tests.Pyro
 			list.Add("hello");
 			list.Add(42);
 			
-			var ser = PyroSerializer.GetFor(Config.SerializerType.serpent);
+			var ser = PyroSerializer.GetSerpentSerializer();
 			var data = ser.serializeData(list);
 			string str = Encoding.UTF8.GetString(data);
 			Assert.Equal("# serpent utf-8 python2.6\n['hello',42]", str);
@@ -53,7 +53,7 @@ namespace Pyrolite.Tests.Pyro
 			Config.SERPENT_INDENT=false;
 			Config.SERPENT_SET_LITERALS=false;
 
-			var ser = PyroSerializer.GetFor(Config.SerializerType.serpent);
+			var ser = PyroSerializer.GetSerpentSerializer();
 			IDictionary<string, object> kwargs = new Dictionary<string, object>();
 			kwargs["arg"] = 42;
 			object[] vargs = {"hello"};
@@ -87,7 +87,7 @@ namespace Pyrolite.Tests.Pyro
 			ISet<string> s = new HashSet<string>();
 			s.Add("element1");
 			s.Add("element2");
-			var ser = PyroSerializer.GetFor(Config.SerializerType.serpent);
+			var ser = PyroSerializer.GetSerpentSerializer();
 			var data = ser.serializeData(s);
 			string str = Encoding.UTF8.GetString(data);
 			Assert.Equal("# serpent utf-8 python3.2\n{'element1','element2'}", str);

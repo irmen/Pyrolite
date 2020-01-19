@@ -11,7 +11,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
-using Razorvine.Pickle;
 // ReSharper disable InvertIf
 
 namespace Razorvine.Pyro
@@ -264,7 +263,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		if (parameters == null)
 			parameters = new object[] {};
 		
-		PyroSerializer ser = PyroSerializer.GetFor(Config.SERIALIZER);
+		PyroSerializer ser = PyroSerializer.GetSerpentSerializer();
 		var pickle = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
 		var msg = new Message(Message.MSG_INVOKE, pickle, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
 		Message resultmsg;
@@ -305,9 +304,11 @@ public class PyroProxy : DynamicObject, IDisposable {
 			}
 
 			// if the source was a PythonException, copy its message and python exception type
-			PythonException pyx = rx as PythonException;
-			var px = pyx==null ? new PyroException(null, rx) : new PyroException(rx.Message, rx) {PythonExceptionType = pyx.PythonExceptionType};
+			// TODO how to do this without pickle?
+			// PythonException pyx = rx as PythonException;
+			// var px = pyx==null ? new PyroException(null, rx) : new PyroException(rx.Message, rx) {PythonExceptionType = pyx.PythonExceptionType};
 				
+			var px = new PyroException(null, rx);
 			PropertyInfo remotetbProperty=rx.GetType().GetProperty("_pyroTraceback");
 			if(remotetbProperty!=null) {
 				string remotetb=(string)remotetbProperty.GetValue(rx,null);
@@ -359,7 +360,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// Perform the Pyro protocol connection handshake with the Pyro daemon.
 	/// </summary>
 	protected void _handshake() {
-		var ser = PyroSerializer.GetFor(Config.SERIALIZER);
+		var ser = PyroSerializer.GetSerpentSerializer();
 		var handshakedata = new Dictionary<string, object> {["handshake"] = pyroHandshake};
 		if(Config.METADATA)
 			handshakedata["object"] = objectid;

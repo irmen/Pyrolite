@@ -105,43 +105,6 @@ namespace Pyrolite.Tests.Pyro
 		}
 	
 		[Fact]
-		public void PyroClassesPickle()
-		{
-			var pickler = new PickleSerializer();
-			var uri = new PyroURI("PYRO:something@localhost:4444");
-			var s = pickler.serializeData(uri);
-			object x = pickler.deserializeData(s);
-			Assert.Equal(uri, x);
-
-			var proxy = new PyroProxy(uri)
-			{
-				correlation_id = Guid.NewGuid(),
-				pyroHandshake = "apples",
-				pyroHmacKey = Encoding.UTF8.GetBytes("secret"),
-				pyroAttrs = new HashSet<string> {"attr1", "attr2"}
-			};
-			s = pickler.serializeData(proxy);
-			x = pickler.deserializeData(s);
-			PyroProxy proxy2 = (PyroProxy) x;
-			Assert.Equal(uri.host, proxy2.hostname);
-			Assert.Equal(uri.objectid, proxy2.objectid);
-			Assert.Equal(uri.port, proxy2.port);
-			Assert.Null(proxy2.correlation_id); // "correlation_id is not serialized on the proxy object"
-			Assert.Equal(proxy.pyroHandshake, proxy2.pyroHandshake);
-			Assert.Equal(proxy.pyroHmacKey, proxy2.pyroHmacKey);
-			Assert.Equal(2, proxy2.pyroAttrs.Count);
-			Assert.Equal(proxy.pyroAttrs, proxy2.pyroAttrs);
-
-			PyroException ex = new PyroException("error");
-			s = pickler.serializeData(ex);
-			x = pickler.deserializeData(s);
-			PyroException ex2 = (PyroException) x;
-			Assert.Equal("[Pyro4.errors.PyroError] error", ex2.Message);
-			Assert.Null(ex._pyroTraceback);
-		}		
-
-
-		[Fact]
 		public void TestBytes()
 		{
 			byte[] bytes = { 97, 98, 99, 100, 101, 102 };	// abcdef

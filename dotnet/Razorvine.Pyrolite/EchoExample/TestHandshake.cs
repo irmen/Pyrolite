@@ -64,9 +64,6 @@ public static class TestHandshake {
 
 		Console.WriteLine("Testing Pyro handshake and custom annotations. Make sure the server from the pyro handshake example is running.");
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
-		Console.WriteLine("serializer used: {0}", Config.SERIALIZER);
-		if(Config.SERIALIZER==Config.SerializerType.serpent)
-			Console.WriteLine("note that for the serpent serializer, you need to have the Razorvine.Serpent assembly available.");
 
 		Console.WriteLine("\r\nEnter the server URI: ");
 		string uri = Console.ReadLine().Trim();

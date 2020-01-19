@@ -5,8 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-using Razorvine.Pickle;
-using Razorvine.Pickle.Objects;
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable InconsistentNaming
 // ReSharper disable MemberCanBeMadeStatic.Global
@@ -24,36 +22,22 @@ namespace Razorvine.Pyro
 		public abstract byte[] serializeData(object obj);
 		public abstract object deserializeData(byte[] data);
 
-		// ReSharper disable once UnusedMember.Global
-		protected static IDictionary<Config.SerializerType, PyroSerializer> AvailableSerializers = new Dictionary<Config.SerializerType, PyroSerializer>();
-		
-		protected static readonly PickleSerializer pickleSerializer = new PickleSerializer();
 		protected static SerpentSerializer serpentSerializer;
 		
-		public static PyroSerializer GetFor(Config.SerializerType type)
+		public static PyroSerializer GetSerpentSerializer()
 		{
-			switch(type)
+			// Create a serpent serializer if not yet created.
+			// This is done dynamically so there is no assembly dependency on the Serpent assembly,
+			// and it will become available once you copy that into the correct location.
+			lock(typeof(SerpentSerializer))
 			{
-				case Config.SerializerType.pickle:
-					return pickleSerializer;
-				case Config.SerializerType.serpent:
-					{
-						// Create a serpent serializer if not yet created.
-						// This is done dynamically so there is no assembly dependency on the Serpent assembly,
-						// and it will become available once you copy that into the correct location.
-						lock(typeof(SerpentSerializer))
-						{
-							if (serpentSerializer != null) return serpentSerializer;
-							try {
-								serpentSerializer = new SerpentSerializer();
-								return serpentSerializer;
-							} catch (TypeInitializationException x) {
-								throw new PyroException("serpent serializer unavailable", x);
-							}
-						}
-					}
-				default:
-					throw new ArgumentException("unrecognised serializer type: "+type);
+				if (serpentSerializer != null) return serpentSerializer;
+				try {
+					serpentSerializer = new SerpentSerializer();
+					return serpentSerializer;
+				} catch (TypeInitializationException x) {
+					throw new PyroException("serpent serializer unavailable", x);
+				}
 			}
 		}
 
@@ -61,69 +45,11 @@ namespace Razorvine.Pyro
 		{
 			if(serializer_id == serpentSerializer?.serializer_id)
 				return serpentSerializer;
-			if(serializer_id==pickleSerializer.serializer_id)
-				return pickleSerializer;
 			
 			throw new ArgumentException("unsupported serializer id: "+serializer_id);
 		}
 	}
 
-	
-	/// <summary>
-	/// Serializer using the pickle protocol.
-	/// </summary>
-	public class PickleSerializer : PyroSerializer
-	{
-		public override ushort serializer_id => Message.SERIALIZER_PICKLE;
-
-		static PickleSerializer() {
-			Unpickler.registerConstructor("Pyro4.errors", "PyroError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "PyroError"));
-			Unpickler.registerConstructor("Pyro4.errors", "CommunicationError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "CommunicationError"));
-			Unpickler.registerConstructor("Pyro4.errors", "ConnectionClosedError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "ConnectionClosedError"));
-			Unpickler.registerConstructor("Pyro4.errors", "TimeoutError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "TimeoutError"));
-			Unpickler.registerConstructor("Pyro4.errors", "ProtocolError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "ProtocolError"));
-			Unpickler.registerConstructor("Pyro4.errors", "NamingError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "NamingError"));
-			Unpickler.registerConstructor("Pyro4.errors", "DaemonError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "DaemonError"));
-			Unpickler.registerConstructor("Pyro4.errors", "SecurityError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "SecurityError"));
-			Unpickler.registerConstructor("Pyro4.errors", "SerializeError",	new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "SerializeError"));
-			Unpickler.registerConstructor("Pyro4.errors", "MessageTooLargeError", new ExceptionConstructor(typeof(PyroException), "Pyro4.errors", "MessageTooLargeError"));
-			Unpickler.registerConstructor("Pyro4.core", "Proxy", new ProxyClassConstructor());
-			Unpickler.registerConstructor("Pyro4.util", "Serializer", new AnyClassConstructor(typeof(DummyPyroSerializer)));
-			Unpickler.registerConstructor("Pyro4.utils.flame", "FlameBuiltin", new AnyClassConstructor(typeof(FlameBuiltin)));
-			Unpickler.registerConstructor("Pyro4.utils.flame", "FlameModule", new AnyClassConstructor(typeof(FlameModule)));
-			Unpickler.registerConstructor("Pyro4.utils.flame", "RemoteInteractiveConsole", new AnyClassConstructor(typeof(FlameRemoteConsole)));
-			Unpickler.registerConstructor("Pyro4.core", "URI", new AnyClassConstructor(typeof(PyroURI)));
-			Pickler.registerCustomPickler(typeof(PyroURI), new PyroUriPickler());
-			Pickler.registerCustomPickler(typeof(PyroProxy), new PyroProxyPickler());
-			Pickler.registerCustomPickler(typeof(PyroException), new PyroExceptionPickler());
-		}
-
-		public override byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs)
-		{
-			using(var p=new Pickler())
-			{
-				object[] invokeparams = {objectId, method, vargs, kwargs};
-				return p.dumps(invokeparams);
-			}
-		}
-		
-		public override byte[] serializeData(object obj)
-		{
-			using(var p=new Pickler())
-			{
-				return p.dumps(obj);
-			}
-		}
-
-		public override object deserializeData(byte[] data)
-		{
-			using(var u=new Unpickler())
-			{
-				return u.loads(data);
-			}
-		}
-	}
-	
 	
 	/// <summary>
 	/// Serializer using the serpent protocol.

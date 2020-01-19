@@ -55,10 +55,6 @@ namespace Pyrolite.TestPyroEcho
 			if(tracedir!=null) {
 				Config.MSG_TRACE_DIR=tracedir;
 			}
-			string serializer=Environment.GetEnvironmentVariable("PYRO_SERIALIZER");
-			if(serializer!=null) {
-				Config.SERIALIZER=(Config.SerializerType) Enum.Parse(typeof(Config.SerializerType), serializer, true);
-			}
 		}
 	}
 }
