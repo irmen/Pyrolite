@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using Xunit;
 using Razorvine.Pyro;
+using Razorvine.Pyro.Serializer;
+
 // ReSharper disable CheckNamespace
 
 namespace Pyrolite.Tests.Pyro
@@ -63,7 +65,7 @@ namespace Pyrolite.Tests.Pyro
 		}
 		
 		[Fact]
-		public void PyroProxySerpent()
+		public void TestPyroProxySerpent()
 		{
 			PyroURI uri = new PyroURI("PYRO:something@localhost:4444");
 			PyroProxy proxy = new PyroProxy(uri)
@@ -73,18 +75,18 @@ namespace Pyrolite.Tests.Pyro
 				pyroHmacKey = Encoding.UTF8.GetBytes("secret"),
 				pyroAttrs = new HashSet<string> {"attr1", "attr2"}
 			};
-			var data = PyroProxyPickler.ToSerpentDict(proxy);
+			var data = PyroProxySerpent.ToSerpentDict(proxy);
 			Assert.Equal(2, data.Count);
-			Assert.Equal("Pyro4.core.Proxy", data["__class__"]);
+			Assert.Equal("Pyro4.core.Proxy", (string) data["__class__"]);
 			Assert.Equal(8, ((object[])data["state"]).Length);
 				
-			PyroProxy proxy2 = (PyroProxy) PyroProxyPickler.FromSerpentDict(data);
+			PyroProxy proxy2 = (PyroProxy) PyroProxySerpent.FromSerpentDict(data);
 			Assert.Equal(proxy.objectid, proxy2.objectid);
 			Assert.Equal("apples", proxy2.pyroHandshake);
 		}
 		
 		[Fact]
-		public void UnserpentProxy()
+		public void TestUnserpentProxy()
 		{
 			var data = Encoding.UTF8.GetBytes("# serpent utf-8 python3.2\n" +
 			                                     "{'state':('PYRO:Pyro.NameServer@localhost:9090',(),('count','lookup','register','ping','list','remove'),(),0.0,'b64:c2VjcmV0','hello',0),'__class__':'Pyro4.core.Proxy'}");

@@ -37,7 +37,6 @@ public class Message
 	public const ushort SERIALIZER_SERPENT = 1;
 	public const ushort SERIALIZER_JSON = 2;
 	public const ushort SERIALIZER_MARSHAL = 3;
-	public const ushort SERIALIZER_PICKLE = 4;
 	
 	public ushort type;
 	public ushort flags;

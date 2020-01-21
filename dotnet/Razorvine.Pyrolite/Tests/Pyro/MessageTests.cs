@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 using Razorvine.Pyro;
+using Razorvine.Pyro.Serializer;
+
 // ReSharper disable CheckNamespace
 
 namespace Pyrolite.Tests.Pyro

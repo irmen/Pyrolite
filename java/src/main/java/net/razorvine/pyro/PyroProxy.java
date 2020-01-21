@@ -238,15 +238,15 @@ public class PyroProxy implements Serializable {
 		if (parameters == null)
 			parameters = new Object[] {};
 		PyroSerializer ser = PyroSerializer.getSerpentSerializer();
-		byte[] pickle = ser.serializeCall(actual_objectId, method, parameters, Collections.emptyMap());
-		Message msg = new Message(Message.MSG_INVOKE, pickle, ser.getSerializerId(), flags, sequenceNr, annotations(), pyroHmacKey);
+		byte[] serdat = ser.serializeCall(actual_objectId, method, parameters, Collections.emptyMap());
+		Message msg = new Message(Message.MSG_INVOKE, serdat, ser.getSerializerId(), flags, sequenceNr, annotations(), pyroHmacKey);
 		Message resultmsg;
 		synchronized (this.sock) {
 			IOUtil.send(sock_out, msg.to_bytes());
 			if(Config.MSG_TRACE_DIR!=null) {
 				Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
 			}
-			pickle = null;
+			serdat = null;
 
 			if ((flags & Message.FLAGS_ONEWAY) != 0)
 				return null;
@@ -411,41 +411,6 @@ public class PyroProxy implements Serializable {
 	public void responseAnnotations(SortedMap<String, byte[]> annotations, int msgtype)
 	{
 		// override this in subclass
-	}
-
-	/**
-	 * called by the Unpickler to restore state
-	 * args(8 or 9): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake, pyroMaxRetries [,pyroSerializer]
-	 */
-	@SuppressWarnings("unchecked")
-	public void __setstate__(Object[] args) throws IOException {
-		if(args.length != 8 && args.length != 9) {
-			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
-		}
-		PyroURI uri=(PyroURI)args[0];
-		this.hostname=uri.host;
-		this.port=uri.port;
-		this.objectid=uri.objectid;
-		this.sock=null;
-		this.sock_in=null;
-		this.sock_out=null;
-		this.correlation_id=null;
-		if(args[1] instanceof Set)
-			this.pyroOneway = (Set<String>) args[1];
-		else
-			this.pyroOneway = new HashSet<String>( (Collection<String>)args[1] );
-		if(args[2] instanceof Set)
-			this.pyroMethods = (Set<String>) args[2];
-		else
-			this.pyroMethods = new HashSet<String>( (Collection<String>)args[2] );
-		if(args[3] instanceof Set)
-			this.pyroAttrs = (Set<String>) args[3];
-		else
-			this.pyroAttrs = new HashSet<String>( (Collection<String>)args[3] );
-		this.pyroHmacKey = (byte[]) args[5];
-		this.pyroHandshake = args[6];
-		// pyromaxretries (args[7]) is not yet used/supported by pyrolite
-		// custom serializer (args[8]) is not yet supported by pyrolite
 	}
 
 	private static final HashSet<String> stopIterationExceptions;

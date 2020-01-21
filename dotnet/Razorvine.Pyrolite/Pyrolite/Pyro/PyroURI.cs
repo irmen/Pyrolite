@@ -14,10 +14,10 @@ namespace Razorvine.Pyro
 [Serializable]
 public class PyroURI {
 
-	public string protocol {get; private set;}
-	public string objectid {get; private set;}
-	public string host {get; private set;}
-	public int port {get; private set;}
+	public string protocol { get; }
+	public string objectid { get; }
+	public string host { get; }
+	public int port { get; }
 
 
 	public PyroURI() {
@@ -84,17 +84,6 @@ public class PyroURI {
 		return !(lhs == rhs);
 	}
 	#endregion
-
-	
-	/**
-	 * called by the Unpickler to restore state
-	 */
-	public void __setstate__(object[] args) {
-		protocol = (string) args[0];
-		objectid = (string) args[1];
-		host = (string) args[3];
-		port = (int) args[4];
-	}
 }
 
 }

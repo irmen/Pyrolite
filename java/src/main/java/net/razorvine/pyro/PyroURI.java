@@ -1,13 +1,12 @@
 package net.razorvine.pyro;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * The Pyro URI object.
- * 
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class PyroURI implements Serializable {
@@ -68,15 +67,5 @@ public class PyroURI implements Serializable {
 			return false;
 		PyroURI other = (PyroURI) obj;
 		return toString().equals(other.toString());
-	}
-
-	/**
-	 * called by the Unpickler to restore state
-	 */
-	public void __setstate__(Object[] args) throws IOException {
-		this.protocol = (String) args[0];
-		this.objectid = (String) args[1];
-		this.host = (String) args[3];
-		this.port = (Integer) args[4];
 	}
 }

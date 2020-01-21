@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 using Razorvine.Pyro;
+using Razorvine.Pyro.Serializer;
 using Razorvine.Serpent;
 // ReSharper disable CheckNamespace
 

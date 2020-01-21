@@ -11,6 +11,8 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using Razorvine.Pyro.Serializer;
+
 // ReSharper disable InvertIf
 
 namespace Razorvine.Pyro
@@ -27,9 +29,9 @@ namespace Razorvine.Pyro
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class PyroProxy : DynamicObject, IDisposable {
 
-	public string hostname {get;private set;}
-	public int port {get;private set;}
-	public string objectid {get;private set;}
+	public string hostname { get; }
+	public int port { get; }
+	public string objectid { get; }
 	public byte[] pyroHmacKey;		// per-proxy hmac key, used to be HMAC_KEY config item
 	public Guid? correlation_id;     // per-proxy correlation id (need to set/update this yourself)
 	public object pyroHandshake = "hello";	// data object that should be sent in the initial connection handshake message. Can be any serializable object.
@@ -264,8 +266,8 @@ public class PyroProxy : DynamicObject, IDisposable {
 			parameters = new object[] {};
 		
 		PyroSerializer ser = PyroSerializer.GetSerpentSerializer();
-		var pickle = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
-		var msg = new Message(Message.MSG_INVOKE, pickle, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
+		var serdat = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
+		var msg = new Message(Message.MSG_INVOKE, serdat, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
 		Message resultmsg;
 		lock (sock) {
 			IOUtil.send(sock_stream, msg.to_bytes());
@@ -273,7 +275,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 				Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
 			}
 			// ReSharper disable once RedundantAssignment
-			pickle = null;
+			serdat = null;
 
 			if ((flags & Message.FLAGS_ONEWAY) != 0)
 				return null;
@@ -434,40 +436,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		// override this in subclass
 	}
 	
-	/// <summary>
-	/// called by the Unpickler to restore state.
-	/// </summary>
-	/// <param name="args">args(8 or 9): pyroUri, pyroOneway(hashset), pyroMethods(set), pyroAttrs(set), pyroTimeout, pyroHmacKey, pyroHandshake, pyroMaxRetries, [pyroSerializer]</param>
-	[SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
-	[SuppressMessage("ReSharper", "UnusedMember.Global")]
-	public void __setstate__(object[] args) {
-		if(args.Length != 8 && args.Length !=9) {
-			throw new PyroException("invalid pickled proxy, using wrong pyro version?");
-		}
-		PyroURI uri=(PyroURI)args[0];
-		hostname=uri.host;
-		port=uri.port;
-		objectid=uri.objectid;
-		sock=null;
-		sock_stream=null;
-		correlation_id=null;
-		
-		pyroOneway.Clear();
-		foreach(object o in (HashSet<object>) args[1])
-			pyroOneway.Add(o as string);
-		pyroMethods.Clear();
-		foreach(object o in (HashSet<object>) args[2])
-			pyroMethods.Add(o as string);
-		pyroAttrs.Clear();
-		foreach(object o in (HashSet<object>) args[3])
-			pyroAttrs.Add(o as string);
 
-		pyroHmacKey = (byte[])args[5];
-		pyroHandshake = args[6];
-		// XXX maxretries (args[7]) is not yet supported/used in pyrolite
-		// XXX custom serializer (args[8]) is not yet supported in pyrolite
-	}	
-	
 	public class StreamResultIterator: IEnumerable, IDisposable
 	{
 		private readonly string streamId;

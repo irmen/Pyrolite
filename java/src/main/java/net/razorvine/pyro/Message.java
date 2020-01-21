@@ -39,8 +39,7 @@ public class Message
 	public final static int SERIALIZER_SERPENT = 1;
 	public final static int SERIALIZER_JSON = 2;
 	public final static int SERIALIZER_MARSHAL = 3;
-	public final static int SERIALIZER_PICKLE = 4;
-	
+
 	public int type;
 	public int flags;
 	public byte[] data;
@@ -49,7 +48,7 @@ public class Message
 	public int serializer_id;
 	public int seq;
 	public SortedMap<String, byte[]> annotations;
-	
+
 	/**
 	 * construct a header-type message, without data and annotations payload.
 	 */
@@ -72,15 +71,15 @@ public class Message
 		this.annotations = annotations;
 		if(null==annotations)
 			this.annotations = new TreeMap<String, byte[]>();
-		
+
 		if(hmac!=null)
 			this.annotations.put("HMAC", this.hmac(hmac));		// do this last because it hmacs the other annotation chunks
-		
+
 		this.annotations_size = 0;
 		for(Entry<String, byte[]> a: this.annotations.entrySet())
 			this.annotations_size += a.getValue().length+6;
 	}
-	
+
 	/**
 	 * returns the hmac of the data and the annotation chunk values (except HMAC chunk itself)
 	 */
@@ -164,16 +163,16 @@ public class Message
 
 		header[18]=(byte)((annotations_size>>8)&0xff);
 		header[19]=(byte)(annotations_size&0xff);
-		
+
 		header[20]=0; // reserved
 		header[21]=0; // reserved
-		
+
 		header[22]=(byte)((checksum>>8)&0xff);
 		header[23]=(byte)(checksum&0xff);
-		
+
 		return header;
 	}
-	
+
 	public byte[] get_annotations_bytes()
 	{
 		ArrayList<byte[]> chunks = new ArrayList<byte[]>();
@@ -190,7 +189,7 @@ public class Message
 			chunks.add(value);
 			total_size += 4+2+value.length;
 		}
-		
+
 		byte[] result = new byte[total_size];
 		int index=0;
 		for(byte[] chunk: chunks)
@@ -198,7 +197,7 @@ public class Message
 			System.arraycopy(chunk, 0, result, index, chunk.length);
 			index+=chunk.length;
 		}
-		
+
 		return result;
 	}
 
@@ -210,14 +209,14 @@ public class Message
 	{
 		if(header==null || header.length!=HEADER_SIZE)
 			throw new PyroException("header data size mismatch");
-		
-		if(header[0]!='P'||header[1]!='Y'||header[2]!='R'||header[3]!='O') 
-			throw new PyroException("invalid message");    		
+
+		if(header[0]!='P'||header[1]!='Y'||header[2]!='R'||header[3]!='O')
+			throw new PyroException("invalid message");
 
 		int version = ((header[4]&0xff) << 8)|(header[5]&0xff);
 		if(version!=Config.PROTOCOL_VERSION)
 			throw new PyroException("invalid protocol version: "+version);
-		
+
 		int msg_type = ((header[6]&0xff) << 8)|(header[7]&0xff);
 		int flags = ((header[8]&0xff) << 8)|(header[9]&0xff);
 		int seq = ((header[10]&0xff) << 8)|(header[11]&0xff);
@@ -235,14 +234,14 @@ public class Message
 		int actual_checksum = (msg_type+version+data_size+annotations_size+flags+serializer_id+seq+CHECKSUM_MAGIC)&0xffff;
 		if(checksum!=actual_checksum)
 			throw new PyroException("header checksum mismatch");
-		
+
 		Message msg = new Message(msg_type, serializer_id, flags, seq);
 		msg.data_size = data_size;
 		msg.annotations_size = annotations_size;
 		return msg;
 	}
 
-	
+
 	// Note: this 'chunked' way of sending is not used because it triggers Nagle's algorithm
 	// on some systems (linux). This causes massive delays, unless you change the socket option
 	// TCP_NODELAY to disable the algorithm. What also works, is sending all the message bytes
@@ -255,8 +254,8 @@ public class Message
 //    		IOUtil.send(connection, get_annotations_bytes());
 //    	IOUtil.send(connection, data);
 //	}
-	
-	
+
+
 	/**
 	 * Receives a pyro message from a given connection.
 	 * Accepts the given message types (None=any, or pass a sequence).
@@ -267,7 +266,7 @@ public class Message
 	{
 		byte[] header_data = IOUtil.recv(connection, HEADER_SIZE);
 		Message msg = from_header(header_data);
-		if(requiredMsgTypes!=null) 
+		if(requiredMsgTypes!=null)
 		{
 			boolean found=false;
 			for(int req: requiredMsgTypes)
@@ -299,14 +298,14 @@ public class Message
 				i += 6+length;
 			}
 		}
-		
+
 		// read data
 		msg.data = IOUtil.recv(connection, msg.data_size);
-				
+
 		if(Config.MSG_TRACE_DIR!=null) {
 			TraceMessageRecv(msg.seq, header_data, annotations_data, msg.data);
 		}
-		
+
 		if(msg.annotations.containsKey("HMAC") && hmac!=null)
 		{
 			if(!Arrays.equals(msg.annotations.get("HMAC"), msg.hmac(hmac)))
@@ -323,7 +322,7 @@ public class Message
 	public static void TraceMessageSend(int sequenceNr, byte[] headerdata, byte[] annotations, byte[] data) throws IOException {
 		String filename=String.format("%s%s%05d-a-send-header.dat", Config.MSG_TRACE_DIR, File.separator, sequenceNr);
 		FileOutputStream fos=new FileOutputStream(filename);
-		fos.write(headerdata);	
+		fos.write(headerdata);
 		if(annotations!=null) fos.write(annotations);
 		fos.close();
 		filename=String.format("%s%s%05d-a-send-message.dat", Config.MSG_TRACE_DIR, File.separator, sequenceNr);
@@ -334,7 +333,7 @@ public class Message
 
 	public static void TraceMessageRecv(int sequenceNr, byte[] headerdata, byte[] annotations, byte[] data) throws IOException {
 		String filename=String.format("%s%s%05d-b-recv-header.dat", Config.MSG_TRACE_DIR, File.separator, sequenceNr);
-		FileOutputStream fos=new FileOutputStream(filename);	
+		FileOutputStream fos=new FileOutputStream(filename);
 		fos.write(headerdata);
 		if(annotations!=null) fos.write(annotations);
 		fos.close();

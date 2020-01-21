@@ -13,7 +13,7 @@ import net.razorvine.serpent.IClassSerializer;
 
 /**
  * Serpent extension to be able to serialize PyroProxy objects with Serpent.
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class PyroProxySerpent implements IClassSerializer {
@@ -25,13 +25,13 @@ public class PyroProxySerpent implements IClassSerializer {
 		Object[] state = (Object[])dict.get("state");
 		PyroURI uri = new PyroURI((String)state[0]);
 		PyroProxy proxy = new PyroProxy(uri);
-		
+
 		// the following nasty piece of code is similar to _processMetadata from the PyroProxy
 		// this is because the three collections can either be an array or a set
 		Object methods = state[2];
 		Object attrs = state[3];
 		Object oneways = state[1];
-		
+
 		if(methods instanceof Object[]) {
 			Object[] methods_array = (Object[]) methods;
 			proxy.pyroMethods = new HashSet<String>();
@@ -65,25 +65,24 @@ public class PyroProxySerpent implements IClassSerializer {
 			HashSet<String> oneways_set = (HashSet<String>) oneways;
 			proxy.pyroOneway = oneways_set;
 		}
-		
+
 		if(state[5]!=null) {
 			String encodedHmac = (String)state[5];
 			if(encodedHmac.startsWith("b64:")) {
 				proxy.pyroHmacKey = Base64.getDecoder().decode(encodedHmac.substring(4));
 			} else {
 				throw new PyroException("hmac encoding error");
-			}		
+			}
 		}
-		
+
 		proxy.pyroHandshake = state[6];
 		// maxretries (state[7]) is not used/supported in pyrolite, so simply ignore it
-		// custom pickler (state[8]) is also not supported
 
 		return proxy;
 	}
 
 	public Map<String, Object> convert(Object obj) {
-		// note: the state array returned here must conform to the list consumed by Pyro4's Proxy.__setstate_from_dict__ 
+		// note: the state array returned here must conform to the list consumed by Pyro4's Proxy.__setstate_from_dict__
 		// that means, we make a list with 8 entries:
 		// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake, maxretries  (in this order)
 		PyroProxy proxy = (PyroProxy) obj;

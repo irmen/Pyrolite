@@ -18,11 +18,7 @@
     <Description>Thin client-side communication library to connect to Python applications, using the Pyro5 protocol.
 More info about Pyro: https://pyro5.readthedocs.io/</Description>
     <Copyright>Copyright Irmen de Jong</Copyright>
-      <!--
-    <PackageLicenseExpression>MIT</PackageLicenseExpression> 
-    <PackageLicenseFile>../LICENSE</PackageLicenseFile>
-    --> 
-    <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/irmen/Pyrolite</PackageProjectUrl>
     <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
