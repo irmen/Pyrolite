@@ -1,14 +1,14 @@
 package net.razorvine.examples;
 
-import net.razorvine.pyro.Config;
-import net.razorvine.pyro.PyroProxy;
-import net.razorvine.pyro.PyroURI;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.SortedMap;
 import java.util.UUID;
+
+import net.razorvine.pyro.Config;
+import net.razorvine.pyro.PyroProxy;
+import net.razorvine.pyro.PyroURI;
 
 /**
  * Test Pyro with the Handshake example server to see
@@ -52,14 +52,11 @@ class CustomAnnotationsProxy extends PyroProxy
 	@Override
 	public void responseAnnotations(SortedMap<String, byte[]> annotations, int msgtype)
 	{
-		// TODO print correlation id From the message somehow instead of from the CORR annotations
-
 		System.out.println("    Got response (type=" + msgtype + "). Annotations:");
 		for(String ann: annotations.keySet()) {
 			String value = annotations.get(ann).toString();
 			System.out.println("      " + ann + " -> " + value);
 		}
-
 	}
 }
 

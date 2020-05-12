@@ -229,6 +229,9 @@ public class PyroProxy implements Serializable {
 		if(pyroOneway.contains(method)) {
 			flags |= Message.FLAGS_ONEWAY;
 		}
+		if(correlation_id!=null) {
+			flags |= Message.FLAGS_CORR_ID;
+		}
 		if(checkMethodName && !pyroMethods.contains(method)) {
 			throw new PyroException(String.format("remote object '%s' has no exposed attribute or method '%s'", actual_objectId, method));
 		}
@@ -236,7 +239,7 @@ public class PyroProxy implements Serializable {
 			parameters = new Object[] {};
 		PyroSerializer ser = PyroSerializer.getSerpentSerializer();
 		byte[] serdat = ser.serializeCall(actual_objectId, method, parameters, Collections.emptyMap());
-		Message msg = new Message(Message.MSG_INVOKE, serdat, ser.getSerializerId(), flags, sequenceNr, annotations());
+		Message msg = new Message(Message.MSG_INVOKE, serdat, ser.getSerializerId(), flags, sequenceNr, annotations(), correlation_id);
 		Message resultmsg;
 		synchronized (this.sock) {
 			IOUtil.send(sock_out, msg.to_bytes());
@@ -345,7 +348,10 @@ public class PyroProxy implements Serializable {
 		handshakedata.put("object", objectid);
 		byte[] data = ser.serializeData(handshakedata);
 		int flags = 0;
-		Message msg = new Message(Message.MSG_CONNECT, data, ser.getSerializerId(), flags, sequenceNr, annotations());
+		if(correlation_id!=null) {
+			flags |= Message.FLAGS_CORR_ID;
+		}
+		Message msg = new Message(Message.MSG_CONNECT, data, ser.getSerializerId(), flags, sequenceNr, annotations(), correlation_id);
 		IOUtil.send(sock_out, msg.to_bytes());
 		if(Config.MSG_TRACE_DIR!=null) {
 			Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);

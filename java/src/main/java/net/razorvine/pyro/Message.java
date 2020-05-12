@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.UUID;
 
 
 /**
@@ -41,6 +43,7 @@ public class Message
 	public byte[] data;
 	public int data_size;
 	public int annotations_size;
+	public UUID correlation_id;
 	public byte serializer_id;
 	public int seq;
 	public SortedMap<String, byte[]> annotations;
@@ -48,20 +51,21 @@ public class Message
 	/**
 	 * construct a header-type message, without data and annotations payload.
 	 */
-	public Message(byte msgType, byte serializer_id, int flags, int seq)
+	public Message(byte msgType, byte serializer_id, int flags, int seq, UUID correlation_id)
 	{
 		this.type = msgType;
 		this.flags = flags;
 		this.seq = seq;
 		this.serializer_id = serializer_id;
+		this.correlation_id = correlation_id;
 	}
 
 	/**
 	 * construct a full wire message including data and annotations payloads.
 	 */
-	public Message(byte msgType, byte[] databytes, byte serializer_id, int flags, int seq, SortedMap<String, byte[]> annotations)
+	public Message(byte msgType, byte[] databytes, byte serializer_id, int flags, int seq, SortedMap<String, byte[]> annotations, UUID correlation_id)
 	{
-		this(msgType, serializer_id, flags, seq);
+		this(msgType, serializer_id, flags, seq, correlation_id);
 		this.data = databytes;
 		this.data_size = databytes.length;
 		this.annotations = annotations;
@@ -142,7 +146,12 @@ After that, the actual payload data bytes follow.
 		header[18]=(byte)((annotations_size>>8)&0xff);
 		header[19]=(byte)(annotations_size&0xff);
 
-		// TODO [20] - [35]  correlation ID 16 bytes
+		if(correlation_id!=null) {
+			ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+			bb.putLong(correlation_id.getMostSignificantBits());
+			bb.putLong(correlation_id.getLeastSignificantBits());
+			System.arraycopy(bb.array(), 0, header, 20, 16);
+		}
 
 		// header[36] = 0;  // reserved
 		// header[37] = 0;	// reserved
@@ -226,9 +235,9 @@ After that, the actual payload data bytes follow.
 		annotations_size<<=8;
 		annotations_size|=header[19]&0xff;
 
-		// TODO [20] - [35]  correlation ID 16 bytes
+		// for now, we're not reading the response correlation ID from [20]-[35].
 
-		Message msg = new Message(msg_type, serializer_id, flags, seq);
+		Message msg = new Message(msg_type, serializer_id, flags, seq, null);
 		msg.data_size = data_size;
 		msg.annotations_size = annotations_size;
 		return msg;

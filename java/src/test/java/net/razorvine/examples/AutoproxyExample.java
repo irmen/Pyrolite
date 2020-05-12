@@ -1,9 +1,10 @@
 package net.razorvine.examples;
 
-import net.razorvine.pyro.Config;
-import net.razorvine.pyro.PyroProxy;
-
 import java.io.IOException;
+
+import net.razorvine.pyro.Config;
+
+import net.razorvine.pyro.PyroProxy;
 
 /**
  * Simple example that shows the use of Pyro with an object returning proxies.

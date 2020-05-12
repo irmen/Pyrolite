@@ -1,9 +1,7 @@
 package net.razorvine.examples;
-
-import net.razorvine.pyro.NameServerProxy;
-import net.razorvine.pyro.PyroProxy;
-
 import java.io.IOException;
+
+import net.razorvine.pyro.*;
 
 public class ReadmeExample {
 

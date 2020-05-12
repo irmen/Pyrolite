@@ -1,19 +1,24 @@
 package net.razorvine.pyro.test;
 
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import net.razorvine.pyro.Config;
 import net.razorvine.pyro.PyroException;
 import net.razorvine.pyro.PyroProxy;
 import net.razorvine.pyro.PyroURI;
 import net.razorvine.pyro.serializer.PyroProxySerpent;
 import net.razorvine.pyro.serializer.SerpentSerializer;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 public class SerializePyroTest {
 
@@ -74,7 +79,6 @@ public class SerializePyroTest {
 		PyroProxySerpent serp = new PyroProxySerpent();
 		PyroURI uri = new PyroURI("PYRO:something@localhost:4444");
 		PyroProxy proxy = new PyroProxy(uri);
-		proxy.correlation_id = UUID.randomUUID();
 		proxy.pyroHandshake = "apples";
 		proxy.pyroAttrs = new HashSet<String>();
 		proxy.pyroAttrs.add("attr1");

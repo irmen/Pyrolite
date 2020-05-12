@@ -1,10 +1,10 @@
 package net.razorvine.examples;
 
-import net.razorvine.pyro.*;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+
+import net.razorvine.pyro.*;
 
 
 /**

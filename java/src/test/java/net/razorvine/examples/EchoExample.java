@@ -1,9 +1,13 @@
 package net.razorvine.examples;
 
-import net.razorvine.pyro.*;
-
 import java.io.IOException;
 import java.util.SortedMap;
+
+import net.razorvine.pyro.Config;
+import net.razorvine.pyro.NameServerProxy;
+import net.razorvine.pyro.PyroException;
+import net.razorvine.pyro.PyroProxy;
+import net.razorvine.pyro.PyroURI;
 
 /**
  * Simple example that shows the use of Pyro with the Pyro echo server.
