@@ -15,12 +15,10 @@ public static class Config  {
 	public static int NS_PORT = 9090;
 	public static int NS_BCPORT = 9091;
 	public static bool SERPENT_INDENT = false;
-	public static bool SERPENT_SET_LITERALS = false;     // set to true if talking to Python 3.2 or newer
-	public static bool METADATA = true;
-	
-	public const int PROTOCOL_VERSION = 48;		// Pyro 4.38+ 
+
+	public const int PROTOCOL_VERSION = 502;	  // Pyro5
 	public const string PYROLITE_VERSION="5.0";
-	
+
 	public const string DAEMON_NAME = "Pyro.Daemon";
 }
 

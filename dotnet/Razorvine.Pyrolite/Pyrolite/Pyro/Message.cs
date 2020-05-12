@@ -19,8 +19,8 @@ namespace Razorvine.Pyro
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class Message
 {
-	private const int CHECKSUM_MAGIC = 0x34E9;
-	public const int HEADER_SIZE = 24;
+	private const int CHECKSUM_MAGIC = 0x4dc5;
+	public const int HEADER_SIZE = 40;
 
 	public const ushort MSG_CONNECT = 1;
 	public const ushort MSG_CONNECTOK = 2;
@@ -32,11 +32,13 @@ public class Message
 	public const ushort FLAGS_COMPRESSED = 1<<1;
 	public const ushort FLAGS_ONEWAY = 1<<2;
 	public const ushort FLAGS_BATCH = 1<<3;
-	public const ushort FLAGS_META_ON_CONNECT = 1<<4;
-	public const ushort FLAGS_ITEMSTREAMRESULT = 1 << 5;
+	public const ushort FLAGS_ITEMSTREAMRESULT = 1<<4;
+	public const ushort FLAGS_KEEPSERIALIZED = 1 << 5;
+	public const ushort FLAGS_CORR_ID = 1 << 6;
 	public const ushort SERIALIZER_SERPENT = 1;
-	public const ushort SERIALIZER_JSON = 2;
-	public const ushort SERIALIZER_MARSHAL = 3;
+	public const ushort SERIALIZER_MARSHAL = 2;
+	public const ushort SERIALIZER_JSON = 3;
+	public const ushort SERIALIZER_MSGPACK = 4;
 	
 	public ushort type;
 	public ushort flags;

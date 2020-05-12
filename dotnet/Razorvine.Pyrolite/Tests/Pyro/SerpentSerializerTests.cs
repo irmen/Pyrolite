@@ -23,7 +23,6 @@ namespace Pyrolite.Tests.Pyro
 		public void TestSerializeData()
 		{
 			Config.SERPENT_INDENT=false;
-			Config.SERPENT_SET_LITERALS=false;
 
 			ICollection<object> list = new LinkedList<object>();
 			list.Add("hello");
@@ -52,7 +51,6 @@ namespace Pyrolite.Tests.Pyro
 		public void TestSerializeCall()
 		{
 			Config.SERPENT_INDENT=false;
-			Config.SERPENT_SET_LITERALS=false;
 
 			var ser = PyroSerializer.GetSerpentSerializer();
 			IDictionary<string, object> kwargs = new Dictionary<string, object>();
@@ -83,7 +81,6 @@ namespace Pyrolite.Tests.Pyro
 		public void TestSerializeData()
 		{
 			Config.SERPENT_INDENT=false;
-			Config.SERPENT_SET_LITERALS=true;
 
 			ISet<string> s = new HashSet<string>();
 			s.Add("element1");
@@ -101,7 +98,6 @@ namespace Pyrolite.Tests.Pyro
 		public void TestSerpentBytes()
 		{
 			Config.SERPENT_INDENT=false;
-			Config.SERPENT_SET_LITERALS=true;
 
 			var bytes = Encoding.ASCII.GetBytes("hello");
 			SerpentSerializer ser = new SerpentSerializer();

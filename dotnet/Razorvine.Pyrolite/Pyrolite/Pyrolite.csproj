@@ -26,7 +26,7 @@ More info about Pyro: https://pyro5.readthedocs.io/</Description>
     <PackageReleaseNotes>Removed pickle to prepare for Pyro5 only protocol support.  </PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Razorvine.Serpent" Version="1.29.0" />
+    <PackageReference Include="Razorvine.Serpent" Version="1.30.0" />
     <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 </Project>

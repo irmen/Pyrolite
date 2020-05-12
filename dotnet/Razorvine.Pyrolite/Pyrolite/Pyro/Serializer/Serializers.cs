@@ -89,13 +89,13 @@ namespace Razorvine.Pyro.Serializer
 
 		public override byte[] serializeData(object obj)
 		{
-			var ser = new Serpent.Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true);
+			var ser = new Serpent.Serializer(Config.SERPENT_INDENT,true);
 			return ser.Serialize(obj);
 		}
 		
 		public override byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs)
 		{
-			var ser = new Serpent.Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true);
+			var ser = new Serpent.Serializer(Config.SERPENT_INDENT,true);
 			object[] invokeparams = {objectId, method, vargs, kwargs};
 			return ser.Serialize(invokeparams);
 		}

@@ -16,7 +16,6 @@ namespace Pyrolite.Tests.Pyro
 		public SerializePyroTests()
 		{
 			Config.SERPENT_INDENT=true;
-			Config.SERPENT_SET_LITERALS=true;
 		}
 		
 		[Fact]

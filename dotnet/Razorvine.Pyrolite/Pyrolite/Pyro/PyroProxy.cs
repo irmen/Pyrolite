@@ -88,14 +88,12 @@ public class PyroProxy : DynamicObject, IDisposable {
 			sequenceNr = 0;
 			_handshake();
 
-			if (Config.METADATA) {
-				// obtain metadata if this feature is enabled, and the metadata is not known yet
-				if (pyroMethods.Any() || pyroAttrs.Any()) {
-					// not checking _pyroOneway because that feature already existed and people are already modifying it on the proxy
-					// log.debug("reusing existing metadata")
-				} else {
-					GetMetadata(objectid);
-				}
+			// obtain metadata if this feature is enabled, and the metadata is not known yet
+			if (pyroMethods.Any() || pyroAttrs.Any()) {
+				// not checking _pyroOneway because that feature already existed and people are already modifying it on the proxy
+				// log.debug("reusing existing metadata")
+			} else {
+				GetMetadata(objectid);
 			}
 		}
 	}
@@ -258,7 +256,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		if(pyroOneway.Contains(method)) {
 			flags |= Message.FLAGS_ONEWAY;
 		}
-		if(checkMethodName && Config.METADATA && !pyroMethods.Contains(method)) {
+		if(checkMethodName && !pyroMethods.Contains(method)) {
 			throw new PyroException($"remote object '{actual_objectId}' has no exposed attribute or method '{method}'");
 		}
 
@@ -364,10 +362,10 @@ public class PyroProxy : DynamicObject, IDisposable {
 	protected void _handshake() {
 		var ser = PyroSerializer.GetSerpentSerializer();
 		var handshakedata = new Dictionary<string, object> {["handshake"] = pyroHandshake};
-		if(Config.METADATA)
-			handshakedata["object"] = objectid;
+		handshakedata["object"] = objectid;
 		var data = ser.serializeData(handshakedata);
-		ushort flags = Config.METADATA? Message.FLAGS_META_ON_CONNECT : (ushort)0;
+		ushort flags = 0;
+		// TODO correlation ID flag
 		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
 		IOUtil.send(sock_stream, msg.to_bytes());
 		if(Config.MSG_TRACE_DIR!=null) {
@@ -393,17 +391,15 @@ public class PyroProxy : DynamicObject, IDisposable {
 		switch (msg.type)
 		{
 			case Message.MSG_CONNECTOK:
-				if((msg.flags & Message.FLAGS_META_ON_CONNECT) != 0) {
-					var response_dict = (IDictionary)handshake_response;
-					
-					_processMetadata((IDictionary)response_dict["meta"]);
-					handshake_response = response_dict["handshake"];
-					try {
-						validateHandshake(handshake_response);
-					} catch (Exception) {
-						close();
-						throw;
-					}
+				var response_dict = (IDictionary)handshake_response;
+				
+				_processMetadata((IDictionary)response_dict["meta"]);
+				handshake_response = response_dict["handshake"];
+				try {
+					validateHandshake(handshake_response);
+				} catch (Exception) {
+					close();
+					throw;
 				}
 
 				break;
