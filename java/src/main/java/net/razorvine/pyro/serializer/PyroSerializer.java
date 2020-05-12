@@ -11,7 +11,7 @@ import net.razorvine.pyro.PyroException;
  */
 public abstract class PyroSerializer
 {
-	public abstract int getSerializerId();  // make sure this matches the id from Pyro
+	public abstract byte getSerializerId();  // make sure this matches the id from Pyro
 
 	public abstract byte[] serializeCall(String objectId, String method, Object[] vargs, Map<String, Object> kwargs) throws IOException;
 	public abstract byte[] serializeData(Object obj) throws IOException;

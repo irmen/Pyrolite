@@ -22,7 +22,7 @@ public class SerpentSerializer extends PyroSerializer {
 	}
 
 	@Override
-	public int getSerializerId() {
+	public byte getSerializerId() {
 		return Message.SERIALIZER_SERPENT;
 	}
 

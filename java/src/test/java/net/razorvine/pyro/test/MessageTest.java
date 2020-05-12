@@ -43,7 +43,7 @@ public class MessageTest {
 	@Test
 	public void TestMessage()
 	{
-		new Message(99, new byte[0], this.ser.getSerializerId(), 0, 0, null);  // doesn't check msg type here
+		new Message((byte)99, new byte[0], this.ser.getSerializerId(), 0, 0, null);  // doesn't check msg type here
 		try {
 			Message.from_header("FOOBAR".getBytes());
 			fail("should crash");
@@ -54,35 +54,35 @@ public class MessageTest {
 		assertEquals(Message.MSG_CONNECT, msg.type);
 		assertEquals(5, msg.data_size);
 		assertArrayEquals(new byte[]{(byte)'h',(byte)'e',(byte)'l',(byte)'l',(byte)'o'}, msg.data);
-		assertEquals(4+2+20, msg.annotations_size);
-		assertEquals(1, msg.annotations.size());
+		assertEquals(0, msg.annotations.size());
+		assertEquals(0, msg.annotations_size);
 
 		byte[] hdr = getHeaderBytes(msg.to_bytes());
 		msg = Message.from_header(hdr);
 		assertEquals(Message.MSG_CONNECT, msg.type);
-		assertEquals(4+2+20, msg.annotations_size);
+		assertEquals(0, msg.annotations_size);
 		assertEquals(5, msg.data_size);
 
 		hdr = getHeaderBytes(new Message(Message.MSG_RESULT, new byte[0], this.ser.getSerializerId(), 0, 0, null).to_bytes());
 		msg = Message.from_header(hdr);
 		assertEquals(Message.MSG_RESULT, msg.type);
-		assertEquals(4+2+20, msg.annotations_size);
+		assertEquals(0, msg.annotations_size);
 		assertEquals(0, msg.data_size);
 
-		hdr = getHeaderBytes(new Message(Message.MSG_RESULT, "hello".getBytes(), 12345, 60006, 30003, null).to_bytes());
+		hdr = getHeaderBytes(new Message(Message.MSG_RESULT, "hello".getBytes(), (byte)99, 60006, 30003, null).to_bytes());
 		msg = Message.from_header(hdr);
 		assertEquals(Message.MSG_RESULT, msg.type);
 		assertEquals(60006, msg.flags);
 		assertEquals(5, msg.data_size);
-		assertEquals(12345, msg.serializer_id);
+		assertEquals(99, msg.serializer_id);
 		assertEquals(30003, msg.seq);
 
-		byte[] data = new Message(255, new byte[0], this.ser.getSerializerId(), 0, 255, null).to_bytes();
-		assertEquals(50, data.length);
-		data = new Message(1, new byte[0], this.ser.getSerializerId(), 0, 255, null).to_bytes();
-		assertEquals(50, data.length);
-		data = new Message(1, new byte[0], this.ser.getSerializerId(), 253, 254, null).to_bytes();
-		assertEquals(50, data.length);
+		byte[] data = new Message((byte)255, new byte[0], this.ser.getSerializerId(), 0, 255, null).to_bytes();
+		assertEquals(40, data.length);
+		data = new Message((byte)1, new byte[0], this.ser.getSerializerId(), 0, 255, null).to_bytes();
+		assertEquals(40, data.length);
+		data = new Message((byte)1, new byte[0], this.ser.getSerializerId(), 253, 254, null).to_bytes();
+		assertEquals(40, data.length);
 
 		// compression is a job of the code supplying the data, so the messagefactory should leave it untouched
 		data = new byte[1000];
@@ -94,14 +94,14 @@ public class MessageTest {
 	@Test
 	public void testMessageHeaderDatasize()
 	{
-		Message msg = new Message(Message.MSG_RESULT, "hello".getBytes(), 12345, 60006, 30003, null);
+		Message msg = new Message(Message.MSG_RESULT, "hello".getBytes(), (byte)99, 60006, 30003, null);
 		msg.data_size = 0x12345678;   // hack it to a large value to see if it comes back ok
 		byte[] hdr = getHeaderBytes(msg.to_bytes());
 		msg = Message.from_header(hdr);
 		assertEquals(Message.MSG_RESULT, msg.type);
 		assertEquals(60006, msg.flags);
 		assertEquals(0x12345678, msg.data_size);
-		assertEquals(12345, msg.serializer_id);
+		assertEquals(99, msg.serializer_id);
 		assertEquals(30003, msg.seq);
 	}
 
@@ -117,10 +117,10 @@ public class MessageTest {
 
 		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, this.ser.getSerializerId(), 0, 0, annotations);
 		byte[] data = msg.to_bytes();
-		int annotations_size = 4+2+20 + (4+2+5)*4;
-		assertEquals(Message.HEADER_SIZE + 5 + annotations_size, data.length);
+		int annotations_size = (4+4+5)*4;
+		assertEquals(Message.HEADER_SIZE + annotations_size + 5, data.length);
+		assertEquals(4, msg.annotations.size());
 		assertEquals(annotations_size, msg.annotations_size);
-		assertEquals(5, msg.annotations.size());
 		assertArrayEquals(new byte[]{10,20,30,40,50}, msg.annotations.get("TES1"));
 		assertArrayEquals(new byte[]{20,30,40,50,60}, msg.annotations.get("TES2"));
 		assertArrayEquals(new byte[]{30,40,50,60,70}, msg.annotations.get("TES3"));
@@ -252,7 +252,7 @@ public class MessageTest {
 	@Test
 	public void testRecvNoAnnotations() throws IOException
 	{
-		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, 42, 0, 0, null);
+		Message msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, (byte)42, 0, 0, null);
 		byte[] data = msg.to_bytes();
 
 		InputStream is = new ByteArrayInputStream(data);
@@ -262,25 +262,6 @@ public class MessageTest {
 		assertArrayEquals(new byte[]{1,2,3,4,5}, msg.data);
 		assertEquals(0, msg.annotations_size);
 		assertEquals(0, msg.annotations.size());
-	}
-
-	@Test
-	public void testChecksum() throws IOException
-	{
-		Message msg = new Message(Message.MSG_RESULT, new byte[]{1,2,3,4}, 42, 0, 1, null);
-		// corrupt the checksum bytes
-		byte[] data = msg.to_bytes();
-		data[Message.HEADER_SIZE-2] = 0;
-		data[Message.HEADER_SIZE-1] = 0;
-
-		InputStream is = new ByteArrayInputStream(data);
-		try {
-			Message.recv(is, null);
-			fail("crash expected");
-		}
-		catch(PyroException x) {
-			assertTrue(x.getMessage().contains("checksum"));
-		}
 	}
 
 	@Test

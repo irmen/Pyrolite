@@ -15,38 +15,40 @@ import java.io.InputStream;
  */
 public class Message
 {
-	private final static int CHECKSUM_MAGIC = 0x34E9;
-	public final static int HEADER_SIZE = 24;
+	private final static int MAGIC_NUMBER = 0x4dc5;
+	public final static int HEADER_SIZE = 40;
 
-	public final static int MSG_CONNECT = 1;
-	public final static int MSG_CONNECTOK = 2;
-	public final static int MSG_CONNECTFAIL = 3;
-	public final static int MSG_INVOKE = 4;
-	public final static int MSG_RESULT = 5;
-	public final static int MSG_PING = 6;
+	public final static byte MSG_CONNECT = 1;
+	public final static byte MSG_CONNECTOK = 2;
+	public final static byte MSG_CONNECTFAIL = 3;
+	public final static byte MSG_INVOKE = 4;
+	public final static byte MSG_RESULT = 5;
+	public final static byte MSG_PING = 6;
 	public final static int FLAGS_EXCEPTION = 1<<0;
 	public final static int FLAGS_COMPRESSED = 1<<1;
 	public final static int FLAGS_ONEWAY = 1<<2;
 	public final static int FLAGS_BATCH = 1<<3;
-	public final static int FLAGS_META_ON_CONNECT = 1<<4;
-	public final static int FLAGS_ITEMSTREAMRESULT = 1<<5;
-	public final static int SERIALIZER_SERPENT = 1;
-	public final static int SERIALIZER_JSON = 2;
-	public final static int SERIALIZER_MARSHAL = 3;
+	public final static int FLAGS_ITEMSTREAMRESULT = 1<<4;
+	public final static int FLAGS_KEEPSERIALIZED = 1<<5;
+	public final static int FLAGS_CORR_ID = 1<<6;
+	public final static byte SERIALIZER_SERPENT = 1;
+	public final static byte SERIALIZER_MARSHAL = 2;
+	public final static byte SERIALIZER_JSON = 3;
+	public final static byte SERIALIZER_MSGPACK = 4;
 
-	public int type;
+	public byte type;
 	public int flags;
 	public byte[] data;
 	public int data_size;
 	public int annotations_size;
-	public int serializer_id;
+	public byte serializer_id;
 	public int seq;
 	public SortedMap<String, byte[]> annotations;
 
 	/**
 	 * construct a header-type message, without data and annotations payload.
 	 */
-	public Message(int msgType, int serializer_id, int flags, int seq)
+	public Message(byte msgType, byte serializer_id, int flags, int seq)
 	{
 		this.type = msgType;
 		this.flags = flags;
@@ -57,7 +59,7 @@ public class Message
 	/**
 	 * construct a full wire message including data and annotations payloads.
 	 */
-	public Message(int msgType, byte[] databytes, int serializer_id, int flags, int seq, SortedMap<String, byte[]> annotations)
+	public Message(byte msgType, byte[] databytes, byte serializer_id, int flags, int seq, SortedMap<String, byte[]> annotations)
 	{
 		this(msgType, serializer_id, flags, seq);
 		this.data = databytes;
@@ -68,7 +70,7 @@ public class Message
 
 		this.annotations_size = 0;
 		for(Entry<String, byte[]> a: this.annotations.entrySet())
-			this.annotations_size += a.getValue().length+6;
+			this.annotations_size += a.getValue().length+8;
 	}
 
 	/**
@@ -87,21 +89,30 @@ public class Message
 
 	public byte[] get_header_bytes()
 	{
-		int checksum = (type+Config.PROTOCOL_VERSION+data_size+annotations_size+serializer_id+flags+seq+CHECKSUM_MAGIC)&0xffff;
 		byte[] header = new byte[HEADER_SIZE];
 		/*
-		 header format: '!4sHHHHiHHHH' (24 bytes)
-		   4   id ('PYRO')
-		   2   protocol version
-		   2   message type
-		   2   message flags
-		   2   sequence number
-		   4   data length
-		   2   data serialization format (serializer id)
-		   2   annotations length (total of all chunks, 0 if no annotation chunks present)
-		   2   (reserved)
-		   2   checksum
-		   followed by annotations: 4 bytes type, annotations bytes.
+The header format is::
+
+0x00   4s  4   'PYRO' (message identifier)
+0x04   H   2   protocol version
+0x06   B   1   message type
+0x07   B   1   serializer id
+0x08   H   2   message flags
+0x0a   H   2   sequence number   (to identify proper request-reply sequencing)
+0x0c   I   4   data length   (max 4 Gb)
+0x10   I   4   annotations length (max 4 Gb, total of all chunks, 0 if no annotation chunks present)
+0x14   16s 16  correlation uuid
+0x24   H   2   (reserved)
+0x26   H   2   magic number 0x4dc5
+total size: 0x28 (40 bytes)
+
+After the header, zero or more annotation chunks may follow, of the format::
+
+   4s  4   annotation id (4 ASCII letters)
+   I   4   chunk length  (max 4 Gb)
+   B   x   annotation chunk databytes
+
+After that, the actual payload data bytes follow.
 		*/
 
 		header[0]=(byte)'P';
@@ -112,8 +123,8 @@ public class Message
 		header[4]=(byte) (Config.PROTOCOL_VERSION>>8);
 		header[5]=(byte) (Config.PROTOCOL_VERSION&0xff);
 
-		header[6]=(byte) (type>>8);
-		header[7]=(byte) (type&0xff);
+		header[6]=type;
+		header[7]=serializer_id;
 
 		header[8]=(byte) (flags>>8);
 		header[9]=(byte) (flags&0xff);
@@ -126,17 +137,18 @@ public class Message
 		header[14]=(byte)((data_size>>8)&0xff);
 		header[15]=(byte)(data_size&0xff);
 
-		header[16]=(byte)(serializer_id>>8);
-		header[17]=(byte)(serializer_id&0xff);
-
+		header[16]=(byte)((annotations_size>>24)&0xff);
+		header[17]=(byte)((annotations_size>>16)&0xff);
 		header[18]=(byte)((annotations_size>>8)&0xff);
 		header[19]=(byte)(annotations_size&0xff);
 
-		header[20]=0; // reserved
-		header[21]=0; // reserved
+		// TODO [20] - [35]  correlation ID 16 bytes
 
-		header[22]=(byte)((checksum>>8)&0xff);
-		header[23]=(byte)(checksum&0xff);
+		// header[36] = 0;  // reserved
+		// header[37] = 0;	// reserved
+
+		header[38]=(byte)((MAGIC_NUMBER>>8)&0xff);
+		header[39]=(byte)(MAGIC_NUMBER&0xff);
 
 		return header;
 	}
@@ -152,10 +164,15 @@ public class Message
 			if(key.length()!=4)
 				throw new IllegalArgumentException("annotation key must be length 4");
 			chunks.add(key.getBytes());
-			byte[] size_bytes = new byte[] { (byte)((value.length>>8)&0xff), (byte)(value.length&0xff) };
+			byte[] size_bytes = new byte[] {
+					(byte)((value.length>>24)&0xff),
+					(byte)((value.length>>16)&0xff),
+					(byte)((value.length>>8)&0xff),
+					(byte)(value.length&0xff)
+			};
 			chunks.add(size_bytes);
 			chunks.add(value);
-			total_size += 4+2+value.length;
+			total_size += 4+4+value.length;
 		}
 
 		byte[] result = new byte[total_size];
@@ -184,10 +201,15 @@ public class Message
 		int version = ((header[4]&0xff) << 8)|(header[5]&0xff);
 		if(version!=Config.PROTOCOL_VERSION)
 			throw new PyroException("invalid protocol version: "+version);
+		int magic = ((header[38]&0xff) << 8)|(header[39]&0xff);
+		if(magic != MAGIC_NUMBER)
+			throw new PyroException("invalid header magic number");
 
-		int msg_type = ((header[6]&0xff) << 8)|(header[7]&0xff);
+		byte msg_type = header[6];
+		byte serializer_id = header[7];
 		int flags = ((header[8]&0xff) << 8)|(header[9]&0xff);
 		int seq = ((header[10]&0xff) << 8)|(header[11]&0xff);
+
 		int data_size=header[12]&0xff;
 		data_size<<=8;
 		data_size|=header[13]&0xff;
@@ -195,13 +217,16 @@ public class Message
 		data_size|=header[14]&0xff;
 		data_size<<=8;
 		data_size|=header[15]&0xff;
-		int serializer_id = ((header[16]&0xff) << 8)|(header[17]&0xff);
-		int annotations_size = ((header[18]&0xff) <<8)|(header[19]&0xff);
-		// byte 20 and 21 are reserved.
-		int checksum = ((header[22]&0xff) << 8)|(header[23]&0xff);
-		int actual_checksum = (msg_type+version+data_size+annotations_size+flags+serializer_id+seq+CHECKSUM_MAGIC)&0xffff;
-		if(checksum!=actual_checksum)
-			throw new PyroException("header checksum mismatch");
+
+		int annotations_size=header[16]&0xff;
+		annotations_size<<=8;
+		annotations_size|=header[17]&0xff;
+		annotations_size<<=8;
+		annotations_size|=header[18]&0xff;
+		annotations_size<<=8;
+		annotations_size|=header[19]&0xff;
+
+		// TODO [20] - [35]  correlation ID 16 bytes
 
 		Message msg = new Message(msg_type, serializer_id, flags, seq);
 		msg.data_size = data_size;
@@ -258,11 +283,11 @@ public class Message
 			while(i<msg.annotations_size)
 			{
 				String anno = new String(annotations_data, i, 4);
-				int length = (annotations_data[i+4]<<8) | annotations_data[i+5];
+				int length = (annotations_data[i+4]<<24) | (annotations_data[i+5]<<16) | (annotations_data[i+6]<<8) | annotations_data[i+7];
 				byte[] annotations_bytes = new byte[length];
-				System.arraycopy(annotations_data, i+6, annotations_bytes, 0, length);
+				System.arraycopy(annotations_data, i+8, annotations_bytes, 0, length);
 				msg.annotations.put(anno, annotations_bytes);
-				i += 6+length;
+				i += 8+length;
 			}
 		}
 

@@ -342,7 +342,7 @@ public class PyroProxy implements Serializable {
 		handshakedata.put("handshake", pyroHandshake);
 		handshakedata.put("object", objectid);
 		byte[] data = ser.serializeData(handshakedata);
-		int flags = Message.FLAGS_META_ON_CONNECT;
+		int flags = 0;
 		Message msg = new Message(Message.MSG_CONNECT, data, ser.getSerializerId(), flags, sequenceNr, annotations());
 		IOUtil.send(sock_out, msg.to_bytes());
 		if(Config.MSG_TRACE_DIR!=null) {
@@ -366,17 +366,15 @@ public class PyroProxy implements Serializable {
 			}
 		}
 		if(msg.type==Message.MSG_CONNECTOK) {
-			if((msg.flags & Message.FLAGS_META_ON_CONNECT) != 0) {
-				HashMap<String, Object> response_dict = (HashMap<String, Object>)handshake_response;
-				HashMap<String, Object> metadata = (HashMap<String, Object>) response_dict.get("meta");
-				_processMetadata(metadata);
-				handshake_response = response_dict.get("handshake");
-				try {
-					validateHandshake(handshake_response);
-				} catch (IOException x) {
-					close();
-					throw x;
-				}
+			HashMap<String, Object> response_dict = (HashMap<String, Object>)handshake_response;
+			HashMap<String, Object> metadata = (HashMap<String, Object>) response_dict.get("meta");
+			_processMetadata(metadata);
+			handshake_response = response_dict.get("handshake");
+			try {
+				validateHandshake(handshake_response);
+			} catch (IOException x) {
+				close();
+				throw x;
 			}
 		} else if (msg.type==Message.MSG_CONNECTFAIL) {
 			close();
