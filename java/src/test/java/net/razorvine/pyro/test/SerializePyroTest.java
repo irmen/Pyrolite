@@ -25,13 +25,11 @@ public class SerializePyroTest {
 	@Before
 	public void setUp() throws Exception {
 		Config.SERPENT_INDENT=true;
-		Config.SERPENT_SET_LITERALS=true;
 	}
 
 	@After
 	public void tearDown() throws Exception {
 		Config.SERPENT_INDENT=false;
-		Config.SERPENT_SET_LITERALS=false;
 	}
 
 	@Test
@@ -46,7 +44,6 @@ public class SerializePyroTest {
 		PyroProxy proxy = new PyroProxy(uri);
 		proxy.correlation_id = UUID.randomUUID();
 		proxy.pyroHandshake = "apples";
-		proxy.pyroHmacKey = "secret".getBytes();
 		proxy.pyroAttrs = new HashSet<String>();
 		proxy.pyroAttrs.add("attr1");
 		proxy.pyroAttrs.add("attr2");
@@ -58,7 +55,6 @@ public class SerializePyroTest {
 		assertEquals(uri.port, proxy2.port);
 		assertNull(proxy2.correlation_id); // correlation_id is not serialized on the proxy object")
 		assertEquals(proxy.pyroHandshake, proxy2.pyroHandshake);
-		assertArrayEquals(proxy.pyroHmacKey, proxy2.pyroHmacKey);
 		assertEquals(2, proxy2.pyroAttrs.size());
 		assertEquals(proxy.pyroAttrs, proxy2.pyroAttrs);
 
@@ -85,14 +81,13 @@ public class SerializePyroTest {
 		PyroProxy proxy = new PyroProxy(uri);
 		proxy.correlation_id = UUID.randomUUID();
 		proxy.pyroHandshake = "apples";
-		proxy.pyroHmacKey = "secret".getBytes();
 		proxy.pyroAttrs = new HashSet<String>();
 		proxy.pyroAttrs.add("attr1");
 		proxy.pyroAttrs.add("attr2");
 		Map<String, Object> data = serp.convert(proxy);
 		assertEquals(2, data.size());
 		assertEquals("Pyro4.core.Proxy", data.get("__class__"));
-		assertEquals(8, ((Object[])data.get("state")).length);
+		assertEquals(7, ((Object[])data.get("state")).length);
 
 		Map<Object, Object> data2=new HashMap<Object, Object>(data);
 
@@ -105,7 +100,7 @@ public class SerializePyroTest {
 	public void testUnserpentProxy() throws IOException
 	{
 		byte[] data = ("# serpent utf-8 python3.2\n" +
-					   "{'state':('PYRO:Pyro.NameServer@localhost:9090',(),('count','lookup','register','ping','list','remove'),(),0.0,'b64:c2VjcmV0','hello',0),'__class__':'Pyro4.core.Proxy'}").getBytes();
+					   "{'state':('PYRO:Pyro.NameServer@localhost:9090',(),('count','lookup','register','ping','list','remove'),(),0.0,'hello',0),'__class__':'Pyro4.core.Proxy'}").getBytes();
 
 		SerpentSerializer ser = new SerpentSerializer();
 		PyroProxy p = (PyroProxy) ser.deserializeData(data);
@@ -114,7 +109,6 @@ public class SerializePyroTest {
 		assertEquals("localhost", p.hostname);
 		assertEquals(9090, p.port);
 		assertEquals("hello", p.pyroHandshake);
-		assertArrayEquals("secret".getBytes(), p.pyroHmacKey);
 		assertEquals(0, p.pyroAttrs.size());
 		assertEquals(0, p.pyroOneway.size());
 		assertEquals(6, p.pyroMethods.size());

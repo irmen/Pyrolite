@@ -18,12 +18,10 @@ public class SerpentSerializerSetsTest {
 
 	@Before
 	public void setUp() throws Exception {
-		Config.SERPENT_SET_LITERALS=true;
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		Config.SERPENT_SET_LITERALS=false;
 	}
 
 	@SuppressWarnings("unchecked")

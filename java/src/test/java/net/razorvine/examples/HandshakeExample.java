@@ -59,8 +59,6 @@ class CustomAnnotationsProxy extends PyroProxy
 			if(ann.equals("CORR")) {
 				ByteBuffer bb = ByteBuffer.wrap(annotations.get(ann));
 				value = new UUID(bb.getLong(), bb.getLong()).toString();
-			} else if (ann.equals("HMAC")) {
-				value = "[...]";
 			} else {
 				value = annotations.get(ann).toString();
 			}

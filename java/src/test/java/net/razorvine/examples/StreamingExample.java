@@ -16,9 +16,6 @@ import net.razorvine.pyro.PyroURI;
  */
 public class StreamingExample {
 
-	static protected byte[] hmacKey = null; // "irmen".getBytes();
-
-
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws IOException {
 

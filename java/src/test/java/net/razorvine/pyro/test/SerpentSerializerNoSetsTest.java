@@ -38,7 +38,7 @@ public class SerpentSerializerNoSetsTest {
 		PyroSerializer ser = PyroSerializer.getSerpentSerializer();
 		byte[] data = ser.serializeData(list);
 		String str = new String(data);
-		assertEquals("# serpent utf-8 python2.6\n['hello',42]", str);
+		assertEquals("# serpent utf-8 python3.2\n['hello',42]", str);
 
 		List<Object> list_obj = (List<Object>)ser.deserializeData(data);
 		assertEquals(list, list_obj);
@@ -48,11 +48,13 @@ public class SerpentSerializerNoSetsTest {
 		s.add("element2");
 		data = ser.serializeData(s);
 		str = new String(data);
-		assertTrue(str.equals("# serpent utf-8 python2.6\n('element1','element2')") ||
-				   str.equals("# serpent utf-8 python2.6\n('element2','element1')"));
+		assertTrue(str.equals("# serpent utf-8 python3.2\n{'element1','element2'}") ||
+				   str.equals("# serpent utf-8 python3.2\n{'element2','element1'}"));
 
-		Object[] array_obj = (Object[]) ser.deserializeData(data);
-		assertArrayEquals(s.toArray(), array_obj);
+		HashSet<String> elts = (HashSet<String>) ser.deserializeData(data);
+		assertEquals(s.size(), elts.size());
+		assertTrue(elts.contains("element1"));
+		assertTrue(elts.contains("element2"));
 	}
 
 	@Test
@@ -65,7 +67,7 @@ public class SerpentSerializerNoSetsTest {
 
 		byte[] data = ser.serializeCall("objectid", "method", vargs, kwargs);
 		String s = new String(data);
-		assertEquals("# serpent utf-8 python2.6\n('objectid','method',('hello',),{'arg':42})", s);
+		assertEquals("# serpent utf-8 python3.2\n('objectid','method',('hello',),{'arg':42})", s);
 
 		Object[] call = (Object[])ser.deserializeData(data);
 

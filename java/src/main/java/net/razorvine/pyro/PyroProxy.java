@@ -26,7 +26,6 @@ public class PyroProxy implements Serializable {
 	public String hostname;
 	public int port;
 	public String objectid;
-	public byte[] pyroHmacKey = null;		// per-proxy hmac key, used to be HMAC_KEY config item
 	public UUID correlation_id = null;		// per-proxy correlation id (need to set/update this yourself)
 	public Object pyroHandshake = "hello";	// data object that should be sent in the initial connection handshake message. Can be any serializable object.
 
@@ -74,15 +73,11 @@ public class PyroProxy implements Serializable {
 			sock_in = sock.getInputStream();
 			sequenceNr = 0;
 			_handshake();
-
-			if(Config.METADATA) {
-				// obtain metadata if this feature is enabled, and the metadata is not known yet
-				if(!pyroMethods.isEmpty() || !pyroAttrs.isEmpty()) {
-					// not checking _pyroONeway because that feature already existed and it is not yet deprecated
-					// log.debug("reusing existing metadata")
-				} else {
-					getMetadata(this.objectid);
-				}
+			if(!pyroMethods.isEmpty() || !pyroAttrs.isEmpty()) {
+				// not checking _pyroONeway because that feature already existed and it is not yet deprecated
+				// log.debug("reusing existing metadata")
+			} else {
+				getMetadata(this.objectid);
 			}
 		}
 	}
@@ -232,14 +227,14 @@ public class PyroProxy implements Serializable {
 		if(pyroOneway.contains(method)) {
 			flags |= Message.FLAGS_ONEWAY;
 		}
-		if(checkMethodName && Config.METADATA && !pyroMethods.contains(method)) {
+		if(checkMethodName && !pyroMethods.contains(method)) {
 			throw new PyroException(String.format("remote object '%s' has no exposed attribute or method '%s'", actual_objectId, method));
 		}
 		if (parameters == null)
 			parameters = new Object[] {};
 		PyroSerializer ser = PyroSerializer.getSerpentSerializer();
 		byte[] serdat = ser.serializeCall(actual_objectId, method, parameters, Collections.emptyMap());
-		Message msg = new Message(Message.MSG_INVOKE, serdat, ser.getSerializerId(), flags, sequenceNr, annotations(), pyroHmacKey);
+		Message msg = new Message(Message.MSG_INVOKE, serdat, ser.getSerializerId(), flags, sequenceNr, annotations());
 		Message resultmsg;
 		synchronized (this.sock) {
 			IOUtil.send(sock_out, msg.to_bytes());
@@ -251,7 +246,7 @@ public class PyroProxy implements Serializable {
 			if ((flags & Message.FLAGS_ONEWAY) != 0)
 				return null;
 
-			resultmsg = Message.recv(sock_in, new int[]{Message.MSG_RESULT}, pyroHmacKey);
+			resultmsg = Message.recv(sock_in, new int[]{Message.MSG_RESULT});
 		}
 		if (resultmsg.seq != sequenceNr) {
 			throw new PyroException("result msg out of sync");
@@ -345,18 +340,17 @@ public class PyroProxy implements Serializable {
 		PyroSerializer ser = PyroSerializer.getSerpentSerializer();
 		Map<String, Object> handshakedata = new HashMap<String, Object>();
 		handshakedata.put("handshake", pyroHandshake);
-		if(Config.METADATA)
-			handshakedata.put("object", objectid);
+		handshakedata.put("object", objectid);
 		byte[] data = ser.serializeData(handshakedata);
-		int flags = Config.METADATA? Message.FLAGS_META_ON_CONNECT : 0;
-		Message msg = new Message(Message.MSG_CONNECT, data, ser.getSerializerId(), flags, sequenceNr, annotations(), pyroHmacKey);
+		int flags = Message.FLAGS_META_ON_CONNECT;
+		Message msg = new Message(Message.MSG_CONNECT, data, ser.getSerializerId(), flags, sequenceNr, annotations());
 		IOUtil.send(sock_out, msg.to_bytes());
 		if(Config.MSG_TRACE_DIR!=null) {
 			Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
 		}
 
 		// process handshake response
-		msg = Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL}, pyroHmacKey);
+		msg = Message.recv(sock_in, new int[]{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL});
 		responseAnnotations(msg.annotations, msg.type);
 		Object handshake_response = "?";
 		if(msg.data!=null) {
@@ -405,7 +399,7 @@ public class PyroProxy implements Serializable {
 
 	/**
 	 * Process any response annotations (dictionary set by the daemon).
-	 * Usually this contains the internal Pyro annotations such as hmac and correlation id,
+	 * Usually this contains the internal Pyro annotations such as correlation id,
 	 * and if you override the annotations method in the daemon, can contain your own annotations as well.
 	 */
 	public void responseAnnotations(SortedMap<String, byte[]> annotations, int msgtype)

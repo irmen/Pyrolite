@@ -5,5 +5,4 @@ public class MessageHeader {
 	public int flags;
 	public int sequence;
 	public int datasize;
-	public byte[] hmac;
 }

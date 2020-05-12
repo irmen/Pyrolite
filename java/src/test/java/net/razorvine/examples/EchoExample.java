@@ -16,9 +16,6 @@ import net.razorvine.pyro.PyroURI;
  */
 public class EchoExample {
 
-	static protected byte[] hmacKey = null; // "irmen".getBytes();
-
-
 	public static void main(String[] args) throws IOException {
 
 		System.out.println("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
@@ -26,9 +23,8 @@ public class EchoExample {
 
 		setConfig();
 
-		NameServerProxy ns = NameServerProxy.locateNS(null, hmacKey);
+		NameServerProxy ns = NameServerProxy.locateNS(null);
 		PyroProxy p = new PyroProxy(ns.lookup("test.echoserver"));
-		p.pyroHmacKey = hmacKey;
 		p.pyroHandshake = "banana";
 		ns.close();
 
@@ -57,10 +53,6 @@ public class EchoExample {
 		if(!p2.objectid.equals("test.echoserver")) throw new AssertionError("objectid");
 		if(!((String)p2.pyroHandshake).equals("banana")) throw new AssertionError("handshake");
 		if(!p2.pyroMethods.contains("echo")) throw new AssertionError("methods");
-		if(p2.pyroHmacKey!=null) {
-			String hmac2 = new String(p2.pyroHmacKey);
-			if(!hmac2.equals(new String(hmacKey))) throw new AssertionError("hmac");
-		}
 
 		System.out.println("remote iterator test.");
 		@SuppressWarnings("unchecked")

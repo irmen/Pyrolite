@@ -14,8 +14,6 @@ import net.razorvine.pyro.*;
  */
 public class NamingExample {
 
-	static protected byte[] hmacKey;
-
 	public static void main(String[] args) throws IOException {
 
 		System.out.println("Testing Pyro nameserver connection (make sure it's running with a broadcast server)...");
@@ -23,7 +21,7 @@ public class NamingExample {
 
 		setConfig();
 
-		NameServerProxy ns=NameServerProxy.locateNS(null, hmacKey);
+		NameServerProxy ns=NameServerProxy.locateNS(null);
 		System.out.println("discovered ns at "+ns.hostname+":"+ns.port);
 		ns.ping();
 
@@ -83,7 +81,6 @@ public class NamingExample {
 		System.out.println("uri=" + ns.lookup("java.test"));
 		System.out.println("using a new proxy to call the nameserver.");
 		PyroProxy p=new PyroProxy(ns.lookup("Pyro.NameServer"));
-		p.pyroHmacKey = hmacKey;
 		p.call("ping");
 
 		int num_removed=ns.remove(null, "java.", null);

@@ -23,19 +23,19 @@ public class SerpentSerializer extends PyroSerializer {
 
 	@Override
 	public int getSerializerId() {
-		return Message.SERIALIZER_SERPENT; 
+		return Message.SERIALIZER_SERPENT;
 	}
 
 	@Override
 	public byte[] serializeCall(String objectId, String method, Object[] vargs, Map<String, Object> kwargs) throws IOException {
-		Serializer s = new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true);
+		Serializer s = new Serializer(Config.SERPENT_INDENT, true);
 		Object[] invokeparams = new Object[] {objectId, method, vargs, kwargs};
 		return s.serialize(invokeparams);
 	}
 
 	@Override
 	public byte[] serializeData(Object obj) throws IOException {
-		Serializer s = new Serializer(Config.SERPENT_INDENT, Config.SERPENT_SET_LITERALS, true);
+		Serializer s = new Serializer(Config.SERPENT_INDENT, true);
 		return s.serialize(obj);
 	}
 
@@ -46,7 +46,7 @@ public class SerpentSerializer extends PyroSerializer {
 		IDictToInstance dictConverter = new DictConverter();
 		return ast.getData(dictConverter);
 	}
-	
+
 	class DictConverter implements IDictToInstance
 	{
 		public Object convert(Map<Object, Object> dict) throws IOException {
@@ -65,7 +65,7 @@ public class SerpentSerializer extends PyroSerializer {
 				return null;
 		}
 	}
-	
+
 	/**
 	 * Utility function to convert obj back to actual bytes if it is a serpent-encoded bytes dictionary
 	 * (a IDictionary with base-64 encoded 'data' in it and 'encoding'='base64').

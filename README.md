@@ -25,6 +25,14 @@ your Java/.NET code to host Pyro objects but rather only call them,
 Pyrolite could be a good choice to connect Java or .NET and Python!
 
 
+## Pyro4 ?
+
+If you are still using Pyro4 and want to use Pyrolite with it, you should stick
+to an older version of this library (versions 4.xx). The current 5.xx version only supports Pyro5.
+
+In Github, use the `pyro4-legacy` branch.
+
+
 ## Installation and usage
 
 Precompiled libraries are available:

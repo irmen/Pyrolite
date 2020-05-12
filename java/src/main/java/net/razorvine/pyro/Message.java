@@ -8,13 +8,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Pyro wire protocol message.
@@ -63,7 +57,7 @@ public class Message
 	/**
 	 * construct a full wire message including data and annotations payloads.
 	 */
-	public Message(int msgType, byte[] databytes, int serializer_id, int flags, int seq, SortedMap<String, byte[]> annotations, byte[] hmac)
+	public Message(int msgType, byte[] databytes, int serializer_id, int flags, int seq, SortedMap<String, byte[]> annotations)
 	{
 		this(msgType, serializer_id, flags, seq);
 		this.data = databytes;
@@ -72,35 +66,9 @@ public class Message
 		if(null==annotations)
 			this.annotations = new TreeMap<String, byte[]>();
 
-		if(hmac!=null)
-			this.annotations.put("HMAC", this.hmac(hmac));		// do this last because it hmacs the other annotation chunks
-
 		this.annotations_size = 0;
 		for(Entry<String, byte[]> a: this.annotations.entrySet())
 			this.annotations_size += a.getValue().length+6;
-	}
-
-	/**
-	 * returns the hmac of the data and the annotation chunk values (except HMAC chunk itself)
-	 */
-	public byte[] hmac(byte[] key)
-	{
-		try {
-			Key secretKey = new SecretKeySpec(key, "HmacSHA1");
-			Mac hmac_algo = Mac.getInstance("HmacSHA1");
-			hmac_algo.init(secretKey);
-			hmac_algo.update(this.data);
-			for(Entry<String, byte[]> a: this.annotations.entrySet())   // this is in a fixed order because it is a SortedMap
-			{
-				if(!a.getKey().equals("HMAC"))
-					hmac_algo.update(a.getValue());
-			}
-			return hmac_algo.doFinal();
-		} catch (NoSuchAlgorithmException e) {
-			throw new PyroException("invalid hmac algorithm",e);
-		} catch (InvalidKeyException e) {
-			throw new PyroException("invalid hmac key",e);
-		}
 	}
 
 	/**
@@ -260,9 +228,8 @@ public class Message
 	 * Receives a pyro message from a given connection.
 	 * Accepts the given message types (None=any, or pass a sequence).
 	 * Also reads annotation chunks and the actual payload data.
-	 * Validates a HMAC chunk if present.
 	 */
-	public static Message recv(InputStream connection, int[] requiredMsgTypes, byte[] hmac) throws IOException
+	public static Message recv(InputStream connection, int[] requiredMsgTypes) throws IOException
 	{
 		byte[] header_data = IOUtil.recv(connection, HEADER_SIZE);
 		Message msg = from_header(header_data);
@@ -306,16 +273,6 @@ public class Message
 			TraceMessageRecv(msg.seq, header_data, annotations_data, msg.data);
 		}
 
-		if(msg.annotations.containsKey("HMAC") && hmac!=null)
-		{
-			if(!Arrays.equals(msg.annotations.get("HMAC"), msg.hmac(hmac)))
-				throw new PyroException("message hmac mismatch");
-		}
-		else if (msg.annotations.containsKey("HMAC") != (hmac!=null))
-		{
-			// Message contains hmac and local HMAC_KEY not set, or vice versa. This is not allowed.
-			throw new PyroException("hmac key config not symmetric");
-		}
 		return msg;
 	}
 

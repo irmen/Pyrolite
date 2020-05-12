@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Base64;
 
-import net.razorvine.pyro.PyroException;
 import net.razorvine.pyro.PyroProxy;
 import net.razorvine.pyro.PyroURI;
 import net.razorvine.serpent.IClassSerializer;
@@ -20,8 +18,8 @@ public class PyroProxySerpent implements IClassSerializer {
 
 	public static Object FromSerpentDict(Map<Object, Object> dict) throws IOException {
 		// note: the state array received in the dict conforms to the list produced by Pyro4's Proxy.__getstate_for_dict__
-		// that means, we get an array of length 8:  (the same as with convert, below!)
-		// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake, maxretries  (in this order)
+		// that means, we get an array of length 7:  (the same as with convert, below!)
+		// uri, oneway set, methods set, attrs set, timeout, handshake, maxretries  (in this order)
 		Object[] state = (Object[])dict.get("state");
 		PyroURI uri = new PyroURI((String)state[0]);
 		PyroProxy proxy = new PyroProxy(uri);
@@ -66,17 +64,8 @@ public class PyroProxySerpent implements IClassSerializer {
 			proxy.pyroOneway = oneways_set;
 		}
 
-		if(state[5]!=null) {
-			String encodedHmac = (String)state[5];
-			if(encodedHmac.startsWith("b64:")) {
-				proxy.pyroHmacKey = Base64.getDecoder().decode(encodedHmac.substring(4));
-			} else {
-				throw new PyroException("hmac encoding error");
-			}
-		}
-
-		proxy.pyroHandshake = state[6];
-		// maxretries (state[7]) is not used/supported in pyrolite, so simply ignore it
+		proxy.pyroHandshake = state[5];
+		// maxretries (state[6]) is not used/supported in pyrolite, so simply ignore it
 
 		return proxy;
 	}
@@ -84,19 +73,17 @@ public class PyroProxySerpent implements IClassSerializer {
 	public Map<String, Object> convert(Object obj) {
 		// note: the state array returned here must conform to the list consumed by Pyro4's Proxy.__setstate_from_dict__
 		// that means, we make a list with 8 entries:
-		// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake, maxretries  (in this order)
+		// uri, oneway set, methods set, attrs set, timeout, handshake, maxretries  (in this order)
 		PyroProxy proxy = (PyroProxy) obj;
 		Map<String, Object> dict = new HashMap<String, Object>();
 		String uri = String.format("PYRO:%s@%s:%d", proxy.objectid, proxy.hostname, proxy.port);
 
-		String encodedHmac = proxy.pyroHmacKey!=null? "b64:"+Base64.getEncoder().encodeToString(proxy.pyroHmacKey) : null;
 		dict.put("state", new Object[]{
 			uri,
 			proxy.pyroOneway,
 			proxy.pyroMethods,
 			proxy.pyroAttrs,
 			0.0,
-			encodedHmac,
 			proxy.pyroHandshake,
 			0   // maxretries is not used/supported in pyrolite
 		});
