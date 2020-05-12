@@ -9,32 +9,30 @@ namespace Razorvine.Pyro.Serializer
     {
 	    public static IDictionary ToSerpentDict(object obj)
 		{
-			// note: the state array returned here must conform to the list consumed by Pyro4's Proxy.__setstate_from_dict__ 
+			// note: the state array returned here must conform to the list consumed by Pyro's Proxy.__setstate_from_dict__ 
 			// that means, we make an array of length 8:
-			// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake, maxretries  (in this order)
+			// uri, oneway set, methods set, attrs set, timeout, handshake, maxretries  (in this order)
 			PyroProxy proxy = (PyroProxy)obj;
 			var dict = new Hashtable();
 			string uri = $"PYRO:{proxy.objectid}@{proxy.hostname}:{proxy.port}";
-			string encodedHmac = proxy.pyroHmacKey!=null? "b64:"+Convert.ToBase64String(proxy.pyroHmacKey) : null;
 			dict["state"] = new []{
 				uri,
 				proxy.pyroOneway,
 				proxy.pyroMethods,
 				proxy.pyroAttrs,
 				0.0,
-				encodedHmac,
 				proxy.pyroHandshake,
 				0  // maxretries is not yet supported/used by pyrolite
 			};
-			dict["__class__"] = "Pyro4.core.Proxy";
+			dict["__class__"] = "Pyro5.client.Proxy";
 			return dict;
 		}
 		
 		public static object FromSerpentDict(IDictionary dict)
 		{
-			// note: the state array received in the dict conforms to the list produced by Pyro4's Proxy.__getstate_for_dict__
+			// note: the state array received in the dict conforms to the list produced by Pyro's Proxy.__getstate_for_dict__
 			// that means, we must get an array of length 8:  (the same as with ToSerpentDict above!)
-			// uri, oneway set, methods set, attrs set, timeout, hmac_key, handshake, maxretries  (in this order)
+			// uri, oneway set, methods set, attrs set, timeout, handshake, maxretries  (in this order)
 			var state = (object[])dict["state"];
 			PyroURI uri = new PyroURI((string)state[0]);
 			var proxy = new PyroProxy(uri);
@@ -65,15 +63,7 @@ namespace Razorvine.Pyro.Serializer
 			else
 				proxy.pyroAttrs = new HashSet<string>((state[3] as HashSet<object>).Select(o=>o.ToString()));
 
-			if(state[5]!=null) {
-				string encodedHmac = (string)state[5];
-				if(encodedHmac.StartsWith("b64:", StringComparison.InvariantCulture)) {
-					proxy.pyroHmacKey = Convert.FromBase64String(encodedHmac.Substring(4));
-				} else {
-					throw new PyroException("hmac encoding error");
-				}
-			}
-			proxy.pyroHandshake = state[6];
+			proxy.pyroHandshake = state[5];
 			// maxretries is not used/supported in pyrolite, so simply ignore it
 
 			return proxy;

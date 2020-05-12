@@ -6,7 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Security.Cryptography;
 
 namespace Razorvine.Pyro
 {
@@ -63,7 +62,7 @@ public class Message
 	/// <summary>
 	/// construct a full wire message including data and annotations payloads.
 	/// </summary>
-	public Message(ushort msgType, byte[] databytes, ushort serializer_id, ushort flags, ushort seq, IDictionary<string, byte[]> annotations, byte[] hmac)
+	public Message(ushort msgType, byte[] databytes, ushort serializer_id, ushort flags, ushort seq, IDictionary<string, byte[]> annotations)
 		:this(msgType, serializer_id, flags, seq)
 	{
 		data = databytes;
@@ -72,29 +71,9 @@ public class Message
 		if(null==annotations)
 			this.annotations = new Dictionary<string, byte[]>(0);
 		
-		if(hmac!=null)
-			this.annotations["HMAC"] = this.hmac(hmac);
-		
 		annotations_size = (ushort) this.annotations.Sum(a=>a.Value.Length+6);
 	}
 	
-	/// <summary>
-	/// returns the hmac of the data and the annotation chunk values (except HMAC chunk itself)
-	/// </summary>
-	public byte[] hmac(byte[] key)
-	{
-		using(HMACSHA1 hmac=new HMACSHA1(key)) {
-			hmac.TransformBlock(data, 0, data.Length, data, 0);
-			foreach(var e in annotations.OrderBy(a=>a.Key))
-			{
-				if(e.Key!="HMAC")
-					hmac.TransformBlock(e.Value, 0, e.Value.Length, e.Value, 0);
-			}
-			hmac.TransformFinalBlock(data, 0, 0);
-			return hmac.Hash;
-		}
-	}
-
 	/// <summary>
 	/// creates a byte stream containing the header followed by annotations (if any) followed by the data
 	/// </summary>
@@ -234,10 +213,9 @@ public class Message
 	/// Receives a pyro message from a given connection.
 	/// Accepts the given message types (None=any, or pass a sequence).
 	/// Also reads annotation chunks and the actual payload data.
-	/// Validates a HMAC chunk if present.
 	/// </summary>
 	// ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
-	public static Message recv(Stream connection, ushort[] requiredMsgTypes, byte[] hmac)
+	public static Message recv(Stream connection, ushort[] requiredMsgTypes)
 	{
 		var header_data = IOUtil.recv(connection, HEADER_SIZE);
 		var msg = from_header(header_data);
@@ -269,16 +247,6 @@ public class Message
 			TraceMessageRecv(msg.seq, header_data, annotations_data, msg.data);
 		}
 		
-		if(msg.annotations.ContainsKey("HMAC") && hmac!=null)
-		{
-			if(!msg.annotations["HMAC"].SequenceEqual(msg.hmac(hmac)))
-				throw new PyroException("message hmac mismatch");
-		}
-		else if (msg.annotations.ContainsKey("HMAC") != (hmac!=null))
-		{
-			// Message contains hmac and local HMAC_KEY not set, or vice versa. This is not allowed.
-			throw new PyroException("hmac key config not symmetric");
-		}
 		return msg;
 	}
 

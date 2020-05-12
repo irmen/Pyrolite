@@ -32,7 +32,6 @@ public class PyroProxy : DynamicObject, IDisposable {
 	public string hostname { get; }
 	public int port { get; }
 	public string objectid { get; }
-	public byte[] pyroHmacKey;		// per-proxy hmac key, used to be HMAC_KEY config item
 	public Guid? correlation_id;     // per-proxy correlation id (need to set/update this yourself)
 	public object pyroHandshake = "hello";	// data object that should be sent in the initial connection handshake message. Can be any serializable object.
 
@@ -227,7 +226,6 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <summary>
 	/// Returns a dict with annotations to be sent with each message.
     /// Default behavior is to include the current correlation id (if it is set).
-    /// (note that the Message may include an additional hmac annotation at the moment the message is sent)
 	/// </summary>
 	public virtual IDictionary<string, byte[]> annotations()
 	{
@@ -265,7 +263,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		PyroSerializer ser = PyroSerializer.GetSerpentSerializer();
 		var serdat = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
-		var msg = new Message(Message.MSG_INVOKE, serdat, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
+		var msg = new Message(Message.MSG_INVOKE, serdat, ser.serializer_id, flags, sequenceNr, annotations());
 		Message resultmsg;
 		lock (sock) {
 			IOUtil.send(sock_stream, msg.to_bytes());
@@ -278,7 +276,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 			if ((flags & Message.FLAGS_ONEWAY) != 0)
 				return null;
 
-			resultmsg = Message.recv(sock_stream, new []{Message.MSG_RESULT}, pyroHmacKey);
+			resultmsg = Message.recv(sock_stream, new []{Message.MSG_RESULT});
 		}
 		if (resultmsg.seq != sequenceNr) {
 			throw new PyroException("result msg out of sync");
@@ -366,14 +364,14 @@ public class PyroProxy : DynamicObject, IDisposable {
 		var data = ser.serializeData(handshakedata);
 		ushort flags = 0;
 		// TODO correlation ID flag
-		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations(), pyroHmacKey);
+		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations());
 		IOUtil.send(sock_stream, msg.to_bytes());
 		if(Config.MSG_TRACE_DIR!=null) {
 			Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
 		}
 		
 		// process handshake response
-		msg = Message.recv(sock_stream, new []{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL}, pyroHmacKey);
+		msg = Message.recv(sock_stream, new []{Message.MSG_CONNECTOK, Message.MSG_CONNECTFAIL});
 		responseAnnotations(msg.annotations, msg.type);
 		object handshake_response = "?";
 		if(msg.data!=null) {
@@ -424,7 +422,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	
 	/// <summary>
 	/// Process any response annotations (dictionary set by the daemon).
-	/// Usually this contains the internal Pyro annotations such as hmac and correlation id,
+	/// Usually this contains the internal Pyro annotations,
 	/// and if you override the annotations method in the daemon, can contain your own annotations as well.
 	/// </summary>
 	public virtual void responseAnnotations(IDictionary<string, byte[]> annotations, ushort msgtype)

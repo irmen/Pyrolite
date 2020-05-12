@@ -31,7 +31,6 @@ namespace Pyrolite.Tests.Pyro
 			{
 				correlation_id = Guid.NewGuid(),
 				pyroHandshake = "apples",
-				pyroHmacKey = Encoding.UTF8.GetBytes("secret"),
 				pyroAttrs = new HashSet<string> {"attr1", "attr2"}
 			};
 			s = ser.serializeData(proxy);
@@ -42,7 +41,6 @@ namespace Pyrolite.Tests.Pyro
 			Assert.Equal(uri.port, proxy2.port);
 			Assert.Null(proxy2.correlation_id); // "correlation_id is not serialized on the proxy object"
 			Assert.Equal(proxy.pyroHandshake, proxy2.pyroHandshake);
-			Assert.Equal(proxy.pyroHmacKey, proxy2.pyroHmacKey);
 			Assert.Equal(2, proxy2.pyroAttrs.Count);
 			Assert.Equal(proxy.pyroAttrs, proxy2.pyroAttrs);
 
@@ -71,13 +69,12 @@ namespace Pyrolite.Tests.Pyro
 			{
 				correlation_id = Guid.NewGuid(),
 				pyroHandshake = "apples",
-				pyroHmacKey = Encoding.UTF8.GetBytes("secret"),
 				pyroAttrs = new HashSet<string> {"attr1", "attr2"}
 			};
 			var data = PyroProxySerpent.ToSerpentDict(proxy);
 			Assert.Equal(2, data.Count);
-			Assert.Equal("Pyro4.core.Proxy", (string) data["__class__"]);
-			Assert.Equal(8, ((object[])data["state"]).Length);
+			Assert.Equal("Pyro5.client.Proxy", (string) data["__class__"]);
+			Assert.Equal(7, ((object[])data["state"]).Length);
 				
 			PyroProxy proxy2 = (PyroProxy) PyroProxySerpent.FromSerpentDict(data);
 			Assert.Equal(proxy.objectid, proxy2.objectid);
@@ -88,7 +85,7 @@ namespace Pyrolite.Tests.Pyro
 		public void TestUnserpentProxy()
 		{
 			var data = Encoding.UTF8.GetBytes("# serpent utf-8 python3.2\n" +
-			                                     "{'state':('PYRO:Pyro.NameServer@localhost:9090',(),('count','lookup','register','ping','list','remove'),(),0.0,'b64:c2VjcmV0','hello',0),'__class__':'Pyro4.core.Proxy'}");
+			                                     "{'state':('PYRO:Pyro.NameServer@localhost:9090',(),('count','lookup','register','ping','list','remove'),(),0.0,'hello',0),'__class__':'Pyro5.client.Proxy'}");
 			
 			SerpentSerializer ser = new SerpentSerializer();
 			PyroProxy p = (PyroProxy) ser.deserializeData(data);
@@ -97,7 +94,6 @@ namespace Pyrolite.Tests.Pyro
 			Assert.Equal("localhost", p.hostname);
 			Assert.Equal(9090, p.port);
 			Assert.Equal("hello", p.pyroHandshake);
-			Assert.Equal(Encoding.UTF8.GetBytes("secret"), p.pyroHmacKey);
 			Assert.Equal(0, p.pyroAttrs.Count);
 			Assert.Equal(0, p.pyroOneway.Count);
 			Assert.Equal(6, p.pyroMethods.Count);

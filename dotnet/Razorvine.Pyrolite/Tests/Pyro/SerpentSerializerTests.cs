@@ -31,7 +31,7 @@ namespace Pyrolite.Tests.Pyro
 			var ser = PyroSerializer.GetSerpentSerializer();
 			var data = ser.serializeData(list);
 			string str = Encoding.UTF8.GetString(data);
-			Assert.Equal("# serpent utf-8 python2.6\n['hello',42]", str);
+			Assert.Equal("# serpent utf-8 python3.2\n['hello',42]", str);
 			
 			var listObj = (List<object>)ser.deserializeData(data);
 			Assert.Equal(list, listObj);
@@ -41,10 +41,10 @@ namespace Pyrolite.Tests.Pyro
 			s.Add("element2");
 			data = ser.serializeData(s);
 			str = Encoding.UTF8.GetString(data);
-			Assert.Equal("# serpent utf-8 python2.6\n('element1','element2')", str);
+			Assert.Equal("# serpent utf-8 python3.2\n{'element1','element2'}", str);
 			
-			var arrayObj = (object[]) ser.deserializeData(data);
-			Assert.Equal(s, arrayObj);
+			var set = (HashSet<Object>) ser.deserializeData(data);
+			Assert.Equal(set, s);
 		}
 
 		[Fact]
@@ -59,7 +59,7 @@ namespace Pyrolite.Tests.Pyro
 			
 			var data = ser.serializeCall("objectid", "method", vargs, kwargs);
 			string s = Encoding.UTF8.GetString(data);
-			Assert.Equal("# serpent utf-8 python2.6\n('objectid','method',('hello',),{'arg':42})", s);
+			Assert.Equal("# serpent utf-8 python3.2\n('objectid','method',('hello',),{'arg':42})", s);
 			
 			var call = (object[])ser.deserializeData(data);
 			object[] expected = {

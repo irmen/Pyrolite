@@ -98,11 +98,11 @@ public class NameServerProxy : PyroProxy {
 		return typed;
 	}
 
-	public static NameServerProxy locateNS(string host, int port=0, byte[] hmacKey=null) {
+	public static NameServerProxy locateNS(string host, int port=0) {
 		if(host!=null) {
 			if(port==0)
 				port=Config.NS_PORT;
-			NameServerProxy proxy = new NameServerProxy(host, port) {pyroHmacKey = hmacKey};
+			NameServerProxy proxy = new NameServerProxy(host, port);
 			proxy.ping();
 			return proxy;
 		}
@@ -120,10 +120,10 @@ public class NameServerProxy : PyroProxy {
 				buf=udpclient.Receive(ref source);
 			} catch (SocketException) {
 				// try localhost explicitly
-				return locateNS("localhost", Config.NS_PORT, hmacKey);
+				return locateNS("localhost", Config.NS_PORT);
 			}
 			string location=Encoding.ASCII.GetString(buf);
-			var nsp = new NameServerProxy(new PyroURI(location)) {pyroHmacKey = hmacKey};
+			var nsp = new NameServerProxy(new PyroURI(location));
 			return nsp;
 		}
 	}

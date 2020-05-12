@@ -11,7 +11,6 @@ namespace Pyrolite.TestPyroNaming
 /// Test Pyro with the Pyro name server.
 /// </summary>
 public static class TestNaming {
-	private static readonly byte[] HmacKey = null;
 
 	public static void Main()  {
 		try {
@@ -29,7 +28,7 @@ public static class TestNaming {
 
 		SetConfig();
 		
-		using(NameServerProxy ns=NameServerProxy.locateNS(null, hmacKey: HmacKey))
+		using(NameServerProxy ns=NameServerProxy.locateNS(null))
 		{
 			Console.WriteLine("discovered ns at "+ns.hostname+":"+ns.port);
 			ns.ping();
@@ -61,17 +60,17 @@ public static class TestNaming {
 			}
 
 			Console.WriteLine("\nobjects registered having all metadata:");
-			objects = ns.list(null, null, new []{"blahblah", "class:Pyro4.naming.NameServer"}, null);
+			objects = ns.list(null, null, new []{"blahblah", "class:Pyro5.naming.NameServer"}, null);
 			foreach(string name in objects.Keys) {
 				Console.WriteLine(name + " --> " + objects[name]);
 			}
 			Console.WriteLine("\nobjects registered having any metadata:");
-			objects = ns.list(null, null, null, new []{"blahblah", "class:Pyro4.naming.NameServer"});
+			objects = ns.list(null, null, null, new []{"blahblah", "class:Pyro5.naming.NameServer"});
 			foreach(string name in objects.Keys) {
 				Console.WriteLine(name + " --> " + objects[name]);
 			}
 			Console.WriteLine("\nobjects registered having any metadata (showing it too):");
-			objectsm = ns.list_with_meta(null, null, null, new []{"blahblah", "class:Pyro4.naming.NameServer"});
+			objectsm = ns.list_with_meta(null, null, null, new []{"blahblah", "class:Pyro5.naming.NameServer"});
 			foreach(string name in objectsm.Keys) {
 				var entry = objectsm[name];
 				Console.WriteLine(name + " --> " + entry.Item1);
@@ -87,7 +86,6 @@ public static class TestNaming {
 			
 			using(PyroProxy p=new PyroProxy(ns.lookup("Pyro.NameServer")))
 			{
-				p.pyroHmacKey = HmacKey;
 				p.call("ping");
 			}
 	

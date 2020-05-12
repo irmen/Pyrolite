@@ -10,7 +10,7 @@ namespace Razorvine.Pyro.Serializer
             var dict = new Hashtable
             {
                 ["state"] = new object[] {uri.protocol, uri.objectid, null, uri.host, uri.port},
-                ["__class__"] = "Pyro4.core.URI"
+                ["__class__"] = "Pyro5.core.URI"
             };
             return dict;
         }

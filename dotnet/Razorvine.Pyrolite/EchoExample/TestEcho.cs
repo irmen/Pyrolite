@@ -32,18 +32,15 @@ class CustomProxy : PyroProxy
 /// Test Pyro with the Pyro echo server. 
 /// </summary>
 public static class TestEcho {
-	private static readonly byte[] HmacKey = null;  // Encoding.UTF8.GetBytes("foo");
-	
 	
 	public static void Run() {
 
 		Console.WriteLine("Testing Pyro echo server (make sure it's running, with nameserver enabled)...");
 		Console.WriteLine("Pyrolite version: "+Config.PYROLITE_VERSION);
 
-		NameServerProxy ns = NameServerProxy.locateNS(null, hmacKey: HmacKey);
+		NameServerProxy ns = NameServerProxy.locateNS(null);
 		using(dynamic p = new PyroProxy(ns.lookup("test.echoserver")))
 		{
-			p.pyroHmacKey=HmacKey;
 			p.pyroHandshake = "banana";
 			
 			// non-dynamic way of constructing a proxy is:
@@ -98,10 +95,6 @@ public static class TestEcho {
 			Debug.Assert(p2.objectid=="test.echoserver");
 			Debug.Assert((string)p2.pyroHandshake == "banana");
 			Debug.Assert(p2.pyroMethods.Contains("echo"));
-			if(p2.pyroHmacKey!=null) {
-				string hmac2 = Encoding.UTF8.GetString(p2.pyroHmacKey);
-				Debug.Assert(hmac2==Encoding.UTF8.GetString(HmacKey));
-			}
 
 			Console.WriteLine("remote iterator test.");
 			var iter = p.generator();

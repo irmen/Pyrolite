@@ -78,9 +78,9 @@ namespace Razorvine.Pyro.Serializer
 			}
 			switch(classname)
 			{
-				case "Pyro4.core.URI":
+				case "Pyro5.core.URI":
 					return PyroUriSerpent.FromSerpentDict(dict);
-				case "Pyro4.core.Proxy":
+				case "Pyro5.client.Proxy":
 					return PyroProxySerpent.FromSerpentDict(dict);
 				default:
 					return null;
