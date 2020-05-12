@@ -1,10 +1,10 @@
 package net.razorvine.pyro.serializer;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.razorvine.pyro.PyroURI;
 import net.razorvine.serpent.IClassSerializer;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Serpent extension to be able to serialize Pyro URI objects with Serpent.

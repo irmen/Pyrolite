@@ -1,19 +1,14 @@
 package net.razorvine.pyro;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
+import net.razorvine.pyro.serializer.PyroSerializer;
+
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
-
-import net.razorvine.pyro.serializer.PyroSerializer;
 
 /**
  * Proxy for Pyro objects.
@@ -156,8 +151,22 @@ public class PyroProxy implements Serializable {
 		try {
 			return (HashSet<String>) strings;
 		} catch (ClassCastException ex) {
-			Collection<String> list = (Collection<String>) strings;
-			return new HashSet<String>(list);
+			try {
+				String[] array = (String[]) strings;
+				return new HashSet<String>(Arrays.asList(array));
+			} catch (ClassCastException ex2) {
+				try {
+					Collection<String> list = (Collection<String>) strings;
+					return new HashSet<String>(list);
+				} catch (ClassCastException ex3) {
+					Object[] array = (Object[]) strings;
+					String[] strArray = new String[array.length];
+					for(int i=0; i<array.length; ++i) {
+						strArray[i] = array[i].toString();
+					}
+					return new HashSet<String>(Arrays.asList(strArray));
+				}
+			}
 		}
 	}
 
@@ -199,17 +208,10 @@ public class PyroProxy implements Serializable {
 
 	/**
 	 * Returns a sorted map with annotations to be sent with each message.
-	 * Default behavior is to include the current correlation id (if it is set).
 	 */
 	public SortedMap<String, byte[]> annotations()
 	{
-		SortedMap<String,byte[]> ann = new TreeMap<String, byte[]>();
-		if(correlation_id!=null) {
-			long hi = correlation_id.getMostSignificantBits();
-			long lo = correlation_id.getLeastSignificantBits();
-			ann.put("CORR", ByteBuffer.allocate(16).putLong(hi).putLong(lo).array());
-		}
-		return ann;
+		return new TreeMap<String, byte[]>();
 	}
 
 	/**

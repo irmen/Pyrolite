@@ -1,21 +1,14 @@
 package net.razorvine.pyro.test;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import net.razorvine.pyro.Config;
 import net.razorvine.pyro.serializer.PyroSerializer;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 public class SerpentSerializerNoSetsTest {
 

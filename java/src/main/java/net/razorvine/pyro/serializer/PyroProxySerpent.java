@@ -1,13 +1,13 @@
 package net.razorvine.pyro.serializer;
 
+import net.razorvine.pyro.PyroProxy;
+import net.razorvine.pyro.PyroURI;
+import net.razorvine.serpent.IClassSerializer;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-
-import net.razorvine.pyro.PyroProxy;
-import net.razorvine.pyro.PyroURI;
-import net.razorvine.serpent.IClassSerializer;
 
 /**
  * Serpent extension to be able to serialize PyroProxy objects with Serpent.

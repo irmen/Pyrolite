@@ -1,10 +1,9 @@
 package net.razorvine.examples;
 
-import java.io.IOException;
-
 import net.razorvine.pyro.Config;
-
 import net.razorvine.pyro.PyroProxy;
+
+import java.io.IOException;
 
 /**
  * Simple example that shows the use of Pyro with an object returning proxies.
@@ -20,7 +19,7 @@ public class AutoproxyExample {
 
 		setConfig();
 
-		PyroProxy p=new PyroProxy("localhost",51353,"example.autoproxy");	// change port number to whatever the server prints
+		PyroProxy p=new PyroProxy("localhost",45061,"example.autoproxy");	// change port number to whatever the server prints
 
 		Object result=p.call("createSomething", 42);
 		System.out.println("return value:");

@@ -2,11 +2,7 @@ package net.razorvine.pyro;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -62,18 +58,8 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Map<String,String> list(String prefix, String regex) throws IOException {
-		return (Map<String,String>) this.call("list", prefix, regex);
-	}
-
-	@SuppressWarnings("unchecked")
-	public Map<String,String> list(String prefix, String regex, String[] metadata_all, String[] metadata_any) throws IOException {
-		return (Map<String,String>) this.call("list", prefix, regex, metadata_all, metadata_any);
-	}
-
-	@SuppressWarnings("unchecked")
-	public Map<String, Object[]> list_with_meta(String prefix, String regex) throws IOException {
-		Map<String, Object[]> result = (Map<String, Object[]>) this.call("list", prefix, regex, null, null, true);
+	public Map<String, Object[]> list(String prefix, String regex) throws IOException {
+		Map<String, Object[]> result = (Map<String, Object[]>) this.call("list", prefix, regex, true);
 		// meta to sets
 		for(Entry<String, Object[]> entry: result.entrySet()) {
 			Object[] registration = entry.getValue();
@@ -83,8 +69,8 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Map<String, Object[]> list_with_meta(String prefix, String regex, String[] metadata_all, String[] metadata_any) throws IOException {
-		Map<String, Object[]> result = (Map<String, Object[]>) this.call("list", prefix, regex, metadata_all, metadata_any, true);
+	public Map<String, Object[]> yplookup(String[] meta_all, String[] meta_any) throws IOException {
+		Map<String, Object[]> result = (Map<String, Object[]>) this.call("yplookup", meta_all, meta_any, true);
 		// meta to sets
 		for(Entry<String, Object[]> entry: result.entrySet()) {
 			Object[] registration = entry.getValue();
@@ -92,6 +78,7 @@ public class NameServerProxy extends PyroProxy implements Serializable {
 		}
 		return result;
 	}
+
 
 	public void set_metadata(String name, Set<String> metadata) throws IOException {
 		this.call("set_metadata", name, metadata);

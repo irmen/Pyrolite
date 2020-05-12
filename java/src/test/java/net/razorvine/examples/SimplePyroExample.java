@@ -1,10 +1,12 @@
 package net.razorvine.examples;
 
+import net.razorvine.pyro.NameServerProxy;
+import net.razorvine.pyro.PyroException;
+import net.razorvine.pyro.PyroProxy;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.razorvine.pyro.*;
 
 /**
  * Simple pyro example

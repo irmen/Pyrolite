@@ -1,15 +1,15 @@
 package net.razorvine.pyro.serializer;
 
+import net.razorvine.pyro.PyroException;
+import net.razorvine.serpent.IClassSerializer;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.razorvine.pyro.PyroException;
-import net.razorvine.serpent.IClassSerializer;
-
 /**
  * Serpent extension to be able to serialize PyroException objects with Serpent.
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class PyroExceptionSerpent implements IClassSerializer {
@@ -17,7 +17,7 @@ public class PyroExceptionSerpent implements IClassSerializer {
 	@SuppressWarnings("unchecked")
 	public static Object FromSerpentDict(Map<Object, Object> dict) {
 		Object[] args = (Object[]) dict.get("args");
-		
+
 		String pythonExceptionType = (String) dict.get("__class__");
 		PyroException ex;
 		if(args.length==0) {
@@ -31,7 +31,7 @@ public class PyroExceptionSerpent implements IClassSerializer {
 			else
 				ex = new PyroException("["+pythonExceptionType+"] "+(String)args[0]);
 		}
-		
+
 		ex.pythonExceptionType = pythonExceptionType;
 
 		Map<String, Object> attrs = (Map<String, Object>)dict.get("attributes");
@@ -44,7 +44,7 @@ public class PyroExceptionSerpent implements IClassSerializer {
 				StringBuilder sb=new StringBuilder();
 				for(Object line: (List<?>)tb) {
 					sb.append(line);
-				}	
+				}
 				ex._pyroTraceback=sb.toString();
 			} else {
 				ex._pyroTraceback=(String)tb;

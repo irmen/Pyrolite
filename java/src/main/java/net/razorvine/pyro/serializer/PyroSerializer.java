@@ -1,10 +1,10 @@
 package net.razorvine.pyro.serializer;
 
+import net.razorvine.pyro.PyroException;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Scanner;
-
-import net.razorvine.pyro.PyroException;
 
 /**
  * Abstract base class of all Pyro serializes.

@@ -1,13 +1,13 @@
 package net.razorvine.examples;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Scanner;
-
 import net.razorvine.pyro.Config;
 import net.razorvine.pyro.PyroProxy;
 import net.razorvine.pyro.PyroProxy.StreamResultIterable;
 import net.razorvine.pyro.PyroURI;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Scanner;
 
 /**
  * Simple example that shows the use of the iterator item streaming feature.

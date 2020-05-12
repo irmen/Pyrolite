@@ -1,19 +1,25 @@
 package net.razorvine.pyro.test;
 
-import java.io.*;
+import net.razorvine.pyro.Message;
+import net.razorvine.pyro.PyroException;
+import net.razorvine.pyro.PyroProxy;
+import net.razorvine.pyro.PyroURI;
+import net.razorvine.pyro.serializer.PyroSerializer;
+import net.razorvine.pyro.serializer.SerpentSerializer;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
 
-import net.razorvine.pyro.*;
-import net.razorvine.pyro.serializer.*;
 import static org.junit.Assert.*;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 
 
@@ -201,8 +207,7 @@ public class MessageTest {
 		PyroProxy p = new CustomAnnProxy(new PyroURI("PYRO:dummy@localhost:50000"));
 		p.correlation_id = UUID.randomUUID();
 		SortedMap<String, byte[]> annotations = p.annotations();
-		assertEquals(2, annotations.size());
-		assertTrue(annotations.containsKey("CORR"));
+		assertEquals(1, annotations.size());
 		assertTrue(annotations.containsKey("XYZZ"));
 	}
 
@@ -273,10 +278,9 @@ public class MessageTest {
 		assertEquals(0, ann.size());
 		p.correlation_id = UUID.randomUUID();
 		ann = p.annotations();
-		assertEquals(1, ann.size());
-		assertTrue(ann.containsKey("CORR"));
+		assertEquals(0, ann.size());
 
-		ByteBuffer bb = ByteBuffer.wrap(ann.get("CORR"));
+		ByteBuffer bb = ByteBuffer.wrap(new byte[] {42,42,42});   // TODO get the correlation from the message somehow
 		UUID uuid = new UUID(bb.getLong(), bb.getLong());
 		assertEquals(p.correlation_id, uuid);
 	}

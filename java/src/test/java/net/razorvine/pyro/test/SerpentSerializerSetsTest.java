@@ -1,18 +1,16 @@
 package net.razorvine.pyro.test;
 
-import static org.junit.Assert.*;
+import net.razorvine.pyro.serializer.PyroSerializer;
+import net.razorvine.pyro.serializer.SerpentSerializer;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.razorvine.pyro.Config;
-import net.razorvine.pyro.serializer.PyroSerializer;
-import net.razorvine.pyro.serializer.SerpentSerializer;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class SerpentSerializerSetsTest {
 
