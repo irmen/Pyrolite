@@ -13,26 +13,27 @@ public class ReadmeExample {
 	    String message = (String)result;  // cast to the type that 'pythonmethod' returns
 	    System.out.println("result message="+message);
 	    remoteobject.close();
-	    ns.close();		
+	    ns.close();
 	}
 }
 
 /**
 
-The above code works if you start a Pyro nameserver and run this Pyro server program:
+The above code works if you start a Pyro nameserver and then run this Pyro server program:
 
 
-import Pyro4
+import Pyro5.api
 
-class Readme(object):
+class Readme:
+    @Pyro5.api.expose
     def pythonmethod(self, number, message, array):
         print("got number", number)
         print("got message", message)
         print("got array", array)
         return "all done!"
 
-Pyro4.Daemon.serveSimple({
-    Readme(): "Your.Pyro.Object"
+Pyro5.api.serve({
+    Readme: "Your.Pyro.Object"
 })
 
 

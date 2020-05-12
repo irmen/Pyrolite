@@ -17,7 +17,7 @@ import net.razorvine.serpent.IClassSerializer;
 public class PyroProxySerpent implements IClassSerializer {
 
 	public static Object FromSerpentDict(Map<Object, Object> dict) throws IOException {
-		// note: the state array received in the dict conforms to the list produced by Pyro4's Proxy.__getstate_for_dict__
+		// note: the state array received in the dict conforms to the list produced by Pyro's Proxy.__getstate_for_dict__
 		// that means, we get an array of length 7:  (the same as with convert, below!)
 		// uri, oneway set, methods set, attrs set, timeout, handshake, maxretries  (in this order)
 		Object[] state = (Object[])dict.get("state");
@@ -71,7 +71,7 @@ public class PyroProxySerpent implements IClassSerializer {
 	}
 
 	public Map<String, Object> convert(Object obj) {
-		// note: the state array returned here must conform to the list consumed by Pyro4's Proxy.__setstate_from_dict__
+		// note: the state array returned here must conform to the list consumed by Pyro's Proxy.__setstate_from_dict__
 		// that means, we make a list with 8 entries:
 		// uri, oneway set, methods set, attrs set, timeout, handshake, maxretries  (in this order)
 		PyroProxy proxy = (PyroProxy) obj;
@@ -87,7 +87,7 @@ public class PyroProxySerpent implements IClassSerializer {
 			proxy.pyroHandshake,
 			0   // maxretries is not used/supported in pyrolite
 		});
-		dict.put("__class__", "Pyro4.core.Proxy");
+		dict.put("__class__", "Pyro5.client.Proxy");
 		return dict;
 	}
 }

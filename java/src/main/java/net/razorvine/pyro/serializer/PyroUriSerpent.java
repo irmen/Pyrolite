@@ -8,7 +8,7 @@ import net.razorvine.serpent.IClassSerializer;
 
 /**
  * Serpent extension to be able to serialize Pyro URI objects with Serpent.
- *  
+ *
  * @author Irmen de Jong (irmen@razorvine.net)
  */
 public class PyroUriSerpent implements IClassSerializer {
@@ -22,7 +22,7 @@ public class PyroUriSerpent implements IClassSerializer {
 		PyroURI uri = (PyroURI) obj;
 		Map<String, Object> dict = new HashMap<String, Object>();
 		dict.put("state", new Object[]{uri.protocol, uri.objectid, null, uri.host, uri.port});
-		dict.put("__class__", "Pyro4.core.URI");
+		dict.put("__class__", "Pyro5.core.URI");
 		return dict;
 	}
 }

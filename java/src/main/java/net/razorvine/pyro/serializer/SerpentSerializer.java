@@ -57,9 +57,9 @@ public class SerpentSerializer extends PyroSerializer {
 				// map all exception types to the PyroException
 				return PyroExceptionSerpent.FromSerpentDict(dict);
 			}
-			if("Pyro4.core.URI".equals(classname))
+			if("Pyro5.core.URI".equals(classname))
 				return PyroUriSerpent.FromSerpentDict(dict);
-			else if("Pyro4.core.Proxy".equals(classname))
+			else if("Pyro5.client.Proxy".equals(classname))
 				return PyroProxySerpent.FromSerpentDict(dict);
 			else
 				return null;

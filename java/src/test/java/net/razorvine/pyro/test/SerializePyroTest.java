@@ -86,7 +86,7 @@ public class SerializePyroTest {
 		proxy.pyroAttrs.add("attr2");
 		Map<String, Object> data = serp.convert(proxy);
 		assertEquals(2, data.size());
-		assertEquals("Pyro4.core.Proxy", data.get("__class__"));
+		assertEquals("Pyro5.client.Proxy", data.get("__class__"));
 		assertEquals(7, ((Object[])data.get("state")).length);
 
 		Map<Object, Object> data2=new HashMap<Object, Object>(data);
@@ -100,7 +100,7 @@ public class SerializePyroTest {
 	public void testUnserpentProxy() throws IOException
 	{
 		byte[] data = ("# serpent utf-8 python3.2\n" +
-					   "{'state':('PYRO:Pyro.NameServer@localhost:9090',(),('count','lookup','register','ping','list','remove'),(),0.0,'hello',0),'__class__':'Pyro4.core.Proxy'}").getBytes();
+					   "{'state':('PYRO:Pyro.NameServer@localhost:9090',(),('count','lookup','register','ping','list','remove'),(),0.0,'hello',0),'__class__':'Pyro5.client.Proxy'}").getBytes();
 
 		SerpentSerializer ser = new SerpentSerializer();
 		PyroProxy p = (PyroProxy) ser.deserializeData(data);

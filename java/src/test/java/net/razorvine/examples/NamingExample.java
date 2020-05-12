@@ -55,17 +55,17 @@ public class NamingExample {
 		}
 
 		System.out.println("\nobjects registered having all metadata:");
-		objects = ns.list(null, null, new String[] {"blahblah", "class:Pyro4.naming.NameServer"}, null);
+		objects = ns.list(null, null, new String[] {"blahblah", "class:Pyro5.nameserver.NameServer"}, null);
 		for (String name : objects.keySet()) {
 			System.out.println(name + " --> " + objects.get(name));
 		}
 		System.out.println("\nobjects registered having any metadata:");
-		objects = ns.list(null, null, null, new String[] {"blahblah", "class:Pyro4.naming.NameServer"});
+		objects = ns.list(null, null, null, new String[] {"blahblah", "class:Pyro5.nameserver.NameServer"});
 		for (String name : objects.keySet()) {
 			System.out.println(name + " --> " + objects.get(name));
 		}
 		System.out.println("\nobjects registered having any metadata (showing it too):");
-		Map<String, Object[]> objectsm = ns.list_with_meta(null, null, null, new String[] {"blahblah", "class:Pyro4.naming.NameServer"});
+		Map<String, Object[]> objectsm = ns.list_with_meta(null, null, null, new String[] {"blahblah", "class:Pyro5.nameserver.NameServer"});
 		for (String name : objectsm.keySet()) {
 			Object[] entry = objectsm.get(name);
 			String uri_m = (String) entry[0];

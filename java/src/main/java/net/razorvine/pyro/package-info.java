@@ -1,6 +1,6 @@
 /**
  * Lightweight implementation of the client side
- *  <a href="http://pypi.python.org/pypi/Pyro4/">Pyro</a> protocol.
+ *  <a href="https://pyro5.readthedocs.io/">Pyro</a> protocol.
  *
  * {@link net.razorvine.pyro.Config} contains the (very few) static config items.
  * {@link net.razorvine.pyro.NameServerProxy} is a wrapper proxy to make it easier to talk to Pyro's name server.
