@@ -250,6 +250,9 @@ public class PyroProxy : DynamicObject, IDisposable {
 		if(pyroOneway.Contains(method)) {
 			flags |= Message.FLAGS_ONEWAY;
 		}
+		if(correlation_id.HasValue) {
+			flags |= Message.FLAGS_CORR_ID;
+		}
 		if(checkMethodName && !pyroMethods.Contains(method)) {
 			throw new PyroException($"remote object '{actual_objectId}' has no exposed attribute or method '{method}'");
 		}
@@ -259,7 +262,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		PyroSerializer ser = PyroSerializer.GetSerpentSerializer();
 		var serdat = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
-		var msg = new Message(Message.MSG_INVOKE, serdat, ser.serializer_id, flags, sequenceNr, annotations(), null);
+		var msg = new Message(Message.MSG_INVOKE, serdat, ser.serializer_id, flags, sequenceNr, annotations(), correlation_id);
 		Message resultmsg;
 		lock (sock) {
 			IOUtil.send(sock_stream, msg.to_bytes());
@@ -359,8 +362,10 @@ public class PyroProxy : DynamicObject, IDisposable {
 		handshakedata["object"] = objectid;
 		var data = ser.serializeData(handshakedata);
 		ushort flags = 0;
-		// TODO correlation ID flag
-		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations(), null);
+		if(correlation_id!=null) {
+			flags |= Message.FLAGS_CORR_ID;
+		}
+		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations(), correlation_id);
 		IOUtil.send(sock_stream, msg.to_bytes());
 		if(Config.MSG_TRACE_DIR!=null) {
 			Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);
