@@ -18,15 +18,15 @@ namespace Razorvine.Pyro
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class Message
 {
-	private const int CHECKSUM_MAGIC = 0x4dc5;
+	private const ushort MAGIC_NUMBER = 0x4dc5;
 	public const int HEADER_SIZE = 40;
 
-	public const ushort MSG_CONNECT = 1;
-	public const ushort MSG_CONNECTOK = 2;
-	public const ushort MSG_CONNECTFAIL = 3;
-	public const ushort MSG_INVOKE = 4;
-	public const ushort MSG_RESULT = 5;
-	public const ushort MSG_PING = 6;
+	public const byte  MSG_CONNECT = 1;
+	public const byte  MSG_CONNECTOK = 2;
+	public const byte  MSG_CONNECTFAIL = 3;
+	public const byte  MSG_INVOKE = 4;
+	public const byte  MSG_RESULT = 5;
+	public const byte  MSG_PING = 6;
 	public const ushort FLAGS_EXCEPTION = 1<<0;
 	public const ushort FLAGS_COMPRESSED = 1<<1;
 	public const ushort FLAGS_ONEWAY = 1<<2;
@@ -34,36 +34,38 @@ public class Message
 	public const ushort FLAGS_ITEMSTREAMRESULT = 1<<4;
 	public const ushort FLAGS_KEEPSERIALIZED = 1 << 5;
 	public const ushort FLAGS_CORR_ID = 1 << 6;
-	public const ushort SERIALIZER_SERPENT = 1;
-	public const ushort SERIALIZER_MARSHAL = 2;
-	public const ushort SERIALIZER_JSON = 3;
-	public const ushort SERIALIZER_MSGPACK = 4;
+	public const byte SERIALIZER_SERPENT = 1;
+	public const byte SERIALIZER_MARSHAL = 2;
+	public const byte SERIALIZER_JSON = 3;
+	public const byte SERIALIZER_MSGPACK = 4;
 	
-	public ushort type;
+	public byte type;
 	public ushort flags;
 	public byte[] data;
 	public int data_size;
 	public ushort annotations_size;
-	public readonly ushort serializer_id;
+	public Guid? correlation_id;
+	public readonly byte serializer_id;
 	public readonly ushort seq;
 	public IDictionary<string, byte[]> annotations;
 	
 	/// <summary>
 	/// construct a header-type message, without data and annotations payload.
 	/// </summary>
-	public Message(ushort msgType, ushort serializer_id, ushort flags, ushort seq)
+	public Message(byte msgType, byte serializer_id, ushort flags, ushort seq, Guid? correlation_id)
 	{
 		type = msgType;
 		this.flags = flags;
 		this.seq = seq;
 		this.serializer_id = serializer_id;
+		this.correlation_id = correlation_id;
 	}
 
 	/// <summary>
 	/// construct a full wire message including data and annotations payloads.
 	/// </summary>
-	public Message(ushort msgType, byte[] databytes, ushort serializer_id, ushort flags, ushort seq, IDictionary<string, byte[]> annotations)
-		:this(msgType, serializer_id, flags, seq)
+	public Message(byte msgType, byte[] databytes, byte serializer_id, ushort flags, ushort seq, IDictionary<string, byte[]> annotations, Guid? correlation_id)
+		:this(msgType, serializer_id, flags, seq, correlation_id)
 	{
 		data = databytes;
 		data_size = databytes.Length;
@@ -71,7 +73,7 @@ public class Message
 		if(null==annotations)
 			this.annotations = new Dictionary<string, byte[]>(0);
 		
-		annotations_size = (ushort) this.annotations.Sum(a=>a.Value.Length+6);
+		annotations_size = (ushort) this.annotations.Sum(a=>a.Value.Length+8);
 	}
 	
 	/// <summary>
@@ -90,21 +92,30 @@ public class Message
 
 	public byte[] get_header_bytes()
 	{
-		int checksum = (type+Config.PROTOCOL_VERSION+data_size+annotations_size+serializer_id+flags+seq+CHECKSUM_MAGIC)&0xffff;
 		var header = new byte[HEADER_SIZE];
 		/*
-		 header format: '!4sHHHHiHHHH' (24 bytes)
-		   4   id ('PYRO')
-		   2   protocol version
-		   2   message type
-		   2   message flags
-		   2   sequence number
-		   4   data length
-		   2   data serialization format (serializer id)
-		   2   annotations length (total of all chunks, 0 if no annotation chunks present)
-		   2   (reserved)
-		   2   checksum
-		   followed by annotations: 4 bytes type, annotations bytes.
+The header format is::
+
+0x00   4s  4   'PYRO' (message identifier)
+0x04   H   2   protocol version
+0x06   B   1   message type
+0x07   B   1   serializer id
+0x08   H   2   message flags
+0x0a   H   2   sequence number   (to identify proper request-reply sequencing)
+0x0c   I   4   data length   (max 4 Gb)
+0x10   I   4   annotations length (max 4 Gb, total of all chunks, 0 if no annotation chunks present)
+0x14   16s 16  correlation uuid
+0x24   H   2   (reserved)
+0x26   H   2   magic number 0x4dc5
+total size: 0x28 (40 bytes)
+
+After the header, zero or more annotation chunks may follow, of the format::
+
+   4s  4   annotation id (4 ASCII letters)
+   I   4   chunk length  (max 4 Gb)
+   B   x   annotation chunk databytes
+
+After that, the actual payload data bytes follow.
 		*/
 
 		header[0]=(byte)'P';
@@ -115,8 +126,8 @@ public class Message
 		header[4]=Config.PROTOCOL_VERSION>>8;
 		header[5]=Config.PROTOCOL_VERSION&0xff;
 
-		header[6]=(byte) (type>>8);
-		header[7]=(byte) (type&0xff);
+		header[6] = type;
+		header[7] = serializer_id;
 
 		header[8]=(byte) (flags>>8);
 		header[9]=(byte) (flags&0xff);
@@ -129,17 +140,18 @@ public class Message
 		header[14]=(byte)((data_size>>8)&0xff);
 		header[15]=(byte)(data_size&0xff);
 
-		header[16]=(byte)(serializer_id>>8);
-		header[17]=(byte)(serializer_id&0xff);
-
+		header[16]=(byte)((annotations_size>>24)&0xff);
+		header[17]=(byte)((annotations_size>>16)&0xff);
 		header[18]=(byte)((annotations_size>>8)&0xff);
 		header[19]=(byte)(annotations_size&0xff);
+
+		correlation_id?.ToByteArray().CopyTo(header, 20);
+
+		// header[36]=0; // reserved
+		// header[37]=0; // reserved
 		
-		header[20]=0; // reserved
-		header[21]=0; // reserved
-		
-		header[22]=(byte)((checksum>>8)&0xff);
-		header[23]=(byte)(checksum&0xff);
+		header[38] = (byte)((MAGIC_NUMBER>>8)&0xff);
+		header[39] = (byte)(MAGIC_NUMBER&0xff);
 
 		return header;
 	}
@@ -152,7 +164,13 @@ public class Message
 			if(ann.Key.Length!=4)
 				throw new ArgumentException("annotation key must be length 4");
 			result = result.Concat(Encoding.ASCII.GetBytes(ann.Key));
-			byte[] size_bytes = { (byte)((ann.Value.Length>>8)&0xff), (byte)(ann.Value.Length&0xff) };
+			byte[] size_bytes =
+			{
+				(byte)((ann.Value.Length>>24)&0xff), 
+				(byte)((ann.Value.Length>>16)&0xff), 
+				(byte)((ann.Value.Length>>8)&0xff), 
+				(byte)(ann.Value.Length&0xff)
+			};
 			result = result.Concat(size_bytes);
 			result = result.Concat(ann.Value);
 		}
@@ -174,19 +192,21 @@ public class Message
 		int version = (header[4] << 8)|header[5];
 		if(version!=Config.PROTOCOL_VERSION)
 			throw new PyroException("invalid protocol version: "+version);
+		int magic = ((header[38]&0xff) << 8)|(header[39]&0xff);
+		if(magic != MAGIC_NUMBER)
+			throw new PyroException("invalid header magic number");
 		
-		int msg_type = (header[6] << 8)|header[7];
-		int flags = (header[8] << 8)|header[9];
-		int seq = (header[10] << 8)|header[11];
+		byte msg_type = header[6];
+		byte serializer_id = header[7];
+		int flags = (header[8] << 8) | header[9];
+		int seq = (header[10] << 8) | header[11];
+		
 		int data_size=(((((header[12] <<8) | header[13]) <<8) | header[14]) <<8) | header[15];
-		int serializer_id = (header[16] << 8)|header[17];
-		int annotations_size = (header[18]<<8)|header[19];
-		// byte 20 and 21 are reserved.
-		int checksum = (header[22]<<8)|header[23];
-		if(checksum!=((msg_type+version+data_size+annotations_size+flags+serializer_id+seq+CHECKSUM_MAGIC)&0xffff))
-			throw new PyroException("header checksum mismatch");
+		int annotations_size=(((((header[16] <<8) | header[17]) <<8) | header[18]) <<8) | header[19];
 
-		var msg = new Message((ushort) msg_type, (ushort) serializer_id, (ushort) flags, (ushort) seq)
+		// for now, we're not reading the response correlation ID from [20]-[35].
+
+		var msg = new Message(msg_type, serializer_id, (ushort) flags, (ushort) seq, null)
 		{
 			data_size = data_size,
 			annotations_size = (ushort) annotations_size
@@ -215,7 +235,7 @@ public class Message
 	/// Also reads annotation chunks and the actual payload data.
 	/// </summary>
 	// ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
-	public static Message recv(Stream connection, ushort[] requiredMsgTypes)
+	public static Message recv(Stream connection, byte[] requiredMsgTypes)
 	{
 		var header_data = IOUtil.recv(connection, HEADER_SIZE);
 		var msg = from_header(header_data);
@@ -232,11 +252,11 @@ public class Message
 			while(i<msg.annotations_size)
 			{
 				string anno = Encoding.ASCII.GetString(annotations_data, i, 4);
-				int length = (annotations_data[i+4]<<8) | annotations_data[i+5];
+				int length = (annotations_data[i+4]<<24) | (annotations_data[i+5]<<16) | (annotations_data[i+6]<<8) | annotations_data[i+7];
 				var annotations_bytes = new byte[length];
-				Array.Copy(annotations_data, i+6, annotations_bytes, 0, length);
+				Array.Copy(annotations_data, i+8, annotations_bytes, 0, length);
 				msg.annotations[anno] = annotations_bytes;
-				i += 6+length;
+				i += 8+length;
 			}
 		}
 		

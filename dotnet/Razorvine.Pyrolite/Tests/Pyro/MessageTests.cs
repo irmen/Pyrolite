@@ -16,50 +16,51 @@ namespace Pyrolite.Tests.Pyro
 {
 
 public class MessageTests {
-	private readonly ushort _serializerId = new SerpentSerializer().serializer_id;
+	private readonly byte _serializerId = new SerpentSerializer().serializer_id;
 	
 	[Fact]
 	public void TestMessage()
 	{
-		var unused = new Message(99, new byte[0], _serializerId, 0, 0, null);  // doesn't check msg type here
+		var unused = new Message(99, new byte[0], _serializerId, 0, 0, null, null);  // doesn't check msg type here
 		Assert.Throws<PyroException>(()=>Message.from_header(Encoding.ASCII.GetBytes("FOOBAR")));
-		var msg = new Message(Message.MSG_CONNECT, Encoding.ASCII.GetBytes("hello"), _serializerId, 0, 0, null);
+		var msg = new Message(Message.MSG_CONNECT, Encoding.ASCII.GetBytes("hello"), _serializerId, 0, 0, null, null);
 		Assert.Equal(Message.MSG_CONNECT, msg.type);
 		Assert.Equal(5, msg.data_size);
 		Assert.Equal(new []{(byte)'h',(byte)'e',(byte)'l',(byte)'l',(byte)'o'}, msg.data);
-		Assert.Equal(4+4+20, msg.annotations_size);
+		Assert.Equal(0, msg.annotations_size);
+		Assert.Equal(0, msg.annotations.Count);
 
 		var hdr = msg.to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg = Message.from_header(hdr);
 		Assert.Equal(Message.MSG_CONNECT, msg.type);
-		Assert.Equal(4+4+20, msg.annotations_size);
+		Assert.Equal(0, msg.annotations_size);
 		Assert.Equal(5, msg.data_size);
 
-		hdr = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 0, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		hdr = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 0, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg = Message.from_header(hdr);
 		Assert.Equal(Message.MSG_RESULT, msg.type);
-		Assert.Equal(4+4+20, msg.annotations_size);
+		Assert.Equal(0, msg.annotations_size);
 		Assert.Equal(0, msg.data_size);
 
-		hdr = new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 12345, 60006, 30003, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		hdr = new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 99, 60006, 30003, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg = Message.from_header(hdr);
 		Assert.Equal(Message.MSG_RESULT, msg.type);
 		Assert.Equal(60006, msg.flags);
 		Assert.Equal(5, msg.data_size);
-		Assert.Equal(12345, msg.serializer_id);
+		Assert.Equal(99, msg.serializer_id);
 		Assert.Equal(30003, msg.seq);
 
-		var data = new Message(255, new byte[0], _serializerId, 0, 255, null).to_bytes();
-		Assert.Equal(50, data.Length);
-		data = new Message(1, new byte[0], _serializerId, 0, 255, null).to_bytes();
-		Assert.Equal(50, data.Length);
-		data = new Message(1, new byte[0], _serializerId, 253, 254, null).to_bytes();
-		Assert.Equal(50, data.Length);
+		var data = new Message(255, new byte[0], _serializerId, 0, 255, null, null).to_bytes();
+		Assert.Equal(40, data.Length);
+		data = new Message(1, new byte[0], _serializerId, 0, 255, null, null).to_bytes();
+		Assert.Equal(40, data.Length);
+		data = new Message(1, new byte[0], _serializerId, 253, 254, null, null).to_bytes();
+		Assert.Equal(40, data.Length);
 
 		// compression is a job of the code supplying the data, so the messagefactory should leave it untouched
 		data = new byte[1000];
-		var msgBytes1 = new Message(Message.MSG_INVOKE, data, _serializerId, 0, 0, null).to_bytes();
-		var msgBytes2 = new Message(Message.MSG_INVOKE, data, _serializerId, Message.FLAGS_COMPRESSED, 0, null).to_bytes();
+		var msgBytes1 = new Message(Message.MSG_INVOKE, data, _serializerId, 0, 0, null, null).to_bytes();
+		var msgBytes2 = new Message(Message.MSG_INVOKE, data, _serializerId, Message.FLAGS_COMPRESSED, 0, null, null).to_bytes();
 		Assert.Equal(msgBytes1.Length, msgBytes2.Length);
 	}
 	
@@ -67,7 +68,7 @@ public class MessageTests {
 	public void TestMessageHeaderDatasize()
 	{
 		var msg =
-			new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 12345, 60006, 30003, null)
+			new Message(Message.MSG_RESULT, Encoding.ASCII.GetBytes("hello"), 99, 60006, 30003, null, null)
 			{
 				data_size = 0x12345678
 			};
@@ -77,7 +78,7 @@ public class MessageTests {
 		Assert.Equal(Message.MSG_RESULT, msg.type);
 		Assert.Equal(60006, msg.flags);
 		Assert.Equal(0x12345678, msg.data_size);
-		Assert.Equal(12345, msg.serializer_id);
+		Assert.Equal(99, msg.serializer_id);
 		Assert.Equal(30003, msg.seq);
 	}
 	
@@ -85,7 +86,7 @@ public class MessageTests {
 	[Fact]
 	public void TestRecvNoAnnotations()
 	{
-		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, 42, 0, 0, null);
+		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, 42, 0, 0, null, null);
 		var data = msg.to_bytes();
 		var ms = new MemoryStream(data);
 		msg = Message.recv(ms, null);
@@ -107,12 +108,12 @@ public class MessageTests {
 			["TES4"] = new byte[] {40, 50, 60, 70, 80}
 		};
 
-		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, annotations);
+		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, annotations, null);
 		var data = msg.to_bytes();
 		const int annotationsSize = (4+4+5)*4;
 		Assert.Equal(Message.HEADER_SIZE + annotationsSize + 5, data.Length);
+		Assert.Equal(4, msg.annotations.Count);
 		Assert.Equal(annotationsSize, msg.annotations_size);
-		Assert.Equal(5, msg.annotations.Count);
 		Assert.Equal(new byte[]{10,20,30,40,50}, msg.annotations["TES1"]);
 		Assert.Equal(new byte[]{20,30,40,50,60}, msg.annotations["TES2"]);
 		Assert.Equal(new byte[]{30,40,50,60,70}, msg.annotations["TES3"]);
@@ -125,10 +126,10 @@ public class MessageTests {
 			["TES2"] = new byte[] {20, 30, 40, 50, 60},
 			["TES1"] = new byte[] {10, 20, 30, 40, 50}
 		};
-		var msg2 = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, annotations);
+		var msg2 = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, annotations, null);
 
 		annotations = new Dictionary<string, byte[]> {["TES4"] = new byte[] {40, 50, 60, 70, 80}};
-		var msg3 = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, annotations);
+		var msg3 = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, annotations, null);
 	}
 	
 	[Fact]
@@ -136,7 +137,7 @@ public class MessageTests {
 	{
 		try {
 			var anno = new Dictionary<string, byte[]> {["TOOLONG"] = new byte[] {10, 20, 30}};
-			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, anno);
+			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, anno, null);
 			msg.to_bytes();
 			Assert.True(false, "should fail, too long");
 		} catch(ArgumentException) {
@@ -144,7 +145,7 @@ public class MessageTests {
 		}
 		try {
 			var anno = new Dictionary<string, byte[]> {["QQ"] = new byte[] {10, 20, 30}};
-			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, anno);
+			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, anno, null);
 			msg.to_bytes();
 			Assert.True(false, "should fail, too short");
 		} catch (ArgumentException) {
@@ -156,7 +157,7 @@ public class MessageTests {
 	public void TestRecvAnnotations()
 	{
 		var annotations = new Dictionary<string, byte[]> {["TEST"] = new byte[] {10, 20, 30, 40, 50}};
-		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, annotations);
+		var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, annotations, null);
 		
 		var ms = new MemoryStream(msg.to_bytes());
 		msg = Message.recv(ms, null);
@@ -188,15 +189,14 @@ public class MessageTests {
 			correlation_id = Guid.NewGuid()
 		};
 		var annotations = p.annotations();
-		Assert.Equal(2, annotations.Count);
-		Assert.True(annotations.ContainsKey("CORR"));
+		Assert.Equal(1, annotations.Count);
 		Assert.True(annotations.ContainsKey("XYZZ"));
 	}
 	
 	[Fact]
 	public void TestProtocolVersionKaputt()
 	{
-		var msg = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		var msg = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 99; // screw up protocol version in message header
 		msg[5] = 111; // screw up protocol version in message header
 		Assert.Throws<PyroException>(() => Message.from_header(msg)); // "invalid protocol version: 25455"
@@ -205,7 +205,7 @@ public class MessageTests {
 	[Fact]
 	public void TestProtocolVersionsNotSupported1()
 	{
-		var msg = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		var msg = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 0;
 		msg[5] = 47;
 		Assert.Throws<PyroException>(() => Message.from_header(msg)); // "invalid protocol version: 47"
@@ -214,26 +214,11 @@ public class MessageTests {
 	[Fact]
 	public void TestProtocolVersionsNotSupported2()
 	{
-		var msg = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 1, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		var msg = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 0;
 		msg[5] = 49;
 		Assert.Throws<PyroException>(() => Message.from_header(msg));  //"invalid protocol version: 49"
 	}
-
-	[Fact]
-	public void TestProxyCorrelationId()
-	{
-		PyroProxy p = new PyroProxy(new PyroURI("PYRO:foo@localhost:55555")) {correlation_id = null};
-		var ann = p.annotations();
-		Assert.Equal(0, ann.Count);
-		p.correlation_id = Guid.NewGuid();
-		ann = p.annotations();
-		Assert.Equal(1, ann.Count);
-		Assert.True(ann.ContainsKey("CORR"));
-		
-		Guid uuid = new Guid(ann["CORR"]);
-		Assert.Equal(p.correlation_id, uuid);
-	}	
 }
 
 }

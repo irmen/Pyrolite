@@ -36,19 +36,7 @@ class CustomAnnotationsProxy : PyroProxy
 	public override void responseAnnotations(IDictionary<string, byte[]> annotations, ushort msgtype) {
 		Console.WriteLine("    Got response (type={0}). Annotations:", msgtype);
 		foreach(var ann in annotations) {
-			string value;
-			switch (ann.Key)
-			{
-				case "CORR":
-					value = new Guid(ann.Value).ToString();
-					break;
-				case "HMAC":
-					value = "[...]";
-					break;
-				default:
-					value = ann.Value.ToString();
-					break;
-			}
+			string value = ann.Value.ToString();
 			Console.WriteLine("      {0} -> {1}", ann.Key, value);
 		}
 	}

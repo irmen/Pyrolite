@@ -229,11 +229,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// </summary>
 	public virtual IDictionary<string, byte[]> annotations()
 	{
-		var ann = new Dictionary<string, byte[]>(0);
-		if(correlation_id.HasValue) {
-			ann["CORR"]=correlation_id.Value.ToByteArray();
-		}
-		return ann;
+		return new Dictionary<string, byte[]>(0);
 	}
 	
 	/// <summary>
@@ -263,7 +259,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		PyroSerializer ser = PyroSerializer.GetSerpentSerializer();
 		var serdat = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
-		var msg = new Message(Message.MSG_INVOKE, serdat, ser.serializer_id, flags, sequenceNr, annotations());
+		var msg = new Message(Message.MSG_INVOKE, serdat, ser.serializer_id, flags, sequenceNr, annotations(), null);
 		Message resultmsg;
 		lock (sock) {
 			IOUtil.send(sock_stream, msg.to_bytes());
@@ -364,7 +360,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		var data = ser.serializeData(handshakedata);
 		ushort flags = 0;
 		// TODO correlation ID flag
-		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations());
+		var msg = new Message(Message.MSG_CONNECT, data, ser.serializer_id, flags, sequenceNr, annotations(), null);
 		IOUtil.send(sock_stream, msg.to_bytes());
 		if(Config.MSG_TRACE_DIR!=null) {
 			Message.TraceMessageSend(sequenceNr, msg.get_header_bytes(), msg.get_annotations_bytes(), msg.data);

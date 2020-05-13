@@ -14,7 +14,7 @@ namespace Razorvine.Pyro.Serializer
 	/// </summary>
 	public abstract class PyroSerializer
 	{
-		public abstract ushort serializer_id { get; }  // make sure this matches the id from Pyro
+		public abstract byte serializer_id { get; }  // make sure this matches the id from Pyro
 
 		public abstract byte[] serializeCall(string objectId, string method, object[] vargs, IDictionary<string, object> kwargs);
 		public abstract byte[] serializeData(object obj);
@@ -56,7 +56,7 @@ namespace Razorvine.Pyro.Serializer
 	/// </summary>
 	public class SerpentSerializer : PyroSerializer
 	{
-		public override ushort serializer_id => Message.SERIALIZER_SERPENT;
+		public override byte serializer_id => Message.SERIALIZER_SERPENT;
 
 		static SerpentSerializer()
 		{
