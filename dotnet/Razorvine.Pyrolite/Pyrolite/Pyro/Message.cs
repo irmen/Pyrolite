@@ -145,7 +145,27 @@ After that, the actual payload data bytes follow.
 		header[18]=(byte)((annotations_size>>8)&0xff);
 		header[19]=(byte)(annotations_size&0xff);
 
-		correlation_id?.ToByteArray().CopyTo(header, 20);
+		if (correlation_id.HasValue)
+		{
+			var bytes = correlation_id.Value.ToByteArray();
+			// the bytes are mixed up, store in correct order
+			header[20] = bytes[3];
+			header[21] = bytes[2];
+			header[22] = bytes[1];
+			header[23] = bytes[0];
+			header[24] = bytes[5];
+			header[25] = bytes[4];
+			header[26] = bytes[7];
+			header[27] = bytes[6];
+			header[28] = bytes[8];
+			header[29] = bytes[9];
+			header[30] = bytes[10];
+			header[31] = bytes[11];
+			header[32] = bytes[12];
+			header[33] = bytes[13];
+			header[34] = bytes[14];
+			header[35] = bytes[15];
+		}
 
 		// header[36]=0; // reserved
 		// header[37]=0; // reserved

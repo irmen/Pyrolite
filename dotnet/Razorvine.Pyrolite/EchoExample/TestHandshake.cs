@@ -63,7 +63,6 @@ public static class TestHandshake {
 		    p.pyroHandshake = secret;
 		    p.correlation_id = Guid.NewGuid();
 		    Console.WriteLine("correlation id set to: {0}", p.correlation_id);
-		    // TODO the correlation ID printed in the server is wrong.......
 		    p.ping();
 		    Console.WriteLine("Connection Ok!");
 		}
