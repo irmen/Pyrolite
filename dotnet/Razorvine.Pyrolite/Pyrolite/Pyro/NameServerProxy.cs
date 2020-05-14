@@ -56,26 +56,8 @@ public class NameServerProxy : PyroProxy {
 		call("set_metadata", name, metadata);
 	}
 
-	public IDictionary<string,string> list(string prefix, string regex) {
-		IDictionary hash = (IDictionary) call("list", prefix, regex);
-		IDictionary<string,string> typed=new Dictionary<string,string>(hash.Count);
-		foreach(object name in hash.Keys) {
-			typed[(string)name]=(string)hash[name];
-		}
-		return typed;
-	}
-	
-	public IDictionary<string,string> list(string prefix, string regex, IEnumerable<string> metadata_all, IEnumerable<string> metadata_any) {
-		IDictionary hash = (IDictionary) call("list", prefix, regex, metadata_all, metadata_any);
-		IDictionary<string,string> typed=new Dictionary<string,string>(hash.Count);
-		foreach(object name in hash.Keys) {
-			typed[(string)name]=(string)hash[name];
-		}
-		return typed;
-	}
-
-	public IDictionary<string, Tuple<string, ISet<string>>> list_with_meta(string prefix, string regex) {
-		IDictionary hash = (IDictionary) call("list", prefix, regex, null, null, true);
+	public IDictionary<string, Tuple<string, ISet<string>>> list(string prefix, string regex) {
+		IDictionary hash = (IDictionary) call("list", prefix, regex, true);
 		IDictionary<string, Tuple<string, ISet<string>>> typed=new Dictionary<string, Tuple<string, ISet<string>>>(hash.Count);
 		foreach(object name in hash.Keys) {
 			var o = (object[]) hash[name];
@@ -86,8 +68,8 @@ public class NameServerProxy : PyroProxy {
 		return typed;
 	}
 
-	public IDictionary<string, Tuple<string, ISet<string>>> list_with_meta(string prefix, string regex, IEnumerable<string> metadata_all, IEnumerable<string> metadata_any) {
-		IDictionary hash = (IDictionary) call("list", prefix, regex, metadata_all, metadata_any, true);
+	public IDictionary<string, Tuple<string, ISet<string>>> yplookup(IEnumerable<string> meta_all, IEnumerable<string> meta_any) {
+		IDictionary hash = (IDictionary) call("yplookup", meta_all, meta_any, true);
 		IDictionary<string, Tuple<string, ISet<string>>> typed=new Dictionary<string, Tuple<string, ISet<string>>>(hash.Count);
 		foreach(object name in hash.Keys) {
 			var o = (object[]) hash[name];

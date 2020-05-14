@@ -45,14 +45,8 @@ public static class TestNaming {
 			ns.set_metadata("Pyro.NameServer", metadata);
 			
 			
-			Console.WriteLine("\nobjects registered in the name server:");
-			var objects = ns.list(null, null);
-			foreach(string key in objects.Keys) {
-				Console.WriteLine(key + " --> " + objects[key]);
-			}
-		
 			Console.WriteLine("\nobjects registered in the name server, with metadata:");
-			var objectsm = ns.list_with_meta(null, null);
+			var objectsm = ns.list(null, null);
 			foreach(string key in objectsm.Keys) {
 				var registration = objectsm[key];
 				Console.WriteLine(key + " --> " + registration.Item1);
@@ -60,18 +54,16 @@ public static class TestNaming {
 			}
 
 			Console.WriteLine("\nobjects registered having all metadata:");
-			objects = ns.list(null, null, new []{"blahblah", "class:Pyro5.naming.NameServer"}, null);
+			var objects = ns.yplookup(new []{"blahblah", "class:Pyro5.nameserver.NameServer"}, null);
 			foreach(string name in objects.Keys) {
-				Console.WriteLine(name + " --> " + objects[name]);
+				var entry = objectsm[name];
+				Console.WriteLine(name + " --> " + entry.Item1);
+				Console.WriteLine("      metadata: " + string.Join(", ", entry.Item2));
 			}
+
 			Console.WriteLine("\nobjects registered having any metadata:");
-			objects = ns.list(null, null, null, new []{"blahblah", "class:Pyro5.naming.NameServer"});
+			objects = ns.yplookup(null, new []{"blahblah", "class:Pyro5.nameserver.NameServer"});
 			foreach(string name in objects.Keys) {
-				Console.WriteLine(name + " --> " + objects[name]);
-			}
-			Console.WriteLine("\nobjects registered having any metadata (showing it too):");
-			objectsm = ns.list_with_meta(null, null, null, new []{"blahblah", "class:Pyro5.naming.NameServer"});
-			foreach(string name in objectsm.Keys) {
 				var entry = objectsm[name];
 				Console.WriteLine(name + " --> " + entry.Item1);
 				Console.WriteLine("      metadata: " + string.Join(", ", entry.Item2));
