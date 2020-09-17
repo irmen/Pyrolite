@@ -229,7 +229,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		return true;
 	}
 	
-	
+    
 	/// <summary>
 	/// Call a method on the remote Pyro object this proxy is for.
 	/// </summary>
@@ -272,7 +272,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	
 	/// <summary>
 	/// Returns a dict with annotations to be sent with each message.
-	/// Default behavior is to include the current correlation id (if it is set).
+    /// Default behavior is to include the current correlation id (if it is set).
 	/// </summary>
 	public virtual IDictionary<string, byte[]> annotations()
 	{
@@ -288,7 +288,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		lock(this) {
 			connect();
 			unchecked {
-				sequenceNr++;        // unchecked so this ushort wraps around 0-65535 instead of raising an OverflowException
+			    sequenceNr++;        // unchecked so this ushort wraps around 0-65535 instead of raising an OverflowException
 			}
 		}
 		if(pyroAttrs.Contains(method)) {
@@ -374,14 +374,14 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 		using(MemoryStream compressed=new MemoryStream(msg.data, 2, msg.data.Length-2, false)) {
 			using(DeflateStream decompresser=new DeflateStream(compressed, CompressionMode.Decompress)) {
-				MemoryStream bos = new MemoryStream(msg.data.Length);
-				var buffer = new byte[4096];
-				int numRead;
-				while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
-					bos.Write(buffer, 0, numRead);
-				}
-				msg.data=bos.ToArray();
-				msg.flags ^= Message.FLAGS_COMPRESSED;
+        		MemoryStream bos = new MemoryStream(msg.data.Length);
+        		var buffer = new byte[4096];
+        		int numRead;
+        		while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
+        		    bos.Write(buffer, 0, numRead);
+        		}
+        		msg.data=bos.ToArray();
+        		msg.flags ^= Message.FLAGS_COMPRESSED;
 			}
 		}
 	}
@@ -461,7 +461,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <summary>
 	/// Process and validate the initial connection handshake response data received from the daemon.
 	/// Simply return without error if everything is ok.
-	/// Throw an exception if something is wrong and the connection should not be made.
+    /// Throw an exception if something is wrong and the connection should not be made.
 	/// </summary>
 	public virtual void validateHandshake(object handshake_response)
 	{
