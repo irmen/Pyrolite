@@ -229,7 +229,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		return true;
 	}
 	
-    
+	
 	/// <summary>
 	/// Call a method on the remote Pyro object this proxy is for.
 	/// </summary>
@@ -374,7 +374,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 		using(MemoryStream compressed=new MemoryStream(msg.data, 2, msg.data.Length-2, false)) {
 			using(DeflateStream decompresser=new DeflateStream(compressed, CompressionMode.Decompress)) {
-        		MemoryStream bos = new MemoryStream(msg.data.Length);
+				MemoryStream bos = new MemoryStream(msg.data.Length);
         		var buffer = new byte[4096];
         		int numRead;
         		while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
