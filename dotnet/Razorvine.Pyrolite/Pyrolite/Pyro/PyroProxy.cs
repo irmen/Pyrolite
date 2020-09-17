@@ -8,8 +8,10 @@ using System.Dynamic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Razorvine.Pyro.Serializer;
 
@@ -37,7 +39,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 
 	private ushort sequenceNr;
 	private TcpClient sock;
-	private NetworkStream sock_stream;
+	private Stream sock_stream;
 	
 	public ISet<string> pyroMethods = new HashSet<string>();	// remote methods
 	public ISet<string> pyroAttrs = new HashSet<string>();	// remote attributes
@@ -83,7 +85,23 @@ public class PyroProxy : DynamicObject, IDisposable {
 			sock = new TcpClient();
 			sock.Connect(hostname,port);
 			sock.NoDelay=true;
-			sock_stream=sock.GetStream();
+			
+			if (Config.SSL)
+			{
+				var sslStream = new SslStream(sock.GetStream(), true, ValidateServerCertificate);
+				if (File.Exists(Config.SSL_CLIENTCERT))
+				{
+					var clientCert = new X509CertificateCollection();
+					clientCert.Add(new X509Certificate(Config.SSL_CLIENTCERT, Config.SSL_CLIENTCERTPASSWD));
+					sslStream.AuthenticateAsClient(hostname, clientCert, System.Security.Authentication.SslProtocols.Default, false);
+				} else {
+					sslStream.AuthenticateAsClient(hostname);
+				}
+				sock_stream = sslStream;
+			} else {
+				sock_stream = sock.GetStream();
+			}
+
 			sequenceNr = 0;
 			_handshake();
 
@@ -95,6 +113,35 @@ public class PyroProxy : DynamicObject, IDisposable {
 				GetMetadata(objectid);
 			}
 		}
+	}
+
+	/// <summary>
+	/// custom certificate validator to trust self signed CAs
+	/// </summary>
+	public static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) {
+		X509Certificate2Collection trustedCaCollection = new X509Certificate2Collection();
+
+		if (File.Exists(Config.SSL_CACERTS)) {
+			X509Certificate2 authority = new X509Certificate2(Config.SSL_CACERTS);
+			trustedCaCollection.Add(authority);
+		} else if (Directory.Exists(Config.SSL_CACERTS) && Directory.GetFiles(Config.SSL_CACERTS).Length > 0) {
+			foreach (var file in Directory.GetFiles(Config.SSL_CACERTS))
+			{
+				X509Certificate2 authority = new X509Certificate2(Config.SSL_CACERTS);
+				trustedCaCollection.Add(authority);
+			}
+		}
+
+		if (chain.ChainStatus.Any(status => status.Status != X509ChainStatusFlags.UntrustedRoot))
+			return false;
+
+		foreach (var element in chain.ChainElements)
+		{
+			if (element.ChainElementStatus.Any(status => status.Status == X509ChainStatusFlags.UntrustedRoot) && !trustedCaCollection.Contains(element.Certificate))
+				return false;
+		}
+
+		return true;
 	}
 
 	/// <summary>
@@ -182,7 +229,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		return true;
 	}
 	
-	    
+	
 	/// <summary>
 	/// Call a method on the remote Pyro object this proxy is for.
 	/// </summary>
@@ -225,7 +272,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	
 	/// <summary>
 	/// Returns a dict with annotations to be sent with each message.
-    /// Default behavior is to include the current correlation id (if it is set).
+	/// Default behavior is to include the current correlation id (if it is set).
 	/// </summary>
 	public virtual IDictionary<string, byte[]> annotations()
 	{
@@ -241,7 +288,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		lock(this) {
 			connect();
 			unchecked {
-			    sequenceNr++;        // unchecked so this ushort wraps around 0-65535 instead of raising an OverflowException
+				sequenceNr++;        // unchecked so this ushort wraps around 0-65535 instead of raising an OverflowException
 			}
 		}
 		if(pyroAttrs.Contains(method)) {
@@ -328,13 +375,13 @@ public class PyroProxy : DynamicObject, IDisposable {
 		using(MemoryStream compressed=new MemoryStream(msg.data, 2, msg.data.Length-2, false)) {
 			using(DeflateStream decompresser=new DeflateStream(compressed, CompressionMode.Decompress)) {
 				MemoryStream bos = new MemoryStream(msg.data.Length);
-        		var buffer = new byte[4096];
-        		int numRead;
-        		while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
-        		    bos.Write(buffer, 0, numRead);
-        		}
-        		msg.data=bos.ToArray();
-        		msg.flags ^= Message.FLAGS_COMPRESSED;
+				var buffer = new byte[4096];
+				int numRead;
+				while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
+					bos.Write(buffer, 0, numRead);
+				}
+				msg.data=bos.ToArray();
+				msg.flags ^= Message.FLAGS_COMPRESSED;
 			}
 		}
 	}
@@ -414,7 +461,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// <summary>
 	/// Process and validate the initial connection handshake response data received from the daemon.
 	/// Simply return without error if everything is ok.
-    /// Throw an exception if something is wrong and the connection should not be made.
+	/// Throw an exception if something is wrong and the connection should not be made.
 	/// </summary>
 	public virtual void validateHandshake(object handshake_response)
 	{
