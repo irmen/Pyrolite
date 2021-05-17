@@ -27,9 +27,9 @@ public class PyroExceptionSerpent implements IClassSerializer {
 				ex = new PyroException("["+pythonExceptionType+"]");
 		} else {
 			if(pythonExceptionType==null)
-				ex = new PyroException((String)args[0]);
+				ex = new PyroException(args[0].toString());
 			else
-				ex = new PyroException("["+pythonExceptionType+"] "+(String)args[0]);
+				ex = new PyroException("["+pythonExceptionType+"] "+args[0].toString());
 		}
 
 		ex.pythonExceptionType = pythonExceptionType;

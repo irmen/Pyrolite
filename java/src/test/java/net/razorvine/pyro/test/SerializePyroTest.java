@@ -13,6 +13,7 @@ import net.razorvine.pyro.Config;
 import net.razorvine.pyro.PyroException;
 import net.razorvine.pyro.PyroProxy;
 import net.razorvine.pyro.PyroURI;
+import net.razorvine.pyro.serializer.PyroExceptionSerpent;
 import net.razorvine.pyro.serializer.PyroProxySerpent;
 import net.razorvine.pyro.serializer.SerpentSerializer;
 
@@ -138,6 +139,18 @@ public class SerializePyroTest {
         } catch (IllegalArgumentException x) {
         	//
         }
+	}
+
+	@Test
+	public void testDeserializeExceptionArgs()
+	{
+		Map<Object, Object> dd=new HashMap<>();
+		Object[] eargs = new Object[] { 123 };
+		dd.put("args", eargs);
+		dd.put("__class__", "python.class");
+		dd.put("attributes", new HashMap<String, Object>());
+		String s = PyroExceptionSerpent.FromSerpentDict(dd).toString();
+		assertEquals("net.razorvine.pyro.PyroException: [python.class] 123", s);
 	}
 
 }
