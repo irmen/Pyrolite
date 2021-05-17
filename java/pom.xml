@@ -9,7 +9,7 @@
 
 	<groupId>net.razorvine</groupId>
 	<artifactId>pyrolite</artifactId>
-	<version>5.1-SNAPSHOT</version>
+	<version>5.1</version>
 	<packaging>jar</packaging>
 
 	<name>pyrolite</name>
@@ -72,7 +72,7 @@
 		<url>https://github.com/irmen/Pyrolite</url>
 		<connection>scm:git:https://github.com/irmen/Pyrolite.git</connection>
 		<developerConnection>scm:git:https://github.com/irmen/Pyrolite.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>pyrolite-5.1</tag>
 	</scm>
 	<issueManagement>
 		<system>Github</system>
