@@ -8,6 +8,6 @@
     <ProjectReference Include="..\Pyrolite\Pyrolite.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Razorvine.Serpent" Version="1.30.0" />
+    <PackageReference Include="Razorvine.Serpent" Version="1.40.0" />
   </ItemGroup>
 </Project>

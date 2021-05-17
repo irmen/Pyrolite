@@ -17,7 +17,7 @@ public static class Config  {
 	public static bool SERPENT_INDENT = false;
 
 	public const int PROTOCOL_VERSION = 502;	  // Pyro5
-	public const string PYROLITE_VERSION="5.0";
+	public const string PYROLITE_VERSION="5.1";
 
 	public const string DAEMON_NAME = "Pyro.Daemon";
 }

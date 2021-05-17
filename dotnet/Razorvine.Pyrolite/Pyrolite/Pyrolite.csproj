@@ -8,9 +8,9 @@
     <Authors>Irmen de Jong</Authors>
     <Product>Pyro5 client communication library</Product>
     <PackageId>Razorvine.Pyrolite</PackageId>
-    <Version>5.0.0</Version>
-    <AssemblyVersion>5.0.0.0</AssemblyVersion>
-    <FileVersion>5.0.0.0</FileVersion>
+    <Version>5.1.0</Version>
+    <AssemblyVersion>5.1.0.0</AssemblyVersion>
+    <FileVersion>5.1.0.0</FileVersion>
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>Pyrolite.snk</AssemblyOriginatorKeyFile>
@@ -23,10 +23,10 @@ More info about Pyro: https://pyro5.readthedocs.io/</Description>
     <RepositoryUrl>https://github.com/irmen/Pyrolite.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>pyro python rpc remote-objects</PackageTags>
-    <PackageReleaseNotes>Removed pickle to prepare for Pyro5 only protocol support.  </PackageReleaseNotes>
+    <PackageReleaseNotes>Upgrade to newer serpent package.  </PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Razorvine.Serpent" Version="1.30.0" />
+    <PackageReference Include="Razorvine.Serpent" Version="1.40.0" />
     <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 </Project>
