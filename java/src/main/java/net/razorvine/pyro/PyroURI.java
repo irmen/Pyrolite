@@ -28,14 +28,28 @@ public class PyroURI implements Serializable {
 	}
 
 	public PyroURI(String uri) {
-		Pattern p = Pattern.compile("(PYRO[A-Z]*):(\\S+?)(@(\\S+))?$");
-		Matcher m = p.matcher(uri);
+		Matcher m = Pattern.compile("(PYRO[A-Z]*):(\\S+?)(@(\\S+))?$").matcher(uri);
 		if (m.find()) {
 			protocol = m.group(1);
 			objectid = m.group(2);
-			String[] loc = m.group(4).split(":");
-			host = loc[0];
-			port = Integer.parseInt(loc[1]);
+			String location = m.group(4);
+			if(location.charAt(0)=='[') {
+				// ipv6
+				if(location.startsWith("[["))
+					throw new PyroException("invalid ipv6 address: enclosed in too many brackets");
+				Matcher ipv6locationmatch = Pattern.compile("\\[([0-9a-fA-F:%]+)](:(\\d+))?").matcher(location);
+				if(ipv6locationmatch.matches()) {
+					host = ipv6locationmatch.group(1);
+					port = Integer.parseInt(ipv6locationmatch.group(3));
+				} else {
+					throw new PyroException("invalid ipv6 address: the part between brackets must be a numeric ipv6 address");
+				}
+			} else {
+				// regular ipv4
+				String[] loc = location.split(":");
+				host = loc[0];
+				port = Integer.parseInt(loc[1]);
+			}
 		} else {
 			throw new PyroException("invalid URI string");
 		}
