@@ -81,8 +81,8 @@ public class Message
 	/// </summary>
 	public byte[] to_bytes()
 	{
-		var header_bytes = get_header_bytes();
-		var annotations_bytes = get_annotations_bytes();
+		byte[] header_bytes = get_header_bytes();
+		byte[] annotations_bytes = get_annotations_bytes();
 		var result = new byte[header_bytes.Length + annotations_bytes.Length + data.Length];
 		Array.Copy(header_bytes, result, header_bytes.Length);
 		Array.Copy(annotations_bytes, 0, result, header_bytes.Length, annotations_bytes.Length);
@@ -147,7 +147,7 @@ After that, the actual payload data bytes follow.
 
 		if (correlation_id.HasValue)
 		{
-			var bytes = correlation_id.Value.ToByteArray();
+			byte[] bytes = correlation_id.Value.ToByteArray();
 			// the bytes are mixed up, store in correct order
 			header[20] = bytes[3];
 			header[21] = bytes[2];
@@ -170,15 +170,15 @@ After that, the actual payload data bytes follow.
 		// header[36]=0; // reserved
 		// header[37]=0; // reserved
 		
-		header[38] = (byte)((MAGIC_NUMBER>>8)&0xff);
-		header[39] = (byte)(MAGIC_NUMBER&0xff);
+		header[38] = (MAGIC_NUMBER>>8)&0xff;
+		header[39] = MAGIC_NUMBER&0xff;
 
 		return header;
 	}
 	
 	public byte[] get_annotations_bytes()
 	{
-		IEnumerable<byte> result = new byte[0];
+		IEnumerable<byte> result = Array.Empty<byte>();
 		foreach(var ann in annotations)
 		{
 			if(ann.Key.Length!=4)
@@ -257,7 +257,7 @@ After that, the actual payload data bytes follow.
 	// ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
 	public static Message recv(Stream connection, byte[] requiredMsgTypes)
 	{
-		var header_data = IOUtil.recv(connection, HEADER_SIZE);
+		byte[] header_data = IOUtil.recv(connection, HEADER_SIZE);
 		var msg = from_header(header_data);
 		if(requiredMsgTypes!=null && !requiredMsgTypes.Contains(msg.type))
 			throw new PyroException($"invalid msg type {msg.type} received");

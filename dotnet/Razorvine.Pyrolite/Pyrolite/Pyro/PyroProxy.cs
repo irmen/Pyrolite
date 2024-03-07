@@ -124,11 +124,10 @@ public class PyroProxy : DynamicObject, IDisposable {
 	{
 		// the collections in the result can be either an object[] or a HashSet<object> or List<object>, 
 		// depending on the serializer and Pyro version that is used
-		var methods_array = result["methods"] as object[];
 		var attrs_array = result["attrs"] as object[];
 		var oneway_array = result["oneway"] as object[];
 		
-		pyroMethods = methods_array != null ? new HashSet<string>(methods_array.Select(o => o as string)) : GetStringSet(result["methods"]);
+		pyroMethods = result["methods"] is object[] methods_array ? new HashSet<string>(methods_array.Select(o => o as string)) : GetStringSet(result["methods"]);
 		pyroAttrs = attrs_array != null ? new HashSet<string>(attrs_array.Select(o => o as string)) : GetStringSet(result["attrs"]);
 		pyroOneway = oneway_array != null ? new HashSet<string>(oneway_array.Select(o => o as string)) : GetStringSet(result["oneway"]);
 		
@@ -145,8 +144,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	
 	protected static HashSet<string> GetStringSet(object strings)
 	{
-		var result1 = strings as HashSet<string>;
-		if(result1!=null)
+		if(strings is HashSet<string> result1)
 			return result1;
 		
 		// another collection, convert to set of strings.
@@ -261,7 +259,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 			parameters = new object[] {};
 		
 		PyroSerializer ser = PyroSerializer.GetSerpentSerializer();
-		var serdat = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
+		byte[] serdat = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
 		var msg = new Message(Message.MSG_INVOKE, serdat, ser.serializer_id, flags, sequenceNr, annotations(), correlation_id);
 		Message resultmsg;
 		lock (sock) {
@@ -286,8 +284,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 
 		if ((resultmsg.flags & Message.FLAGS_ITEMSTREAMRESULT) != 0) {
-			byte[] streamId;
-			if(!resultmsg.annotations.TryGetValue("STRM", out streamId)) {
+			if(!resultmsg.annotations.TryGetValue("STRM", out byte[] streamId)) {
 				throw new PyroException("result of call is an iterator, but the server is not configured to allow streaming");
 			}
 			return new StreamResultIterator(Encoding.UTF8.GetString(streamId), this);
@@ -295,8 +292,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
 			Exception rx = (Exception) ser.deserializeData(resultmsg.data);
-			var exception = rx as PyroException;
-			if (exception != null) {
+			if (rx is PyroException exception) {
 				throw exception;
 			}
 
@@ -358,9 +354,12 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// </summary>
 	protected void _handshake() {
 		var ser = PyroSerializer.GetSerpentSerializer();
-		var handshakedata = new Dictionary<string, object> {["handshake"] = pyroHandshake};
-		handshakedata["object"] = objectid;
-		var data = ser.serializeData(handshakedata);
+		var handshakedata = new Dictionary<string, object>
+		{
+			["handshake"] = pyroHandshake,
+			["object"] = objectid
+		};
+		byte[] data = ser.serializeData(handshakedata);
 		ushort flags = 0;
 		if(correlation_id!=null) {
 			flags |= Message.FLAGS_CORR_ID;

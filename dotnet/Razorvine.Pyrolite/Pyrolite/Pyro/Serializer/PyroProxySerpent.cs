@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,15 +38,20 @@ namespace Razorvine.Pyro.Serializer
 			
 			// the following nasty piece of code is similar to _processMetaData from the PyroProxy
 			// this is because the three collections can either be an array or a set
-			var onewayArray = state[1] as object[];
 			var methodsArray = state[2] as object[];
 			var attrsArray = state[3] as object[];
-			if(onewayArray!=null)
-				proxy.pyroOneway = new HashSet<string>(onewayArray.Select(o=>o as string));
-			else if(state[1] is HashSet<string>)
-				proxy.pyroOneway = (HashSet<string>) state[1];
-			else
-				proxy.pyroOneway = new HashSet<string> ((state[1] as HashSet<object>).Select(o=>o.ToString()));
+			switch (state[1])
+			{
+				case object[] onewayArray:
+					proxy.pyroOneway = new HashSet<string>(onewayArray.Select(o=>o as string));
+					break;
+				case HashSet<string> _:
+					proxy.pyroOneway = (HashSet<string>) state[1];
+					break;
+				default:
+					proxy.pyroOneway = new HashSet<string> ((state[1] as HashSet<object>).Select(o=>o.ToString()));
+					break;
+			}
 
 			if(methodsArray!=null)
 				proxy.pyroMethods = new HashSet<string>(methodsArray.Select(o=>o as string));

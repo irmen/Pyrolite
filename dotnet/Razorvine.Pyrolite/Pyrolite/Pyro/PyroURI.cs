@@ -32,17 +32,17 @@ public class PyroURI {
 	}
 
 	public PyroURI(string uri) {
-		Match m = new Regex("(PYRO[A-Z]*):(\\S+?)(@(\\S+))?$").Match(uri);
+		Match m = new Regex(@"(PYRO[A-Z]*):(\S+?)(@(\S+))?$").Match(uri);
 		if (m.Success) {
 			protocol = m.Groups[1].Value;
 			objectid = m.Groups[2].Value;
-			var location = m.Groups[4].Value;
+			string location = m.Groups[4].Value;
 			if (location[0] == '[')
 			{
 				// ipv6
 				if(location.StartsWith("[["))
 					throw new PyroException("invalid ipv6 address: enclosed in too many brackets");
-				Match ipv6locationmatch = new Regex("\\[([0-9a-fA-F:%]+)](:(\\d+))?").Match(location);
+				Match ipv6locationmatch = new Regex(@"\[([0-9a-fA-F:%]+)](:(\d+))?").Match(location);
 				if(ipv6locationmatch.Success) {
 					host = ipv6locationmatch.Groups[1].Value;
 					port = int.Parse(ipv6locationmatch.Groups[3].Value);
@@ -53,7 +53,7 @@ public class PyroURI {
 			else
 			{
 				// regular ipv4
-				var loc = location.Split(':');
+				string[] loc = location.Split(':');
 				host = loc[0];
 				port = int.Parse(loc[1]);
 			}

@@ -36,7 +36,7 @@ namespace Pyrolite.Tests.Pyro
 			var listObj = (List<object>)ser.deserializeData(data);
 			Assert.Equal(list, listObj);
 			
-			ISet<string> s = new HashSet<string>();
+			ISet<object> s = new HashSet<object>();
 			s.Add("element1");
 			s.Add("element2");
 			data = ser.serializeData(s);
@@ -82,7 +82,7 @@ namespace Pyrolite.Tests.Pyro
 		{
 			Config.SERPENT_INDENT=false;
 
-			ISet<string> s = new HashSet<string>();
+			ISet<object> s = new HashSet<object>();
 			s.Add("element1");
 			s.Add("element2");
 			var ser = PyroSerializer.GetSerpentSerializer();

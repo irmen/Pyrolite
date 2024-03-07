@@ -1,5 +1,5 @@
 /* part of Pyrolite, by Irmen de Jong (irmen@razorvine.net) */
-	
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,6 +20,7 @@ namespace Razorvine.Pyro.Serializer
 		public abstract byte[] serializeData(object obj);
 		public abstract object deserializeData(byte[] data);
 
+		// ReSharper disable once MemberCanBePrivate.Global
 		protected static SerpentSerializer serpentSerializer;
 		
 		public static PyroSerializer GetSerpentSerializer()
@@ -67,6 +68,8 @@ namespace Razorvine.Pyro.Serializer
 			Serpent.Serializer.RegisterClass(typeof(PyroProxy), PyroProxySerpent.ToSerpentDict);
 		}
 	
+		// ReSharper disable once MemberCanBePrivate.Global
+		// ReSharper disable once MemberCanBeMadeStatic.Global
 		public object DictToInstance(IDictionary dict)
 		{
 			string classname = (string)dict["__class__"];
@@ -102,7 +105,7 @@ namespace Razorvine.Pyro.Serializer
 		
 		public override object deserializeData(byte[] data)
 		{
-			var ast = new Serpent.Parser().Parse(data);
+			var ast = new Parser().Parse(data);
 			return ast.GetData(DictToInstance);
 		}
 		
@@ -113,6 +116,6 @@ namespace Razorvine.Pyro.Serializer
 		 * If it is something else, throw an IllegalArgumentException
 		 * (implementation used of net.razorvine.serpent.Parser)
 		 */
-		public static byte[] ToBytes(object obj) => Serpent.Parser.ToBytes(obj);
+		public static byte[] ToBytes(object obj) => Parser.ToBytes(obj);
 	}
 }

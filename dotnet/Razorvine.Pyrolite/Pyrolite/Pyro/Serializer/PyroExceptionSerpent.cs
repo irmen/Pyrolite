@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Text;
 
@@ -15,7 +16,7 @@ namespace Razorvine.Pyro.Serializer
             if(ex.Message != null)
                 dict["args"] = new object[] {ex.Message};
             else
-                dict["args"] = new object[0];
+                dict["args"] = Array.Empty<object>();
             if(!string.IsNullOrEmpty(ex._pyroTraceback))
                 ex.Data["_pyroTraceback"] = new [] { ex._pyroTraceback } ;    	// transform single string back into list
             dict["attributes"] = ex.Data;
@@ -44,19 +45,17 @@ namespace Razorvine.Pyro.Serializer
             {
                 string key = (string)entry.Key;
                 ex.Data[key] = entry.Value;
-                if("_pyroTraceback"==key)
-                {
-                    // if the traceback is a list of strings, create one string from it
-                    var tbcoll = entry.Value as ICollection;
-                    if(tbcoll != null) {
-                        StringBuilder sb=new StringBuilder();
-                        foreach(object line in tbcoll) {
-                            sb.Append(line);
-                        }	
-                        ex._pyroTraceback=sb.ToString();
-                    } else {
-                        ex._pyroTraceback=(string)entry.Value;
-                    }
+                if ("_pyroTraceback" != key) 
+                    continue;
+                // if the traceback is a list of strings, create one string from it
+                if(entry.Value is ICollection tbcoll) {
+                    StringBuilder sb=new StringBuilder();
+                    foreach(object line in tbcoll) {
+                        sb.Append(line);
+                    }	
+                    ex._pyroTraceback=sb.ToString();
+                } else {
+                    ex._pyroTraceback=(string)entry.Value;
                 }
             }
             return ex;
