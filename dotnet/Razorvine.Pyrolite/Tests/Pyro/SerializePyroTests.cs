@@ -74,7 +74,7 @@ namespace Pyrolite.Tests.Pyro
 			var data = PyroProxySerpent.ToSerpentDict(proxy);
 			Assert.Equal(2, data.Count);
 			Assert.Equal("Pyro5.client.Proxy", (string) data["__class__"]);
-			Assert.Equal(7, ((object[])data["state"]).Length);
+			Assert.Equal(7, (((object[])data["state"])!).Length);
 				
 			PyroProxy proxy2 = (PyroProxy) PyroProxySerpent.FromSerpentDict(data);
 			Assert.Equal(proxy.objectid, proxy2.objectid);
@@ -94,8 +94,8 @@ namespace Pyrolite.Tests.Pyro
 			Assert.Equal("localhost", p.hostname);
 			Assert.Equal(9090, p.port);
 			Assert.Equal("hello", p.pyroHandshake);
-			Assert.Equal(0, p.pyroAttrs.Count);
-			Assert.Equal(0, p.pyroOneway.Count);
+			Assert.Empty(p.pyroAttrs);
+			Assert.Empty(p.pyroOneway);
 			Assert.Equal(6, p.pyroMethods.Count);
 			var methods = new List<string> {"count", "list", "lookup", "ping", "register", "remove"};
 			Assert.Equal(methods, p.pyroMethods.OrderBy(m=>m).ToList());
@@ -117,7 +117,7 @@ namespace Pyrolite.Tests.Pyro
 
 	        try {
 	        	SerpentSerializer.ToBytes(12345);
-	        	Assert.True(false, "error expected");
+	        	Assert.Fail("error expected");
 	        } catch (ArgumentException) {
 	        	//
 	        }

@@ -28,7 +28,7 @@ public class MessageTests {
 		Assert.Equal(5, msg.data_size);
 		Assert.Equal(new []{(byte)'h',(byte)'e',(byte)'l',(byte)'l',(byte)'o'}, msg.data);
 		Assert.Equal(0, msg.annotations_size);
-		Assert.Equal(0, msg.annotations.Count);
+		Assert.Empty(msg.annotations);
 
 		var hdr = msg.to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg = Message.from_header(hdr);
@@ -94,7 +94,7 @@ public class MessageTests {
 		Assert.Equal(5, msg.data_size);
 		Assert.Equal(new byte[]{1,2,3,4,5}, msg.data);
 		Assert.Equal(0, msg.annotations_size);
-		Assert.Equal(0, msg.annotations.Count);
+		Assert.Empty(msg.annotations);
 	}
 	
 	[Fact]
@@ -139,7 +139,7 @@ public class MessageTests {
 			var anno = new Dictionary<string, byte[]> {["TOOLONG"] = new byte[] {10, 20, 30}};
 			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, anno, null);
 			msg.to_bytes();
-			Assert.True(false, "should fail, too long");
+			Assert.Fail("should fail, too long");
 		} catch(ArgumentException) {
 			//ok
 		}
@@ -147,7 +147,7 @@ public class MessageTests {
 			var anno = new Dictionary<string, byte[]> {["QQ"] = new byte[] {10, 20, 30}};
 			var msg = new Message(Message.MSG_CONNECT, new byte[]{1,2,3,4,5}, _serializerId, 0, 0, anno, null);
 			msg.to_bytes();
-			Assert.True(false, "should fail, too short");
+			Assert.Fail("should fail, too short");
 		} catch (ArgumentException) {
 			//ok
 		}
@@ -163,7 +163,7 @@ public class MessageTests {
 		msg = Message.recv(ms, null);
 		Assert.Equal(-1, ms.ReadByte());
 		Assert.Equal(5, msg.data_size);
-		Assert.Equal(1, msg.annotations.Count);
+		Assert.Single(msg.annotations);
 		Assert.Equal(new byte[]{1,2,3,4,5}, msg.data);
 		Assert.Equal(new byte[]{10,20,30,40,50}, msg.annotations["TEST"]);
 	}
@@ -189,7 +189,7 @@ public class MessageTests {
 			correlation_id = Guid.NewGuid()
 		};
 		var annotations = p.annotations();
-		Assert.Equal(1, annotations.Count);
+		Assert.Single(annotations);
 		Assert.True(annotations.ContainsKey("XYZZ"));
 	}
 	
