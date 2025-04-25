@@ -8,13 +8,12 @@ using Razorvine.Pyro;
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable once InconsistentNaming
 
-namespace Pyrolite.TestPyroEcho
-{
-	
+namespace Pyrolite.TestPyroEcho;
+
 /// <summary>
 /// This custom proxy adds custom annotations to the pyro messages
 /// </summary>
-class CustomAnnotationsProxy : PyroProxy
+internal class CustomAnnotationsProxy : PyroProxy
 {
 	public CustomAnnotationsProxy(PyroURI uri): base(uri) 
 	{
@@ -57,16 +56,12 @@ public static class TestHandshake {
 		string uri = Console.ReadLine().Trim();
 		Console.WriteLine("Enter the secret code as printed by the server: ");
 		string secret = Console.ReadLine().Trim();
-		
-		using(dynamic p = new CustomAnnotationsProxy(new PyroURI(uri)))
-		{
-		    p.pyroHandshake = secret;
-		    p.correlation_id = Guid.NewGuid();
-		    Console.WriteLine("correlation id set to: {0}", p.correlation_id);
-		    p.ping();
-		    Console.WriteLine("Connection Ok!");
-		}
-	}
-}
 
+		using dynamic p = new CustomAnnotationsProxy(new PyroURI(uri));
+		p.pyroHandshake = secret;
+		p.correlation_id = Guid.NewGuid();
+		Console.WriteLine("correlation id set to: {0}", p.correlation_id);
+		p.ping();
+		Console.WriteLine("Connection Ok!");
+	}
 }

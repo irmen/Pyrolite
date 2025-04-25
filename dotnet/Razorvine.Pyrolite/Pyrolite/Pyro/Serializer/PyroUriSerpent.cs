@@ -6,7 +6,7 @@ namespace Razorvine.Pyro.Serializer
     {
         public static IDictionary ToSerpentDict(object obj)
         {
-            PyroURI uri = (PyroURI)obj;
+            var uri = (PyroURI)obj;
             var dict = new Hashtable
             {
                 ["state"] = new object[] {uri.protocol, uri.objectid, null, uri.host, uri.port},

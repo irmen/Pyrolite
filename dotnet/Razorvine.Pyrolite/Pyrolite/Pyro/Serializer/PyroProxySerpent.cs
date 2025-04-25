@@ -11,7 +11,7 @@ namespace Razorvine.Pyro.Serializer
 			// note: the state array returned here must conform to the list consumed by Pyro's Proxy.__setstate_from_dict__ 
 			// that means, we make an array of length 8:
 			// uri, oneway set, methods set, attrs set, timeout, handshake, maxretries  (in this order)
-			PyroProxy proxy = (PyroProxy)obj;
+			var proxy = (PyroProxy)obj;
 			var dict = new Hashtable();
 			string uri = $"PYRO:{proxy.objectid}@{proxy.hostname}:{proxy.port}";
 			dict["state"] = new []{
@@ -33,25 +33,19 @@ namespace Razorvine.Pyro.Serializer
 			// that means, we must get an array of length 8:  (the same as with ToSerpentDict above!)
 			// uri, oneway set, methods set, attrs set, timeout, handshake, maxretries  (in this order)
 			var state = (object[])dict["state"];
-			PyroURI uri = new PyroURI((string)state[0]);
+			var uri = new PyroURI((string)state[0]);
 			var proxy = new PyroProxy(uri);
 			
 			// the following nasty piece of code is similar to _processMetaData from the PyroProxy
 			// this is because the three collections can either be an array or a set
 			var methodsArray = state[2] as object[];
 			var attrsArray = state[3] as object[];
-			switch (state[1])
+			proxy.pyroOneway = state[1] switch
 			{
-				case object[] onewayArray:
-					proxy.pyroOneway = new HashSet<string>(onewayArray.Select(o=>o as string));
-					break;
-				case HashSet<string> _:
-					proxy.pyroOneway = (HashSet<string>) state[1];
-					break;
-				default:
-					proxy.pyroOneway = new HashSet<string> ((state[1] as HashSet<object>).Select(o=>o.ToString()));
-					break;
-			}
+				object[] onewayArray => new HashSet<string>(onewayArray.Select(o => o as string)),
+				HashSet<string> => (HashSet<string>)state[1],
+				_ => new HashSet<string>((state[1] as HashSet<object>).Select(o => o.ToString()))
+			};
 
 			if(methodsArray!=null)
 				proxy.pyroMethods = new HashSet<string>(methodsArray.Select(o=>o as string));

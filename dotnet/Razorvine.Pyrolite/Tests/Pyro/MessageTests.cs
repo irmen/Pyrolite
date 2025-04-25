@@ -12,8 +12,7 @@ using Razorvine.Pyro.Serializer;
 
 // ReSharper disable CheckNamespace
 
-namespace Pyrolite.Tests.Pyro
-{
+namespace Pyrolite.Tests.Pyro;
 
 public class MessageTests {
 	private readonly byte _serializerId = new SerpentSerializer().serializer_id;
@@ -21,7 +20,7 @@ public class MessageTests {
 	[Fact]
 	public void TestMessage()
 	{
-		var unused = new Message(99, new byte[0], _serializerId, 0, 0, null, null);  // doesn't check msg type here
+		var unused = new Message(99, Array.Empty<byte>(), _serializerId, 0, 0, null, null);  // doesn't check msg type here
 		Assert.Throws<PyroException>(()=>Message.from_header(Encoding.ASCII.GetBytes("FOOBAR")));
 		var msg = new Message(Message.MSG_CONNECT, Encoding.ASCII.GetBytes("hello"), _serializerId, 0, 0, null, null);
 		Assert.Equal(Message.MSG_CONNECT, msg.type);
@@ -36,7 +35,7 @@ public class MessageTests {
 		Assert.Equal(0, msg.annotations_size);
 		Assert.Equal(5, msg.data_size);
 
-		hdr = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 0, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		hdr = new Message(Message.MSG_RESULT, Array.Empty<byte>(), _serializerId, 0, 0, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg = Message.from_header(hdr);
 		Assert.Equal(Message.MSG_RESULT, msg.type);
 		Assert.Equal(0, msg.annotations_size);
@@ -50,11 +49,11 @@ public class MessageTests {
 		Assert.Equal(99, msg.serializer_id);
 		Assert.Equal(30003, msg.seq);
 
-		var data = new Message(255, new byte[0], _serializerId, 0, 255, null, null).to_bytes();
+		var data = new Message(255, Array.Empty<byte>(), _serializerId, 0, 255, null, null).to_bytes();
 		Assert.Equal(40, data.Length);
-		data = new Message(1, new byte[0], _serializerId, 0, 255, null, null).to_bytes();
+		data = new Message(1, Array.Empty<byte>(), _serializerId, 0, 255, null, null).to_bytes();
 		Assert.Equal(40, data.Length);
-		data = new Message(1, new byte[0], _serializerId, 253, 254, null, null).to_bytes();
+		data = new Message(1, Array.Empty<byte>(), _serializerId, 253, 254, null, null).to_bytes();
 		Assert.Equal(40, data.Length);
 
 		// compression is a job of the code supplying the data, so the messagefactory should leave it untouched
@@ -196,7 +195,7 @@ public class MessageTests {
 	[Fact]
 	public void TestProtocolVersionKaputt()
 	{
-		var msg = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		var msg = new Message(Message.MSG_RESULT, Array.Empty<byte>(), _serializerId, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 99; // screw up protocol version in message header
 		msg[5] = 111; // screw up protocol version in message header
 		Assert.Throws<PyroException>(() => Message.from_header(msg)); // "invalid protocol version: 25455"
@@ -205,7 +204,7 @@ public class MessageTests {
 	[Fact]
 	public void TestProtocolVersionsNotSupported1()
 	{
-		var msg = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		var msg = new Message(Message.MSG_RESULT, Array.Empty<byte>(), _serializerId, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 0;
 		msg[5] = 47;
 		Assert.Throws<PyroException>(() => Message.from_header(msg)); // "invalid protocol version: 47"
@@ -214,11 +213,9 @@ public class MessageTests {
 	[Fact]
 	public void TestProtocolVersionsNotSupported2()
 	{
-		var msg = new Message(Message.MSG_RESULT, new byte[0], _serializerId, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
+		var msg = new Message(Message.MSG_RESULT, Array.Empty<byte>(), _serializerId, 0, 1, null, null).to_bytes().Take(Message.HEADER_SIZE).ToArray();
 		msg[4] = 0;
 		msg[5] = 49;
 		Assert.Throws<PyroException>(() => Message.from_header(msg));  //"invalid protocol version: 49"
 	}
-}
-
 }

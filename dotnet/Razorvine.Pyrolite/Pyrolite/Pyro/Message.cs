@@ -203,7 +203,7 @@ After that, the actual payload data bytes follow.
 	/// </summary>
 	public static Message from_header(byte[] header)
 	{
-		if(header==null || header.Length!=HEADER_SIZE)
+		if(header is not { Length: HEADER_SIZE })
 			throw new PyroException("header data size mismatch");
 		
 		if(header[0]!='P'||header[1]!='Y'||header[2]!='R'||header[3]!='O') 
@@ -292,26 +292,26 @@ After that, the actual payload data bytes follow.
 
 	public static void TraceMessageRecv(int sequenceNr, byte[] headerdata, byte[] annotations, byte[] data) {
 		string filename=Path.Combine(Config.MSG_TRACE_DIR, $"{sequenceNr:D5}-b-recv-header.dat");
-		using(FileStream fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
+		using(var fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
 			fos.Write(headerdata, 0, headerdata.Length);
 			if(annotations!=null)
 				fos.Write(annotations, 0, annotations.Length);
 		}
 		filename=Path.Combine(Config.MSG_TRACE_DIR, $"{sequenceNr:D5}-b-recv-message.dat");
-		using(FileStream fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
+		using(var fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
 			fos.Write(data, 0, data.Length);
 		}
 	}
 
 	public static void TraceMessageSend(int sequenceNr, byte[] headerdata, byte[] annotations, byte[] data) {
 		string filename=Path.Combine(Config.MSG_TRACE_DIR, $"{sequenceNr:D5}-a-send-header.dat");
-		using(FileStream fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
+		using(var fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
 			fos.Write(headerdata, 0, headerdata.Length);
 			if(annotations!=null)
 				fos.Write(annotations, 0, annotations.Length);
 		}
 		filename=Path.Combine(Config.MSG_TRACE_DIR, $"{sequenceNr:D5}-a-send-message.dat");
-		using(FileStream fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
+		using(var fos=new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write)) {
 			fos.Write(data, 0, data.Length);
 		}
 	}

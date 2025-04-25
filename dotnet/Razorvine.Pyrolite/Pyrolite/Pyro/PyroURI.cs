@@ -32,7 +32,7 @@ public class PyroURI {
 	}
 
 	public PyroURI(string uri) {
-		Match m = new Regex(@"(PYRO[A-Z]*):(\S+?)(@(\S+))?$").Match(uri);
+		var m = new Regex(@"(PYRO[A-Z]*):(\S+?)(@(\S+))?$").Match(uri);
 		if (m.Success) {
 			protocol = m.Groups[1].Value;
 			objectid = m.Groups[2].Value;
@@ -42,7 +42,7 @@ public class PyroURI {
 				// ipv6
 				if(location.StartsWith("[["))
 					throw new PyroException("invalid ipv6 address: enclosed in too many brackets");
-				Match ipv6locationmatch = new Regex(@"\[([0-9a-fA-F:%]+)](:(\d+))?").Match(location);
+				var ipv6locationmatch = new Regex(@"\[([0-9a-fA-F:%]+)](:(\d+))?").Match(location);
 				if(ipv6locationmatch.Success) {
 					host = ipv6locationmatch.Groups[1].Value;
 					port = int.Parse(ipv6locationmatch.Groups[3].Value);
@@ -76,7 +76,7 @@ public class PyroURI {
 	#region Equals and GetHashCode implementation
 	public override bool Equals(object obj)
 	{
-		PyroURI other = obj as PyroURI;
+		var other = obj as PyroURI;
 		if (other == null)
 			return false;
 		return other.ToString()==ToString();

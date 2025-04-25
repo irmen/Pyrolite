@@ -8,7 +8,7 @@ namespace Razorvine.Pyro.Serializer
     {
         public static IDictionary ToSerpentDict(object obj)
         {
-            PyroException ex = (PyroException) obj;
+            var ex = (PyroException) obj;
             IDictionary dict = new Hashtable();
             // {'attributes':{},'__exception__':True,'args':('hello',),'__class__':'PyroError'}
             dict["__class__"] = "PyroError";
@@ -40,7 +40,7 @@ namespace Razorvine.Pyro.Serializer
 		
             ex.PythonExceptionType = pythonExceptionType;
 
-            IDictionary attrs = (IDictionary)dict["attributes"];
+            var attrs = (IDictionary)dict["attributes"];
             foreach(DictionaryEntry entry in attrs)
             {
                 string key = (string)entry.Key;
@@ -49,7 +49,7 @@ namespace Razorvine.Pyro.Serializer
                     continue;
                 // if the traceback is a list of strings, create one string from it
                 if(entry.Value is ICollection tbcoll) {
-                    StringBuilder sb=new StringBuilder();
+                    var sb=new StringBuilder();
                     foreach(object line in tbcoll) {
                         sb.Append(line);
                     }	

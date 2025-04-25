@@ -6,8 +6,7 @@ using Razorvine.Pyro;
 // ReSharper disable CheckNamespace
 // ReSharper disable PossibleNullReferenceException
 
-namespace Pyrolite.TestPyroEcho
-{
+namespace Pyrolite.TestPyroEcho;
 
 /// <summary>
 /// Test Pyro with streaming.
@@ -22,53 +21,51 @@ public static class TestStreaming {
 		Console.Write("Enter stream server URI: ");
 		string uri = Console.ReadLine();
 
-		using(dynamic p = new PyroProxy(new PyroURI(uri.Trim()))) {
+		using dynamic p = new PyroProxy(new PyroURI(uri.Trim()));
+		Console.WriteLine("LIST:");
+		dynamic result = p.list();
+		Console.WriteLine(result);
+		foreach(int i in result)
+		{
+			Console.WriteLine(i);
+		}
 			
-			Console.WriteLine("LIST:");
-			dynamic result = p.list();
+		Console.WriteLine("ITERATOR:");
+		using(result = p.iterator())
+		{
 			Console.WriteLine(result);
 			foreach(int i in result)
 			{
 				Console.WriteLine(i);
 			}
-			
-			Console.WriteLine("ITERATOR:");
-			using(result = p.iterator())
-			{
-				Console.WriteLine(result);
-				foreach(int i in result)
-				{
-					Console.WriteLine(i);
-				}
-			}
+		}
 
-			Console.WriteLine("GENERATOR:");
-			result = p.generator();
-			Console.WriteLine(result);
+		Console.WriteLine("GENERATOR:");
+		result = p.generator();
+		Console.WriteLine(result);
+		foreach(int i in result)
+		{
+			Console.WriteLine(i);
+		}
+
+		Console.WriteLine("SLOW GENERATOR:");
+		using(result = p.slow_generator())
+		{
 			foreach(int i in result)
 			{
 				Console.WriteLine(i);
 			}
-
-			Console.WriteLine("SLOW GENERATOR:");
-			using(result = p.slow_generator())
-			{
-				foreach(int i in result)
-				{
-					Console.WriteLine(i);
-				}
-			}
+		}
 			
-			Console.WriteLine("STOPPING GENERATOR HALFWAY:");
-			using(result=p.generator())
-			{
-				IEnumerator enumerator = result.GetEnumerator();
-				enumerator.MoveNext();
-				Console.WriteLine(enumerator.Current);
-				enumerator.MoveNext();
-				Console.WriteLine(enumerator.Current);
-				Console.WriteLine("...stopping...");
-			}
+		Console.WriteLine("STOPPING GENERATOR HALFWAY:");
+		using(result=p.generator())
+		{
+			IEnumerator enumerator = result.GetEnumerator();
+			enumerator.MoveNext();
+			Console.WriteLine(enumerator.Current);
+			enumerator.MoveNext();
+			Console.WriteLine(enumerator.Current);
+			Console.WriteLine("...stopping...");
 		}
 	}
 
@@ -80,6 +77,3 @@ public static class TestStreaming {
 		}
 	}
 }
-
-}
-

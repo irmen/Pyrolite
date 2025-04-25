@@ -79,15 +79,13 @@ namespace Razorvine.Pyro.Serializer
 				// map all exception types to the PyroException
 				return PyroExceptionSerpent.FromSerpentDict(dict);
 			}
-			switch(classname)
+
+			return classname switch
 			{
-				case "Pyro5.core.URI":
-					return PyroUriSerpent.FromSerpentDict(dict);
-				case "Pyro5.client.Proxy":
-					return PyroProxySerpent.FromSerpentDict(dict);
-				default:
-					return null;
-			}
+				"Pyro5.core.URI" => PyroUriSerpent.FromSerpentDict(dict),
+				"Pyro5.client.Proxy" => PyroProxySerpent.FromSerpentDict(dict),
+				_ => null
+			};
 		}
 
 		public override byte[] serializeData(object obj)

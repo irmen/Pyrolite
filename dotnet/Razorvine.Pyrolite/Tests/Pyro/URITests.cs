@@ -5,21 +5,20 @@ using Razorvine.Pyro;
 
 // ReSharper disable CheckNamespace
 
-namespace Pyrolite.Tests.Pyro
-{
+namespace Pyrolite.Tests.Pyro;
 
-public class URITests {
+public class UriTests {
 	
 	[Fact]
 	public void TestIpv4()
 	{
-		PyroURI uri = new PyroURI("PYRO:objectname@hostname:1234");
+		var uri = new PyroURI("PYRO:objectname@hostname:1234");
 		Assert.Equal(1234, uri.port);
 		Assert.Equal("hostname", uri.host);
 		Assert.Equal("objectname", uri.objectid);
 		Assert.Equal("PYRO", uri.protocol);
 
-		PyroURI uricopy = new PyroURI(uri);
+		var uricopy = new PyroURI(uri);
 		Assert.Equal(1234, uricopy.port);
 		Assert.Equal("hostname", uricopy.host);
 		Assert.Equal("objectname", uricopy.objectid);
@@ -35,13 +34,13 @@ public class URITests {
 	[Fact]
 	public void TestIpv6()
 	{
-		PyroURI uri = new PyroURI("PYRO:objectname@[::1]:1234");
+		var uri = new PyroURI("PYRO:objectname@[::1]:1234");
 		Assert.Equal(1234, uri.port);
 		Assert.Equal("::1", uri.host);
 		Assert.Equal("objectname", uri.objectid);
 		Assert.Equal("PYRO", uri.protocol);
 
-		PyroURI uricopy = new PyroURI(uri);
+		var uricopy = new PyroURI(uri);
 		Assert.Equal(1234, uricopy.port);
 		Assert.Equal("::1", uricopy.host);
 		Assert.Equal("objectname", uricopy.objectid);
@@ -56,7 +55,5 @@ public class URITests {
 		Assert.Throws<PyroException>(() => new PyroURI("PYRO:objectname@[[::1]]:1234"));
 		Assert.Throws<PyroException>(() => new PyroURI("PYRO:objectname@[invalid-ipv6]:1234"));
 	}		
-
-}
 
 }

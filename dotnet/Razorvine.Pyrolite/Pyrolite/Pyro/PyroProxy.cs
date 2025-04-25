@@ -9,7 +9,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Text;
 using Razorvine.Pyro.Serializer;
 
@@ -102,7 +101,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// </summary>
 	protected void GetMetadata(string objectId) {
 		// get metadata from server (methods, attrs, oneway, ...) and remember them in some attributes of the proxy
-		objectId = objectId ?? objectid;
+		objectId ??= objectid;
 		if(sock==null) {
 			connect();
 			if(pyroMethods.Any() || pyroAttrs.Any())
@@ -235,7 +234,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 	/// </summary>
 	// ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
 	private object internal_call(string method, string actual_objectId, ushort flags, bool checkMethodName, params object[] parameters) {
-		actual_objectId = actual_objectId ?? objectid;
+		actual_objectId ??= objectid;
 		lock(this) {
 			connect();
 			unchecked {
@@ -255,10 +254,9 @@ public class PyroProxy : DynamicObject, IDisposable {
 			throw new PyroException($"remote object '{actual_objectId}' has no exposed attribute or method '{method}'");
 		}
 
-		if (parameters == null)
-			parameters = new object[] {};
+		parameters ??= new object[] { };
 		
-		PyroSerializer ser = PyroSerializer.GetSerpentSerializer();
+		var ser = PyroSerializer.GetSerpentSerializer();
 		byte[] serdat = ser.serializeCall(actual_objectId, method, parameters, new Dictionary<string,object>(0));
 		var msg = new Message(Message.MSG_INVOKE, serdat, ser.serializer_id, flags, sequenceNr, annotations(), correlation_id);
 		Message resultmsg;
@@ -291,7 +289,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 		}
 		
 		if ((resultmsg.flags & Message.FLAGS_EXCEPTION) != 0) {
-			Exception rx = (Exception) ser.deserializeData(resultmsg.data);
+			var rx = (Exception) ser.deserializeData(resultmsg.data);
 			if (rx is PyroException exception) {
 				throw exception;
 			}
@@ -302,7 +300,7 @@ public class PyroProxy : DynamicObject, IDisposable {
 			// var px = pyx==null ? new PyroException(null, rx) : new PyroException(rx.Message, rx) {PythonExceptionType = pyx.PythonExceptionType};
 				
 			var px = new PyroException(null, rx);
-			PropertyInfo remotetbProperty=rx.GetType().GetProperty("_pyroTraceback");
+			var remotetbProperty=rx.GetType().GetProperty("_pyroTraceback");
 			if(remotetbProperty!=null) {
 				string remotetb=(string)remotetbProperty.GetValue(rx,null);
 				px._pyroTraceback=remotetb;
@@ -321,18 +319,17 @@ public class PyroProxy : DynamicObject, IDisposable {
 		if((msg.flags & Message.FLAGS_COMPRESSED) == 0) {
 			throw new ArgumentException("message data is not compressed");
 		}
-		using(MemoryStream compressed=new MemoryStream(msg.data, 2, msg.data.Length-2, false)) {
-			using(DeflateStream decompresser=new DeflateStream(compressed, CompressionMode.Decompress)) {
-				MemoryStream bos = new MemoryStream(msg.data.Length);
-        		var buffer = new byte[4096];
-        		int numRead;
-        		while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
-        		    bos.Write(buffer, 0, numRead);
-        		}
-        		msg.data=bos.ToArray();
-        		msg.flags ^= Message.FLAGS_COMPRESSED;
-			}
+
+		using var compressed=new MemoryStream(msg.data, 2, msg.data.Length-2, false);
+		using var decompresser=new DeflateStream(compressed, CompressionMode.Decompress);
+		var bos = new MemoryStream(msg.data.Length);
+		var buffer = new byte[4096];
+		int numRead;
+		while ((numRead = decompresser.Read(buffer, 0, buffer.Length)) != 0) {
+			bos.Write(buffer, 0, numRead);
 		}
+		msg.data=bos.ToArray();
+		msg.flags ^= Message.FLAGS_COMPRESSED;
 	}
 		
 	/// <summary>
